@@ -8,7 +8,7 @@ One-Dimensional <b>Statistical Parametric Mapping</b> in Python and MATLAB.
 
 <br>
 
-spm1d uses <b>Random Field Theory</b> expectations regarding the behavior of smooth, one-dimensional Gaussian fields to make statistical inferences regarding a set of one-dimensional continua.
+spm1d uses [random field theory](https://spm1d.org/rft1d/) expectations regarding the behavior of smooth, one-dimensional Gaussian fields to make statistical inferences regarding a set of one-dimensional continua.
 
 <br>
 <br>
