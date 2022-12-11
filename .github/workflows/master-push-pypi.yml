@@ -1,4 +1,4 @@
-name: publish-spm1d
+name: master-push-pypi-v0.5
 
 on:
   push:
