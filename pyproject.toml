@@ -2,7 +2,7 @@
 name            = "spm1d_project"
 version         = "0.5.0"
 description     = "'One-Dimensional Statistical Parametric Mapping"
-readme          = "README.md" # Optional
+readme          = "README.md"
 requires-python = ">=3.7"
 # license         = "GPL version 3"
 # license = {file = "LICENSE.txt"}
