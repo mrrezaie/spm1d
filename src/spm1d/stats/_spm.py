@@ -187,13 +187,16 @@ class SPM0D_F(_SPMF, _SPM0D):
 class SPM0D_T(_SPM0D):
 	def __init__(self, z, df, beta=None, residuals=None, sigma2=None):
 		_SPM0D.__init__(self, 'T', z, df, beta=beta, residuals=residuals, sigma2=sigma2)
-	def inference(self, alpha=0.05, two_tailed=True):
-		a      = 0.5*alpha if two_tailed else alpha
-		z      = abs(self.z) if two_tailed else self.z
-		zstar  = stats.t.isf(a, self.df[1])
-		p      = stats.t.sf( z, self.df[1])
-		p      = min(1, 2*p) if two_tailed else p
-		return SPM0Di_T(self, alpha, zstar, p, two_tailed)
+	def inference(self, alpha=0.05, two_tailed=True, method='param'):
+		if method=='param':
+			a      = 0.5*alpha if two_tailed else alpha
+			z      = abs(self.z) if two_tailed else self.z
+			zstar  = stats.t.isf(a, self.df[1])
+			p      = stats.t.sf( z, self.df[1])
+			p      = min(1, 2*p) if two_tailed else p
+			return SPM0Di_T(self, alpha, zstar, p, two_tailed)
+		elif method=='nonparam':
+			
 
 class SPM0D_T2(_SPM0D):
 	def __init__(self, z, df):
