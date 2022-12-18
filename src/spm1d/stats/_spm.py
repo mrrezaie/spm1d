@@ -196,7 +196,9 @@ class SPM0D_T(_SPM0D):
 			p      = min(1, 2*p) if two_tailed else p
 			return SPM0Di_T(self, alpha, zstar, p, two_tailed)
 		elif method=='nonparam':
-			
+			pass
+			# from . nonparam._snpm import SnPM0D_T
+			# snpm   = SnPM0D_T(self.z, )
 
 class SPM0D_T2(_SPM0D):
 	def __init__(self, z, df):
