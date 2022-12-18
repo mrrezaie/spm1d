@@ -15,7 +15,7 @@ and inference SPMs (thresholded test statistic).
 import sys
 import numpy as np
 from scipy import stats
-from .. import rft1d
+import rft1d
 from .. plot import plot_spm, plot_spm_design
 from .. plot import plot_spmi, plot_spmi_p_values, plot_spmi_threshold_label
 from . _clusters import Cluster

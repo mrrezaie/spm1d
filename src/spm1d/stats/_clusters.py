@@ -12,7 +12,7 @@ and inference SPMs (thresholded test statistic).
 
 from math import floor,ceil
 import numpy as np
-from .. import rft1d
+import rft1d
 
 
 

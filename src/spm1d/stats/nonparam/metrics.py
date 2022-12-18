@@ -2,7 +2,7 @@
 # Copyright (C) 2016  Todd Pataky
 
 import numpy as np
-from ... rft1d.geom import bwlabel
+from rft1d.geom import bwlabel
 
 
 

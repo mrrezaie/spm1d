@@ -5,7 +5,7 @@ from math import sqrt,log
 import numpy as np
 from scipy import ndimage
 from . import _spm
-from .. import rft1d
+import rft1d
 
 eps        = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero errors
 

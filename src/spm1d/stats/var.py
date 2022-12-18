@@ -5,7 +5,7 @@ Tests for variance.
 # Copyright (C) 2021  Todd Pataky
 
 import numpy as np
-from .. import rft1d
+import rft1d
 
 
 def eqvartest(y0, y1, alt="unequal", alpha=None, withBonf=True):

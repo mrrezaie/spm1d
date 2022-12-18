@@ -7,7 +7,7 @@ ANOVA computational core using an R-like linear model interface.
 
 
 import numpy as np
-from ... import rft1d
+import rft1d
 
 
 eps         = np.finfo(float).eps

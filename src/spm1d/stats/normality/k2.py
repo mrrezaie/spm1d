@@ -24,7 +24,7 @@ from .. anova import anova3nested as _main_anova3nested
 from .. anova import anova3rm as _main_anova3rm
 from .. anova import anova3onerm as _main_anova3onerm
 from .. anova import anova3tworm as _main_anova3tworm
-from ... import rft1d
+import rft1d
 
 
 

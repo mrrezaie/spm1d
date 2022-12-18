@@ -11,7 +11,7 @@ One- and two sample tests.
 import numpy as np
 from matplotlib import pyplot, cm as colormaps
 from . import _datachecks, _reml, _spm
-from .. import rft1d
+import rft1d
 
 
 rank   = np.linalg.matrix_rank
