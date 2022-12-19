@@ -19,7 +19,7 @@ This module contains a variety of convenience functions, including:
 
 from math import sqrt,log
 import numpy as np
-from . stats._spm import plist2string as p2s
+# from . stats._spmcls._spm import plist2string as p2s
 # from scipy.ndimage.filters import gaussian_filter1d
 from scipy.ndimage import gaussian_filter1d
 
@@ -27,25 +27,42 @@ from scipy.ndimage import gaussian_filter1d
 
 
 
+# def df2str(df):
+# 	return str(df) if not df%1 else '%.3f'%df
+# def dflist2str(dfs):
+# 	return '(%s, %s)' %(df2str(dfs[0]), df2str(dfs[1]))
+# def p2string(p):
+# 	return '<0.001' if p<0.0005 else '%.03f'%p
+# def plist2string(pList):
+# 	s      = ''
+# 	if len(pList)>0:
+# 		for p in pList:
+# 			s += p2string(p)
+# 			s += ', '
+# 		s  = s[:-2]
+# 	return s
+#
+#
+#
+# def plist2stringlist(pList):
+# 	s  = plist2string(pList).split(', ')
+# 	for i,ss in enumerate(s):
+# 		if ss.startswith('<'):
+# 			s[i]  = 'p' + ss
+# 		else:
+# 			s[i]  = 'p=' + ss
+# 	return s
 
-def plist2stringlist(pList):
-	s  = p2s(pList).split(', ')
-	for i,ss in enumerate(s):
-		if ss.startswith('<'):
-			s[i]  = 'p' + ss
-		else:
-			s[i]  = 'p=' + ss
-	return s
 
 
 
 def get_dataset(*args):
 	'''
 	.. warning:: Deprecated
-		
+
 		**get_dataset** is deprecated and will be removed from future versions of **spm1d**.  Please access datasets using the "spm1d.data" interface.
 	'''
-	raise( IOError('"get_dataset" is deprecated.  Please access datasets using "spm1d.data".') )
+	raise( DeprecationWarning('"get_dataset" is deprecated.  Access datasets using "spm1d.data"') )
 
 
 

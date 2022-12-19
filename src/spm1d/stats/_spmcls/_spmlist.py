@@ -12,7 +12,7 @@ and inference SPMs (thresholded test statistic).
 # Copyright (C) 2016  Todd Pataky
 
 
-from .. _plot import _plot_F_list
+from ... _plot import _plot_F_list
 
 
 class SPMFList(list):

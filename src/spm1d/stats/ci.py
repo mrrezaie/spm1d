@@ -10,7 +10,7 @@ If the CI cloud starting from the "datum" reaches the "criterion", the null hypo
 
 import numpy as np
 from .. plot import plot_ci_0d, plot_ci_multisample_0d, plot_ci, plot_ci_multisample
-from . _spm import df2str, dflist2str
+from .. util import df2str, dflist2str
 from . t import ttest,ttest2
 
 

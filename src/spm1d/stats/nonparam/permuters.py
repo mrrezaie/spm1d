@@ -520,3 +520,18 @@ class PermuterMANOVA11D(_PermuterANOVA1D, _PermuterMANOVA):
 	CalculatorClass    = calculators.CalculatorMANOVA11D
 
 
+
+# permuter_class_dict = {
+# 	'ttest' : [PermuterTtest20D, PermuterTtest21D]
+# }
+#
+#
+# def get_permuter(testname, dim, roi=None):
+# 	if testname == 'ttest':
+# 		perm  = PermuterTtest21D(yA, yB, roi=roi) if dim==1 else PermuterTtest20D(yA, yB)
+
+
+
+
+
+

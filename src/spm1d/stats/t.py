@@ -10,7 +10,7 @@ One- and two sample tests.
 
 import numpy as np
 from matplotlib import pyplot, cm as colormaps
-from . import _datachecks, _reml, _spm
+from . import _datachecks, _reml
 import rft1d
 
 
@@ -43,6 +43,7 @@ def glm(Y, X, c, Q=None, roi=None):
 	>>> ti = t.inference(alpha=0.05, two_tailed=True)
 	>>> ti.plot()
 	'''
+	from . _spmcls import SPM0D, SPM1D
 	### assemble data:
 	Y      = np.matrix(Y)
 	X      = np.matrix(X)
@@ -73,10 +74,10 @@ def glm(Y, X, c, Q=None, roi=None):
 			t      = np.ma.masked_array(t, np.logical_not(roi))
 		### assemble SPM{t} object
 		s      = np.asarray(sigma2).flatten()
-		t      = _spm.SPM_T(t, (1,df), fwhm, resels, np.asarray(X), np.asarray(b), eij, sigma2=s, roi=roi)
+		t      = SPM1D_T(t, (1,df), fwhm, resels, np.asarray(X), np.asarray(b), eij, sigma2=s, roi=roi)
 	else:
 		b,r,s2 = np.asarray(b).flatten(), eij.flatten(), float(sigma2)
-		t      = _spm.SPM0D_T(t, (1,df), beta=b, residuals=r, sigma2=s2)
+		t      = SPM0D('T', t, (1,df), beta=b, residuals=r, sigma2=s2)
 	return t
 
 
@@ -231,7 +232,9 @@ def ttest2(YA, YB, equal_var=False, roi=None):
 		Q1[JA:,JA:] = q1
 		Q           = [Q0, Q1]
 	### compute SPM{t}:
-	return glm(Y, X, c, Q, roi=roi)
+	spm = glm(Y, X, c, Q, roi=roi)
+	spm._set_testname( 'ttest2' )
+	return spm
 
 
 
