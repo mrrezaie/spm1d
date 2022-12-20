@@ -234,6 +234,7 @@ def ttest2(YA, YB, equal_var=False, roi=None):
 	### compute SPM{t}:
 	spm = glm(Y, X, c, Q, roi=roi)
 	spm._set_testname( 'ttest2' )
+	spm._set_data( YA, YB )
 	return spm
 
 

@@ -62,6 +62,7 @@ class _SPMParent(object):
 	'''Parent class for all parametric SPM classes.'''
 	isanova       = False
 	isinference   = False
+	isinlist      = False
 	isregress     = False
 	isparametric  = True
 	dim           = 0

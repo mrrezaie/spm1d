@@ -21,6 +21,13 @@ class SPM0Di(SPM0D):
 	
 	isinference = True
 	
+	method      = None         # inference method
+	alpha       = None          # Type I error rate
+	zc          = None             # critical value
+	p           = None              # p-value
+	dirn        = None           # one-tailed direction (-1 or +1)
+	
+	
 	# def __init__(self, spm, alpha, zstar, p, two_tailed=False):
 	# 	super().__init__(spm.STAT, spm.z, spm.df, beta=spm.beta, residuals=spm.residuals, sigma2=spm.sigma2)
 	# 	self.infmethod   = None           # inference method
@@ -40,7 +47,7 @@ class SPM0Di(SPM0D):
 
 	def __repr__(self):
 		s        = ''
-		s       += 'SPM{%s} (0D) inference\n'     %self.STAT
+		s       += f'{self._class_str} inference\n'
 		s       += '   SPM.testname         :  %s\n'      %self.testname
 		if self.isanova:
 			s   += '   SPM.effect           :  %s\n'      %self.effect
@@ -57,15 +64,29 @@ class SPM0Di(SPM0D):
 		s       += '   SPM.method           :  %s\n'      %self.method
 		s       += '   SPM.alpha            :  %.3f\n'    %self.alpha
 		s       += '   SPM.dirn             :  %s\n'      %self._dirn_str
-		s       += '   SPM.zstar            :  %.5f\n'    %self.zstar
+		s       += '   SPM.zstar            :  %s\n'      %self._zcstr
 		s       += '   SPM.h0reject         :  %s\n'      %self.h0reject
 		s       += '   SPM.p                :  %.5f\n'    %self.p
 		s       += '\n'
 		return s
 	
 	@property
+	def _class_str(self):
+		ss = '' if self.isparametric else 'n'
+		return f'S{ss}PM{{{self.STAT}}} (0D)'
+	
+	@property
 	def _dirn_str(self):
 		s     = '0 (two-tailed)' if self.dirn==0 else f'{self.dirn} (one-tailed)'
+		return s
+		
+	@property
+	def _zcstr(self):
+		if isinstance(self.zc, float):
+			s  = f'{self.zc:.3f}'
+		else:
+			z0,z1 = self.zc
+			s  = f'{z0:.3f}, {z1:.3f}'
 		return s
 
 	@property

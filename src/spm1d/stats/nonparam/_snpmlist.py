@@ -3,7 +3,7 @@
 
 import numpy as np
 from . import _snpm
-from .. import _spmlist
+from .. _spmcls import _spmlist
 
 
 

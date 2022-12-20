@@ -521,14 +521,15 @@ class PermuterMANOVA11D(_PermuterANOVA1D, _PermuterMANOVA):
 
 
 
-# permuter_class_dict = {
-# 	'ttest' : [PermuterTtest20D, PermuterTtest21D]
-# }
+permuter_class_dict = {
+	'ttest'        : [PermuterTtest0D, PermuterTtest1D],
+	'ttest2'       : [PermuterTtest20D, PermuterTtest21D],
+	'ttest_paired' : [PermuterTtest0D, PermuterTtest1D],
+}
 #
-#
-# def get_permuter(testname, dim, roi=None):
-# 	if testname == 'ttest':
-# 		perm  = PermuterTtest21D(yA, yB, roi=roi) if dim==1 else PermuterTtest20D(yA, yB)
+
+def get_permuter(testname, dim, roi=None):
+	return permuter_class_dict[ testname ][dim]
 
 
 

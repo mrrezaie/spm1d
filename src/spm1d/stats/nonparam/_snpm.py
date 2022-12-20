@@ -4,10 +4,10 @@
 from math import ceil
 import numpy as np
 from . metrics import metric_dict
-from .. import _spm
-from .. _spm import p2string, plist2string, _SPMF
-from .. _clusters import ClusterNonparam
-
+from .. _spmcls import _spm0d, _spm1d
+from .. _spmcls._base import _SPMF
+from .. _spmcls._clusters import ClusterNonparam
+from ... util import p2string, plist2string
 
 
 
@@ -197,7 +197,7 @@ class SnPM0DiF(SnPM0Dinference, _SPMF):
 ################################
 '''
 
-class _SnPM1D(_SnPM, _spm._SPM):
+class _SnPM1D(_SnPM, _spm1d.SPM1D):
 	'''Parent class for all 1D non-parametric SPM classes.'''
 	
 	dim           = 1
@@ -293,7 +293,7 @@ class SnPM_T2(_SnPM1Donetailed):
 
 
 
-class SnPMinference(_SnPM1D, _spm._SPMinference):
+class SnPMinference(_SnPM1D):
 	def __init__(self, spm, alpha, zstar, two_tailed, clusters):
 		super(SnPMinference, self).__init__(spm.z, spm.permuter)
 		self.STAT           = spm.STAT

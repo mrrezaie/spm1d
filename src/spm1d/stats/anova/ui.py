@@ -9,37 +9,39 @@ High-level ANOVA user interface using an R-like aov function.
 import warnings
 import numpy as np
 from . import designs,models
-from .. import _datachecks, _reml, _spm, _spmlist
+from .. import _datachecks, _reml
+from .. _spmcls import _spm0d, _spm1d, _spmlist
 
 
 def aov(model, contrasts, f_terms, nFactors=1):
-	'''
-	This code is modified from statsmodels.stats.anova_lm
-	'''
-	effects = np.asarray( np.dot(model.QT, model.Y) )
-	if model.dim==0:
-		effects = effects.flatten()
-	SS      = np.dot(contrasts.C, effects**2)
-	DF      = np.asarray(contrasts.C.sum(axis=1), dtype=int)
-	F       = []
-	for term0,term1 in f_terms:
-		i       = contrasts.term_labels.index(term0)
-		ss0,df0 = SS[i], DF[i]
-		ms0     = ss0 / df0
-		if term1 == 'Error':
-			ss1,df1,ms1  = model._SSE, model._dfE, model._MSE
-		else:
-			i       = contrasts.term_labels.index(term1)
-			ss1,df1 = SS[i], DF[i]
-			ms1     = ss1 / df1
-		f           = ms0 / ms1
-		if model.dim == 0:
-			F.append( _spm.SPM0D_F(f, (df0,df1), (ss0,ss1), (ms0,ms1), model.eij, model.QT) )
-		else:
-			if model.roi is not None:
-				f   = np.ma.masked_array(f, np.logical_not(model.roi))
-			F.append( _spm.SPM_F(f, (df0,df1), model.fwhm, model.resels, model.X, model._beta, model.eij, model.QT, roi=model.roi) )
-	return _spmlist.SPMFList( F, nFactors=nFactors )
+	pass
+	# '''
+	# This code is modified from statsmodels.stats.anova_lm
+	# '''
+	# effects = np.asarray( np.dot(model.QT, model.Y) )
+	# if model.dim==0:
+	# 	effects = effects.flatten()
+	# SS      = np.dot(contrasts.C, effects**2)
+	# DF      = np.asarray(contrasts.C.sum(axis=1), dtype=int)
+	# F       = []
+	# for term0,term1 in f_terms:
+	# 	i       = contrasts.term_labels.index(term0)
+	# 	ss0,df0 = SS[i], DF[i]
+	# 	ms0     = ss0 / df0
+	# 	if term1 == 'Error':
+	# 		ss1,df1,ms1  = model._SSE, model._dfE, model._MSE
+	# 	else:
+	# 		i       = contrasts.term_labels.index(term1)
+	# 		ss1,df1 = SS[i], DF[i]
+	# 		ms1     = ss1 / df1
+	# 	f           = ms0 / ms1
+	# 	if model.dim == 0:
+	# 		F.append( _spm.SPM0D_F(f, (df0,df1), (ss0,ss1), (ms0,ms1), model.eij, model.QT) )
+	# 	else:
+	# 		if model.roi is not None:
+	# 			f   = np.ma.masked_array(f, np.logical_not(model.roi))
+	# 		F.append( _spm.SPM_F(f, (df0,df1), model.fwhm, model.resels, model.X, model._beta, model.eij, model.QT, roi=model.roi) )
+	# return _spmlist.SPMFList( F, nFactors=nFactors )
 
 
 

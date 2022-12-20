@@ -16,6 +16,7 @@ import warnings
 import numpy as np
 from scipy import stats
 # from . _base import _SPMParent, _SPMF
+from . _kwparsers import InferenceKeywordArgumentParser
 from .. import prob
 from ... util import dflist2str
 
@@ -27,6 +28,7 @@ class SPM0D(object):
 
 	dim           = 0
 	isinference   = False
+	isinlist      = False
 
 	def __init__(self, STAT, z, df, beta=None, residuals=None, sigma2=None):
 		self.STAT           = STAT             # test statistic ("T" or "F")
@@ -73,19 +75,22 @@ class SPM0D(object):
 		return self.testname == 'regress'
 
 
+	def _set_data(self, *args):
+		self._args = args
+
 	def _set_testname(self, name):
 		self.testname = str( name )
 		
-	def _warn_two_tailed(self):
-		msg  = '\n\n\n'
-		msg += 'The keyword argument "two_tailed" will be removed from future versions of spm1d.\n'
-		msg += '  - Use "dirn=0" in place "two_tailed=True"\n'
-		msg += '  - Use "dirn=+1" or "dirn=-1" in place of "two_tailed=False".\n'
-		msg += '  - In spm1d v0.4 and earlier, "two_tailed=False" is equivalent to the new syntax: "dirn=1".\n'
-		msg += '  - In spm1d v0.5 the default is "dirn=0".\n'
-		msg += '\n\n\n'
-		warnings.warn( msg , DeprecationWarning, stacklevel=5)
-		warnings.warn( msg , UserWarning, stacklevel=5)
+	# def _warn_two_tailed(self):
+	# 	msg  = '\n\n\n'
+	# 	msg += 'The keyword argument "two_tailed" will be removed from future versions of spm1d.\n'
+	# 	msg += '  - Use "dirn=0" in place "two_tailed=True"\n'
+	# 	msg += '  - Use "dirn=+1" or "dirn=-1" in place of "two_tailed=False".\n'
+	# 	msg += '  - In spm1d v0.4 and earlier, "two_tailed=False" is equivalent to the new syntax: "dirn=1".\n'
+	# 	msg += '  - In spm1d v0.5 the default is "dirn=0".\n'
+	# 	msg += '\n\n\n'
+	# 	warnings.warn( msg , DeprecationWarning, stacklevel=5)
+	# 	warnings.warn( msg , UserWarning, stacklevel=5)
 
 	# def _inference_param(self, a, z, two_tailed=True):
 	# 	if self.STAT == 'T':
@@ -96,89 +101,154 @@ class SPM0D(object):
 	# 	p      = min(1, 2*p) if two_tailed else p
 	# 	return zc,p
 
-	def _kwargs2dirn( self, **kwargs ):
-		keys       = kwargs.keys()
-		if ('two_tailed' in keys) and ('dirn' in keys):
-			self._warn_two_tailed()
-			two_tailed = kwargs['two_tailed']
-			dirn       = kwargs['dirn']
-			if two_tailed and (dirn!=0):
-				raise ValueError('"dirn" can only be 0 when two_tailed=True')
-			if (not two_tailed) and (dirn==0):
-				raise ValueError('"dirn" must be -1 or 1 when two_tailed=False')
-		elif 'two_tailed' in keys:  # and not dirn
-			self._warn_two_tailed()
-			dirn  = 0 if kwargs['two_tailed'] else 1
-		elif 'dirn' in keys:
-			dirn  = kwargs['dirn']
-		else:
-			dirn  = 0  # default value (two_tailed=True)
-		if dirn not in [-1, 0, 1]:
-			raise ValueError('"dirn" must be -1, 0 or 1')
-		return dirn
+	# def _kwargs2dirn( self, **kwargs ):
+	# 	keys       = kwargs.keys()
+	# 	if ('two_tailed' in keys) and ('dirn' in keys):
+	# 		self._warn_two_tailed()
+	# 		two_tailed = kwargs['two_tailed']
+	# 		dirn       = kwargs['dirn']
+	# 		if two_tailed and (dirn!=0):
+	# 			raise ValueError('"dirn" can only be 0 when two_tailed=True')
+	# 		if (not two_tailed) and (dirn==0):
+	# 			raise ValueError('"dirn" must be -1 or 1 when two_tailed=False')
+	# 	elif 'two_tailed' in keys:  # and not dirn
+	# 		self._warn_two_tailed()
+	# 		dirn  = 0 if kwargs['two_tailed'] else 1
+	# 	elif 'dirn' in keys:
+	# 		dirn  = kwargs['dirn']
+	# 	else:
+	# 		dirn  = 0  # default value (two_tailed=True)
+	# 	if dirn not in [-1, 0, 1]:
+	# 		raise ValueError('"dirn" must be -1, 0 or 1')
+	# 	return dirn
 
 
 
 	def _inference_param(self, alpha, **kwargs):
+		pass
+		# mgr    = _infmgrs.InferenceManagerParam(self, alpha)
+		# mgr.parse_kwargs( **kwargs )
+		# print( mgr )
 		
-		from . _spm0di import SPM0Di
-		
-		# preliminary keyword argument checks:
-		keys   = kwargs.keys()
-		if 'two_tailed' in keys:
-			if self.STAT!='T':
-				raise ValueError( 'The "two_tailed" option can only be used with T stats.' )
+		# mgr.run()
+		# spmi   = mgr.get_inference_object()
+		# return spmi
 
-		spmi   = deepcopy( self )
-		spmi.__class__ = SPM0Di
-	
-		if self.STAT == 'T':
-			dirn       = self._kwargs2dirn( **kwargs )
-			two_tailed = dirn==0
-			a          = 0.5*alpha if two_tailed else alpha
-			z          = abs(self.z) if two_tailed else (dirn * self.z)
-			zc         = stats.t.isf( a, self.df[1] )
-			p          = stats.t.sf(  z, self.df[1] )
-			p          = min(1, 2*p) if two_tailed else p
-		else:
-			zc,p   = 0,0
-	
-		spmi._set_inference_params('param', alpha, zc, p, dirn)
+
+
+	# def _inference_param(self, alpha, **kwargs):
+	# 	# preliminary keyword argument checks:
+	# 	keys   = kwargs.keys()
+	# 	if 'two_tailed' in keys:
+	# 		if self.STAT!='T':
+	# 			raise ValueError( 'The "two_tailed" option can only be used with T stats.' )
+	#
+	# 	from . _spm0di import SPM0Di
+	# 	spmi           = deepcopy( self )
+	# 	spmi.__class__ = SPM0Di
+	#
+	# 	if self.STAT == 'T':
+	# 		dirn       = self._kwargs2dirn( **kwargs )
+	# 		two_tailed = dirn==0
+	# 		a          = 0.5*alpha if two_tailed else alpha
+	# 		z          = abs(self.z) if two_tailed else (dirn * self.z)
+	# 		zc         = stats.t.isf( a, self.df[1] )
+	# 		p          = stats.t.sf(  z, self.df[1] )
+	# 		p          = min(1, 2*p) if two_tailed else p
+	# 	else:
+	# 		zc,p   = 0,0
+	#
+	# 	spmi._set_inference_params('param', alpha, zc, p, dirn)
+	#
+	# 	return spmi
 		
+	
+	def _inference_perm(self, alpha, **kwargs):
+		if self.isinlist:
+			raise( NotImplementedError( 'Non-parametric inference must be conducted using the parent SnPMList (for two- and three-way ANOVA).' ) )
+		# self._check_iterations(iterations, alpha, force_iterations)
+
+
+		nperms = kwargs['perms']
+		dirn   = self._kwargs2dirn( **kwargs )
+		two_tailed  = dirn==0
+		
+		from .. nonparam.permuters import get_permuter
+		
+		# roi = kwargs['roi'] if if ('roi' in kwargs.keys())  else None
+		permuter  = get_permuter(self.testname, self.dim)( *self._args )
+		
+
+		permuter.build_pdf(nperms)
+		a         = 0.5*alpha if two_tailed else alpha
+		zc        = permuter.get_z_critical(a, two_tailed)
+		zc        = float(zc) if len(zc)==1 else zc.flatten()
+		# print(zc)
+		p         = permuter.get_p_value(self.z, zc, a)
+
+
+
+
+		from . _spm0di import SPM0Di
+		spmi           = deepcopy( self )
+		spmi.__class__ = SPM0Di
+
+
+		spmi._set_inference_params('perm', alpha, zc, p, dirn)
+
 		return spmi
 		
-	
-	
-	def inference(self, alpha=0.05, method='param', **kwargs):
 		
+		# if self.isanova:
+		# 	snpm  = SnPM0DiF(self, alpha, zstar, p)
+		# else:
+		# 	snpm  = SnPM0Dinference(self, alpha, zstar, p)
+		# return snpm
+		
+		
+		
+		
+		
+		# perm    = permuters.PermuterTtest21D(yA, yB, roi=roi) if dim==1 else permuters.PermuterTtest20D(yA, yB)
+	
+	
+	def inference(self, alpha, method='param', **kwargs):
+		
+		parser    = InferenceKeywordArgumentParser(self.STAT, self.dim, method)
+		parser.parse( **kwargs )
+		print( parser )
+		
+		spmi      = None
 		
 
-		if method=='param':
-			# from . _spm0di import SPM0Di
-			# spmi   = prob.param_0d(self, alpha, **kwargs)
-			spmi   = self._inference_param(alpha, **kwargs)
-			# spmi   = SPM0Di(self, alpha, zc, p, two_tailed)
-		elif method=='perm':
-			spmi   = None 
-			# spmi   = prob.perm_0d(self, alpha, **kwargs)
-			
-			# from .. nonparam.stats import ttest2
-			# fro,
-			# spm    = ttest2(*self.dv)
-			#
-			# , **kwargs
-			#
-			# spmi   = None
-			pass
-		else:
-			raise ValueError('Unknown inference method: {method}. "method" must be one of: ["param", "perm"].')
-			# from . nonparam._snpm import SnPM0D_T
-			# snpm   = SnPM0D_T(self.z, )
-		
-		# spmi._set_inference_params(method, alpha, zc, p, two_tailed, dirn)
-		
-		# spmi._set_testname( self.testname )
-		# spmi._set_inference_method( method )
+		# if method=='param':
+		# 	# from . _spm0di import SPM0Di
+		# 	# spmi   = prob.param_0d(self, alpha, **kwargs)
+		# 	spmi   = self._inference_param(alpha, **kwargs)
+		# 	# spmi   = SPM0Di(self, alpha, zc, p, two_tailed)
+		# elif method=='perm':
+		# 	spmi   = self._inference_perm(alpha, **kwargs)
+		#
+		#
+		# 	# spmi   = prob.perm_0d(self, alpha, **kwargs)
+		#
+		# 	# from .. nonparam.stats import ttest2
+		# 	# fro,
+		# 	# spm    = ttest2(*self.dv)
+		# 	#
+		# 	# , **kwargs
+		# 	#
+		# 	# spmi   = None
+		# 	pass
+		# else:
+		# 	raise ValueError('Unknown inference method: {method}. "method" must be one of: ["param", "perm"].')
+		# 	# from . nonparam._snpm import SnPM0D_T
+		# 	# snpm   = SnPM0D_T(self.z, )
+		#
+		# # spmi._set_inference_params(method, alpha, zc, p, two_tailed, dirn)
+		#
+		# # spmi._set_testname( self.testname )
+		# # spmi._set_inference_method( method )
 		return spmi
 
 
