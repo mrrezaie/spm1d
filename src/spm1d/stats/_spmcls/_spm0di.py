@@ -22,10 +22,10 @@ class SPM0Di(SPM0D):
 	isinference = True
 	
 	method      = None         # inference method
-	alpha       = None          # Type I error rate
-	zc          = None             # critical value
-	p           = None              # p-value
-	dirn        = None           # one-tailed direction (-1 or +1)
+	alpha       = None         # Type I error rate
+	zc          = None         # critical value
+	p           = None         # p-value
+	dirn        = None         # one-tailed direction (-1 or +1)
 	
 	
 	# def __init__(self, spm, alpha, zstar, p, two_tailed=False):

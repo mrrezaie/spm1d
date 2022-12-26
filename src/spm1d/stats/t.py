@@ -212,6 +212,7 @@ def ttest2(YA, YB, equal_var=False, roi=None):
 	>>> ti.plot()
 	'''
 	### check data:
+	_yA,_yB  = YA, YB
 	YA,YB    = _datachecks.asmatrix(YA, dtype=float), _datachecks.asmatrix(YB, dtype=float)
 	_datachecks.check('ttest2', YA, YB)
 	### assemble data
@@ -234,7 +235,7 @@ def ttest2(YA, YB, equal_var=False, roi=None):
 	### compute SPM{t}:
 	spm = glm(Y, X, c, Q, roi=roi)
 	spm._set_testname( 'ttest2' )
-	spm._set_data( YA, YB )
+	spm._set_data( _yA, _yB )
 	return spm
 
 

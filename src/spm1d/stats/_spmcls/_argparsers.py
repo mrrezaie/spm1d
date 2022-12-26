@@ -1,4 +1,5 @@
 
+from copy import deepcopy
 from math import inf
 from .. _argparse import ArgumentParser
 
@@ -22,6 +23,7 @@ class InferenceArgumentParser0D( ArgumentParser ):
 		super().__init__()
 		self.stat     = stat
 		self.method   = method
+		self.kwargs   = None
 		self._init()
 	
 	def _init(self):
@@ -37,8 +39,22 @@ class InferenceArgumentParser0D( ArgumentParser ):
 			self.add_kwarg(name='iterations', type=int, range=(-1,inf), default=-1, badvalues=list(range(0,10)))
 			self.add_kwarg(name='force_iterations', type=bool)
 		
-	def parse(self, alpha, method='gauss', **kwargs):
-		super().parse(alpha, method=method, **kwargs)
+	# def parse(self, alpha, method='gauss', **kwargs):
+	# 	super().parse(alpha, method=method, **kwargs)
+	# 	self.kwargs = kwargs
+	# 	if (self.stat=='T') and ('two_tailed' in kwargs):
+	# 		if 'dirn' not in kwargs:
+	# 			self.kwargs['dirn'] = 0 if kwargs['two_tailed'] else 1
+	# 		self.kwargs.pop( 'two_tailed' )
+
+	def parse(self, alpha, **kwargs):
+		super().parse(alpha, method=self.method, **kwargs)
+		self.kwargs = kwargs
+		if (self.stat=='T') and ('two_tailed' in kwargs):
+			if 'dirn' not in kwargs:
+				self.kwargs['dirn'] = 0 if kwargs['two_tailed'] else 1
+			self.kwargs.pop( 'two_tailed' )
+		
 
 
 
