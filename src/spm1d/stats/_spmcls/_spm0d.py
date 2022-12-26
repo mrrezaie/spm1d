@@ -16,7 +16,8 @@ import warnings
 import numpy as np
 from scipy import stats
 # from . _base import _SPMParent, _SPMF
-from . _kwparsers import InferenceKeywordArgumentParser
+from . _argparsers import InferenceArgumentParser0D, InferenceArgumentParser1D
+# from .. _argparse import KeywordArgumentParser
 from .. import prob
 from ... util import dflist2str
 
@@ -124,7 +125,56 @@ class SPM0D(object):
 
 
 
-	def _inference_param(self, alpha, **kwargs):
+
+	def inference(self, alpha, method='param', **kwargs):
+		# parser  = InferenceArgumentParser('T', 0, method)
+		# parser.parse( alpha, method=method, **kwargs )
+		
+		
+		parser  = InferenceArgumentParser0D(self.STAT, method)
+		parser.parse( alpha, method=method, **kwargs )
+		
+		
+		# parser    = InferenceKeywordArgumentParser(self.STAT, self.dim, method)
+		# parser.parse( **kwargs )
+		# print( parser )
+		#
+		# spmi      = None
+		#
+		#
+		# # if method=='param':
+		# # 	# from . _spm0di import SPM0Di
+		# # 	# spmi   = prob.param_0d(self, alpha, **kwargs)
+		# # 	spmi   = self._inference_param(alpha, **kwargs)
+		# # 	# spmi   = SPM0Di(self, alpha, zc, p, two_tailed)
+		# # elif method=='perm':
+		# # 	spmi   = self._inference_perm(alpha, **kwargs)
+		# #
+		# #
+		# # 	# spmi   = prob.perm_0d(self, alpha, **kwargs)
+		# #
+		# # 	# from .. nonparam.stats import ttest2
+		# # 	# fro,
+		# # 	# spm    = ttest2(*self.dv)
+		# # 	#
+		# # 	# , **kwargs
+		# # 	#
+		# # 	# spmi   = None
+		# # 	pass
+		# # else:
+		# # 	raise ValueError('Unknown inference method: {method}. "method" must be one of: ["param", "perm"].')
+		# # 	# from . nonparam._snpm import SnPM0D_T
+		# # 	# snpm   = SnPM0D_T(self.z, )
+		# #
+		# # # spmi._set_inference_params(method, alpha, zc, p, two_tailed, dirn)
+		# #
+		# # # spmi._set_testname( self.testname )
+		# # # spmi._set_inference_method( method )
+		# return spmi
+
+
+
+	def inference_gauss(self, alpha, **kwargs):
 		pass
 		# mgr    = _infmgrs.InferenceManagerParam(self, alpha)
 		# mgr.parse_kwargs( **kwargs )
@@ -163,96 +213,57 @@ class SPM0D(object):
 	# 	return spmi
 		
 	
-	def _inference_perm(self, alpha, **kwargs):
-		if self.isinlist:
-			raise( NotImplementedError( 'Non-parametric inference must be conducted using the parent SnPMList (for two- and three-way ANOVA).' ) )
-		# self._check_iterations(iterations, alpha, force_iterations)
-
-
-		nperms = kwargs['perms']
-		dirn   = self._kwargs2dirn( **kwargs )
-		two_tailed  = dirn==0
-		
-		from .. nonparam.permuters import get_permuter
-		
-		# roi = kwargs['roi'] if if ('roi' in kwargs.keys())  else None
-		permuter  = get_permuter(self.testname, self.dim)( *self._args )
-		
-
-		permuter.build_pdf(nperms)
-		a         = 0.5*alpha if two_tailed else alpha
-		zc        = permuter.get_z_critical(a, two_tailed)
-		zc        = float(zc) if len(zc)==1 else zc.flatten()
-		# print(zc)
-		p         = permuter.get_p_value(self.z, zc, a)
-
-
-
-
-		from . _spm0di import SPM0Di
-		spmi           = deepcopy( self )
-		spmi.__class__ = SPM0Di
-
-
-		spmi._set_inference_params('perm', alpha, zc, p, dirn)
-
-		return spmi
-		
-		
-		# if self.isanova:
-		# 	snpm  = SnPM0DiF(self, alpha, zstar, p)
-		# else:
-		# 	snpm  = SnPM0Dinference(self, alpha, zstar, p)
-		# return snpm
-		
-		
-		
-		
-		
-		# perm    = permuters.PermuterTtest21D(yA, yB, roi=roi) if dim==1 else permuters.PermuterTtest20D(yA, yB)
+	def inference_perm(self, alpha, **kwargs):
+		pass
+		# if self.isinlist:
+		# 	raise( NotImplementedError( 'Non-parametric inference must be conducted using the parent SnPMList (for two- and three-way ANOVA).' ) )
+		# # self._check_iterations(iterations, alpha, force_iterations)
+		#
+		#
+		# nperms = kwargs['perms']
+		# dirn   = self._kwargs2dirn( **kwargs )
+		# two_tailed  = dirn==0
+		#
+		# from .. nonparam.permuters import get_permuter
+		#
+		# # roi = kwargs['roi'] if if ('roi' in kwargs.keys())  else None
+		# permuter  = get_permuter(self.testname, self.dim)( *self._args )
+		#
+		#
+		# permuter.build_pdf(nperms)
+		# a         = 0.5*alpha if two_tailed else alpha
+		# zc        = permuter.get_z_critical(a, two_tailed)
+		# zc        = float(zc) if len(zc)==1 else zc.flatten()
+		# # print(zc)
+		# p         = permuter.get_p_value(self.z, zc, a)
+		#
+		#
+		#
+		#
+		# from . _spm0di import SPM0Di
+		# spmi           = deepcopy( self )
+		# spmi.__class__ = SPM0Di
+		#
+		#
+		# spmi._set_inference_params('perm', alpha, zc, p, dirn)
+		#
+		# return spmi
+		#
+		#
+		# # if self.isanova:
+		# # 	snpm  = SnPM0DiF(self, alpha, zstar, p)
+		# # else:
+		# # 	snpm  = SnPM0Dinference(self, alpha, zstar, p)
+		# # return snpm
+		#
+		#
+		#
+		#
+		#
+		# # perm    = permuters.PermuterTtest21D(yA, yB, roi=roi) if dim==1 else permuters.PermuterTtest20D(yA, yB)
 	
 	
-	def inference(self, alpha, method='param', **kwargs):
-		
-		parser    = InferenceKeywordArgumentParser(self.STAT, self.dim, method)
-		parser.parse( **kwargs )
-		print( parser )
-		
-		spmi      = None
-		
-
-		# if method=='param':
-		# 	# from . _spm0di import SPM0Di
-		# 	# spmi   = prob.param_0d(self, alpha, **kwargs)
-		# 	spmi   = self._inference_param(alpha, **kwargs)
-		# 	# spmi   = SPM0Di(self, alpha, zc, p, two_tailed)
-		# elif method=='perm':
-		# 	spmi   = self._inference_perm(alpha, **kwargs)
-		#
-		#
-		# 	# spmi   = prob.perm_0d(self, alpha, **kwargs)
-		#
-		# 	# from .. nonparam.stats import ttest2
-		# 	# fro,
-		# 	# spm    = ttest2(*self.dv)
-		# 	#
-		# 	# , **kwargs
-		# 	#
-		# 	# spmi   = None
-		# 	pass
-		# else:
-		# 	raise ValueError('Unknown inference method: {method}. "method" must be one of: ["param", "perm"].')
-		# 	# from . nonparam._snpm import SnPM0D_T
-		# 	# snpm   = SnPM0D_T(self.z, )
-		#
-		# # spmi._set_inference_params(method, alpha, zc, p, two_tailed, dirn)
-		#
-		# # spmi._set_testname( self.testname )
-		# # spmi._set_inference_method( method )
-		return spmi
-
-
-
+	
 
 
 # class _SPM0D(_SPMParent):

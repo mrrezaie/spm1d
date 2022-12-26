@@ -22,6 +22,7 @@ Specifically:
 
 
 
+from . import _argparse
 from . import _spmcls
 
 from . t import ttest, ttest_paired, ttest2, regress, glm
@@ -38,3 +39,7 @@ from . ci import ci_onesample, ci_pairedsample, ci_twosample
 #
 # from . import nonparam
 # from . import normality
+
+# testnames = ['ttest']
+
+_testnames = [s for s in dir()  if not s.startswith('_')]
