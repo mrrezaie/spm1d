@@ -11,66 +11,67 @@ and inference SPMs (thresholded test statistic).
 
 # Copyright (C) 2022  Todd Pataky
 
-
-# import sys
-# import numpy as np
-# from scipy import stats
-# import rft1d
-# from .. plot import plot_spm, plot_spm_design
-# from .. plot import plot_spmi, plot_spmi_p_values, plot_spmi_threshold_label
-# from . _clusters import Cluster
-
-
-
-
-# def df2str(df):
-# 	return str(df) if not df%1 else '%.3f'%df
-# def dflist2str(dfs):
-# 	return '(%s, %s)' %(df2str(dfs[0]), df2str(dfs[1]))
-# def p2string(p):
-# 	return '<0.001' if p<0.0005 else '%.03f'%p
-# def plist2string(pList):
-# 	s      = ''
-# 	if len(pList)>0:
-# 		for p in pList:
-# 			s += p2string(p)
-# 			s += ', '
-# 		s  = s[:-2]
-# 	return s
-# def _set_docstr(childfn, parentfn, args2remove=None):
-# 	docstr      =  parentfn.__doc__
-# 	if args2remove!=None:
-# 		docstrlist0 = docstr.split('\n\t')
-# 		docstrlist1 = []
-# 		for s in docstrlist0:
-# 			if not np.any([s.startswith('- *%s*'%argname) for argname in args2remove]):
-# 				docstrlist1.append(s)
-# 		docstrlist1 = [s + '\n\t'  for s in docstrlist1]
-# 		docstr  = ''.join(docstrlist1)
-# 	if sys.version_info.major==2:
-# 		childfn.__func__.__doc__ = docstr
-# 	elif sys.version_info.major==3:
-# 		childfn.__doc__ = docstr
-
-
-
-
+import warnings
 
 
 
 class _SPMParent(object):
-	'''Parent class for all parametric SPM classes.'''
-	isanova       = False
+	'''Parent class SPM classes.'''
+	dim           = 0
 	isinference   = False
 	isinlist      = False
-	isregress     = False
-	isparametric  = True
-	dim           = 0
-	testname      = None
 	
+	@property
+	def _class_str(self):
+		ss = '' if self.isparametric else 'n'
+		return f'S{ss}PM{{{self.STAT}}} ({self.dim}D)'
+	@property
+	def isanova(self):
+		return self.STAT == 'F'
+	@property
+	def isregress(self):
+		return self.testname == 'regress'
+	
+	def _set_data(self, *args):
+		self._args = args
 	
 	def _set_testname(self, name):
 		self.testname = str( name )
+
+
+class _SPMiParent(object):
+	'''Additional properties for inference SPM classes.'''
+	
+	isinference = True
+	method      = None         # inference method
+	alpha       = None         # Type I error rate
+	zc          = None         # critical value
+	p           = None         # p-value
+	dirn        = None         # inference direction (-1, 0 or +1 for T stat, otherwise dirn=1)
+
+	@property
+	def _dirn_str(self):
+		s     = '0 (two-tailed)' if self.dirn==0 else f'{self.dirn} (one-tailed)'
+		return s
+		
+	@property
+	def _zcstr(self):
+		if isinstance(self.zc, float):
+			s  = f'{self.zc:.3f}'
+		else:
+			z0,z1 = self.zc
+			s  = f'{z0:.3f}, {z1:.3f}'
+		return s
+
+	@property
+	def isparametric(self):
+		return self.method in ['gauss', 'rft', 'fdr', 'bonferroni', 'uncorrected']
+
+	@property
+	def zstar(self):   # legacy support ("zc" was "zstar" in spm1d versions < 0.5)
+		msg = 'Use of "zstar" is deprecated. Use "zc" to avoid this warning.'
+		warnings.warn( msg , DeprecationWarning , stacklevel=2 )
+		return self.zc
 
 
 
@@ -78,7 +79,6 @@ class _SPMF(object):
 	'''Additional attrubutes and methods specific to SPM{F} objects.'''
 	effect        = 'Main A'
 	effect_short  = 'A'
-	isanova       = True
 
 	def _repr_summ(self):  # abstract method to be implemented by all subclasses
 		pass
@@ -86,32 +86,5 @@ class _SPMF(object):
 	def set_effect_label(self, label=""):
 		self.effect        = str(label)
 		self.effect_short  = self.effect.split(' ')[1]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# #set docstrings:
-# _set_docstr(_SPM.plot, plot_spm, args2remove=['spm'])
-# _set_docstr(_SPMinference.plot, plot_spmi, args2remove=['spmi'])
-# _set_docstr(_SPMinference.plot_p_values, plot_spmi_p_values, args2remove=['spmi'])
-# _set_docstr(_SPMinference.plot_threshold_label, plot_spmi_threshold_label, args2remove=['spmi'])
-
-
 
 

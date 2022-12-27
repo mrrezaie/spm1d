@@ -1,6 +1,6 @@
 
 from . exp import ExpectedArgument, ExpectedKeywordArgument
-from . inv import InvalidArgumentCombination
+from . inv import InvalidArgumentCombination, InvalidArgumentPair
 
 
 
@@ -92,5 +92,9 @@ class ArgumentParser(object):
 			c  = InvalidArgumentCombination( n0, n1, x0, x1 )
 			self.ic.append( c )
 		
-
+	def set_invalid_pairs(self, names):
+		n0,n1  = names
+		c      = InvalidArgumentPair( n0, n1 )
+		self.ic.append( c )
+		
 

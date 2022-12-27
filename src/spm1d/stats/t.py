@@ -110,6 +110,7 @@ def regress(Y, x, roi=None):
 		- the correlation coefficient is retrievable as "t.r" where "t" is the output from **spm1d.stats.regress**
 		- statistical inferences are based on *t*, not on *r*
 	'''
+	_y,_x          = Y, x
 	Y              = _datachecks.asmatrix(Y, dtype=float)
 	_datachecks.check('regress', Y, x)
 	J              = Y.shape[0]
@@ -117,9 +118,23 @@ def regress(Y, x, roi=None):
 	X[:,0]         = x
 	c              = [1,0]
 	spmt           = glm(Y, X, c, roi=roi)
-	spmt.r         = spmt.z / (  (J - 2 + spmt.z**2)**0.5)  #t = r * ((J-2)/(1-r*r) )**0.5
-	spmt.isregress = True
-	return spmt
+	
+	
+	# spmt.r         = spmt.z / (  (J - 2 + spmt.z**2)**0.5)  #t = r * ((J-2)/(1-r*r) )**0.5
+	# spmt.isregress = True
+	# return spmt
+	
+	
+	
+	### compute SPM{t}:
+	spm            = glm(Y, X, c, roi=roi)
+	spm.r          = spm.z / (  (J - 2 + spm.z**2)**0.5)   # t = r * ((J-2)/(1-r*r) )**0.5
+	spm._set_testname( 'regress' )
+	spm._set_data( _y, _x )
+	return spm
+	
+	
+	
 
 
 
@@ -147,6 +162,7 @@ def ttest(Y, y0=None, roi=None):
 	>>> ti = t.inference(alpha=0.05, two_tailed=True)
 	>>> ti.plot()
 	'''
+	_y      = Y
 	Y       = _datachecks.asmatrix(Y, dtype=float)
 	_datachecks.check('ttest', Y, y0)
 	J       = Y.shape[0]
@@ -156,7 +172,10 @@ def ttest(Y, y0=None, roi=None):
 	X       = np.ones((J,1))
 	c       = (1)
 	### compute SPM{t}:
-	return glm(Ytemp, X, c, roi=roi)
+	spm = glm(Ytemp, X, c, roi=roi)
+	spm._set_testname( 'ttest' )
+	spm._set_data( _y )
+	return spm
 
 
 
@@ -182,9 +201,13 @@ def ttest_paired(YA, YB, roi=None):
 	>>> ti = t.inference(alpha=0.05)
 	>>> ti.plot()
 	'''
+	_yA,_yB  = YA,YB
 	YA,YB    = _datachecks.asmatrix(YA, dtype=float), _datachecks.asmatrix(YB, dtype=float)
 	_datachecks.check('ttest_paired', YA, YB)
-	return ttest(YA-YB, roi=roi)
+	spm      = ttest(_yA-_yB, roi=roi)
+	spm._set_testname( 'ttest_paired' )
+	# spm._set_data( _yA, _yB )
+	return spm
 
 
 

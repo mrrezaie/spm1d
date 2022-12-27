@@ -24,8 +24,18 @@ class _Permuter(object):
 		pass
 	def get_test_stat_original(self):
 		return self.get_test_stat( self.labels0 )
-	def get_z_critical(self, alpha=0.05, two_tailed=False):
-		perc     = [100*0.5*alpha, 100*(1-0.5*alpha)]  if two_tailed else 100*(1-alpha)
+	# def get_z_critical(self, alpha=0.05, two_tailed=False):
+	# 	perc     = [100*0.5*alpha, 100*(1-0.5*alpha)]  if two_tailed else 100*(1-alpha)
+	# 	# zstar    = np.percentile(self.Z, perc, interpolation='linear', axis=0)
+	# 	zstar    = np.percentile(self.Z, perc, interpolation='midpoint', axis=0)
+	# 	return zstar
+	def get_z_critical(self, alpha=0.05, dirn=0):
+		if dirn==0:
+			perc = [ 100*0.5*alpha, 100*(1-0.5*alpha) ]
+		elif dirn==1:
+			perc = 100*(1-alpha)
+		elif dirn==-1:
+			perc = 100*alpha
 		# zstar    = np.percentile(self.Z, perc, interpolation='linear', axis=0)
 		zstar    = np.percentile(self.Z, perc, interpolation='midpoint', axis=0)
 		return zstar
@@ -38,28 +48,56 @@ class _Permuter0D(_Permuter):
 	maxp = 1   #maximum possible p value
 	
 	
-	def get_p_value(self, z, zstar, alpha, Z=None):
-		two_tailed    = isinstance(zstar, np.ndarray)
+	def get_p_value(self, z, zstar, alpha, dirn, Z=None):
 		Z             = self.Z if Z is None else Z
-		if two_tailed:
+		if dirn==0:
 			if z > 0:
 				p     = 2 * ( self.Z > z ).mean()
 			else:
 				p     = 2 * ( self.Z < z ).mean()
-		else:
+		elif dirn==1:
 			p         = ( self.Z > z ).mean()
-		### set miminum and maximum p values:
+		elif dirn==-1:
+			p         = ( self.Z < z ).mean()
+		### adjust the p value to alpha if (z > z*) but (p > alpha)
+		if dirn==0:
+			if (   (z < zstar[0]) or (z > zstar[1])   ) and (p > alpha):
+				p     = alpha
+		elif dirn==1:
+			if (z > zstar) and (p > alpha):
+				p     = alpha
+		elif dirn==-1:
+			if (z < zstar) and (p > alpha):
+				p     = alpha
+		### substitute with min/max p value if applicable:
 		self.minp     = 1.0 / self.Z.size
 		self.maxp     = 1 - self.minp
-		### adjust the p value to alpha if (z > z*) but (p > alpha)
-		zc0,zc1       = zstar if two_tailed else (-np.inf, zstar)
-		if (z > zc1) and (p > alpha):
-			p         = alpha
-		elif (z < zc0) and (p > alpha):
-			p         = alpha
-		### substitute with min/max p value if applicable:
 		p             = min( max(p, self.minp), self.maxp )
 		return p
+
+
+	# def get_p_value(self, z, zstar, alpha, Z=None):
+	# 	two_tailed    = isinstance(zstar, np.ndarray)
+	# 	Z             = self.Z if Z is None else Z
+	# 	if two_tailed:
+	# 		if z > 0:
+	# 			p     = 2 * ( self.Z > z ).mean()
+	# 		else:
+	# 			p     = 2 * ( self.Z < z ).mean()
+	# 	else:
+	# 		p         = ( self.Z > z ).mean()
+	# 	### set miminum and maximum p values:
+	# 	self.minp     = 1.0 / self.Z.size
+	# 	self.maxp     = 1 - self.minp
+	# 	### adjust the p value to alpha if (z > z*) but (p > alpha)
+	# 	zc0,zc1       = zstar if two_tailed else (-np.inf, zstar)
+	# 	if (z > zc1) and (p > alpha):
+	# 		p         = alpha
+	# 	elif (z < zc0) and (p > alpha):
+	# 		p         = alpha
+	# 	### substitute with min/max p value if applicable:
+	# 	p             = min( max(p, self.minp), self.maxp )
+	# 	return p
 
 
 
@@ -525,6 +563,7 @@ permuter_class_dict = {
 	'ttest'        : [PermuterTtest0D, PermuterTtest1D],
 	'ttest2'       : [PermuterTtest20D, PermuterTtest21D],
 	'ttest_paired' : [PermuterTtest0D, PermuterTtest1D],
+	'regress'      : [PermuterRegress0D, PermuterRegress1D],
 }
 #
 

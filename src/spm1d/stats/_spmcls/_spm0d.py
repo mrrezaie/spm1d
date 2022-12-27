@@ -20,27 +20,22 @@ from . _argparsers import InferenceArgumentParser0D, InferenceArgumentParser1D
 # from .. _argparse import KeywordArgumentParser
 from .. import prob
 from ... util import dflist2str
+from . _base import _SPMParent
 
 
 
 
 
-
-class SPM0D(object):
-
-	dim           = 0
-	isinference   = False
-	isinlist      = False
+class SPM0D(_SPMParent):
 
 	def __init__(self, STAT, z, df, beta=None, residuals=None, sigma2=None):
-		self.STAT           = STAT             # test statistic ("T" or "F")
-		self.z              = float(z)         # test statistic
+		self.STAT           = STAT             # test statistic type ("T" or "F")
+		self.z              = np.float64(z)    # test statistic value
 		self.df             = df               # degrees of freedom
 		self.beta           = beta             # fitted parameters
 		self.residuals      = residuals        # model residuals
 		self.sigma2         = sigma2           # variance
 		self.testname       = None             # hypothesis test name (set using set_testname method)
-		self._set_inference_method()
 
 
 	def __repr__(self):
@@ -63,44 +58,18 @@ class SPM0D(object):
 		return s
 
 
-	@property
-	def isanova(self):
-		return self.STAT == 'F'
-
-	@property
-	def isregress(self):
-		return self.testname == 'regress'
-
-
-	def _set_data(self, *args):
-		self._args = args
-
-	def _set_inference_method(self):
-		if self.STAT == 'T':
-			self.inference_gauss = self._inference_gauss_t
-			self.inference_perm  = self._inference_perm_t
-		else:
-			self.inference_gauss = self._inference_gauss
-			self.inference_perm  = self._inference_perm
-			
-	
-	def _set_testname(self, name):
-		self.testname = str( name )
-	
-	
-	
-
-
 	def _isf_sf_t(self, a, z, df, dirn=0):
-		z      = z if (dirn==0) else dirn*z
+		_z     = np.abs(z) if (dirn==0) else dirn*z
+		a      = 0.5 * a if (dirn==0) else a
 		zc     = stats.t.isf( a, df )
-		p      = stats.t.sf(  z, df )
+		zc     = -zc if (dirn==-1) else zc
+		p      = stats.t.sf( _z, df )
 		p      = min(1, 2*p) if (dirn==0) else p
 		return zc,p
 
 	def _inference_gauss_t(self, alpha, dirn=0):
-		zc,p           = self._isf_sf_t(alpha, self.z, self.df[1], dirn)
 		from . _spm0di import SPM0Di
+		zc,p           = self._isf_sf_t(alpha, self.z, self.df[1], dirn)
 		spmi           = deepcopy( self )
 		spmi.__class__ = SPM0Di
 		spmi.method    = 'gauss'
@@ -110,12 +79,47 @@ class SPM0D(object):
 		spmi.dirn      = dirn
 		return spmi
 		
+
 	def _inference_gauss(self, alpha):
 		pass
 	
 	
-	def _inference_perm_t(self, alpha, dirn=0, nperm=-1):
-		pass
+
+	def _inference_perm_t(self, alpha, dirn=0, nperm=10000):
+		# two_tailed = dirn==0
+
+		from .. nonparam.permuters import get_permuter
+		permuter   = get_permuter(self.testname, self.dim)( *self._args )
+		
+		# print(permuter)
+		# print(permuter.nPermTotal)
+		
+		if nperm > permuter.nPermTotal:
+			raise ValueError( f'Number of specified permutations ({nperm}) exceeds the total number of possible permutations ({permuter.nPermTotal}).')
+
+		permuter.build_pdf(  nperm  )
+		zc         = permuter.get_z_critical(alpha, dirn)
+
+
+
+		if not isinstance(zc, float):
+			zc     = zc.flatten()
+		p          = permuter.get_p_value(self.z, zc, alpha, dirn)
+
+		from . _spm0di import SPM0Di
+		spmi             = deepcopy( self )
+		spmi.__class__   = SPM0Di
+		spmi.method      = 'perm'
+		spmi.alpha       = alpha
+		spmi.zc          = zc
+		spmi.p           = p
+		spmi.dirn        = dirn
+		spmi.nperm       = nperm
+		spmi.permuter    = permuter
+		# spmi._set_inference_params('perm', alpha, zc, p, dirn)
+		return spmi
+
+
 		
 	
 	def _inference_perm(self, alpha, nperm=-1):
@@ -136,60 +140,22 @@ class SPM0D(object):
 		return spmi
 		
 		
+	
+	def inference_gauss(self, alpha, **kwargs):
+		f = self._inference_gauss_t if (self.STAT=='T') else self._inference_gauss
+		return f(alpha, **kwargs)
 
 
-	
-	# def inference_perm(self, alpha, **kwargs):
-	# 	pass
-		# if self.isinlist:
-		# 	raise( NotImplementedError( 'Non-parametric inference must be conducted using the parent SnPMList (for two- and three-way ANOVA).' ) )
-		# # self._check_iterations(iterations, alpha, force_iterations)
-		#
-		#
-		# nperms = kwargs['perms']
-		# dirn   = self._kwargs2dirn( **kwargs )
-		# two_tailed  = dirn==0
-		#
-		# from .. nonparam.permuters import get_permuter
-		#
-		# # roi = kwargs['roi'] if if ('roi' in kwargs.keys())  else None
-		# permuter  = get_permuter(self.testname, self.dim)( *self._args )
-		#
-		#
-		# permuter.build_pdf(nperms)
-		# a         = 0.5*alpha if two_tailed else alpha
-		# zc        = permuter.get_z_critical(a, two_tailed)
-		# zc        = float(zc) if len(zc)==1 else zc.flatten()
-		# # print(zc)
-		# p         = permuter.get_p_value(self.z, zc, a)
-		#
-		#
-		#
-		#
-		# from . _spm0di import SPM0Di
-		# spmi           = deepcopy( self )
-		# spmi.__class__ = SPM0Di
-		#
-		#
-		# spmi._set_inference_params('perm', alpha, zc, p, dirn)
-		#
-		# return spmi
-		#
-		#
-		# # if self.isanova:
-		# # 	snpm  = SnPM0DiF(self, alpha, zstar, p)
-		# # else:
-		# # 	snpm  = SnPM0Dinference(self, alpha, zstar, p)
-		# # return snpm
-		#
-		#
-		#
-		#
-		#
-		# # perm    = permuters.PermuterTtest21D(yA, yB, roi=roi) if dim==1 else permuters.PermuterTtest20D(yA, yB)
-	
-	
-	
+	def inference_perm(self, alpha, **kwargs):
+		if self.isinlist:
+			raise( NotImplementedError( 'Non-parametric inference must be conducted using the parent SnPMList (for two- and three-way ANOVA).' ) )
+		# self._check_iterations(iterations, alpha, force_iterations)
+		f = self._inference_perm_t if (self.STAT=='T') else self._inference_perm
+		return f(alpha, **kwargs)
+
+
+
+
 
 #
 # class SPM0D_F(_SPMF, _SPM0D):

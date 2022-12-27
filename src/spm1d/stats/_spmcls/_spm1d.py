@@ -12,7 +12,7 @@ This module contains class definitions for raw 1D SPMs.
 
 
 import rft1d
-from . _base import _SPMParent, _SPMF
+from . _base import _SPMParent #, _SPMF
 from ... plot import plot_spm, plot_spm_design
 from ... plot import plot_spmi, plot_spmi_p_values, plot_spmi_threshold_label
 

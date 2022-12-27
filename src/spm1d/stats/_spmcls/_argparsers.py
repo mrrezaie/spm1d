@@ -4,6 +4,21 @@ from math import inf
 from .. _argparse import ArgumentParser
 
 
+def _force_iterations_deprecation_msg():
+	msg  = '\n\n\n'
+	msg += 'WARNING!! The keyword argument "force_iterations" will be removed from future versions of spm1d.\n'
+	msg += '  - In spm1d-v0.4 "force_iterations=True" was used to confirm a large number of permutations (>1e5) during nonparametric (permutation-based) inference.\n'
+	msg += '  - In spm1d-v0.5 just set "nperm" to a large value (e.g. "nperm=1e6") to replicate "force_iterations=True" \n'
+	msg += '\n\n\n'
+	return msg
+
+def _iterations_deprecation_msg():
+	msg  = '\n\n\n'
+	msg += 'WARNING!! The keyword argument "iterations" will be removed from future versions of spm1d.\n'
+	msg += '  - Use "nperm" in place of "iterations"\n'
+	msg += '\n\n\n'
+	return msg
+
 def _two_tailed_deprecation_msg():
 	msg  = '\n\n\n'
 	msg += 'WARNING!! The keyword argument "two_tailed" will be removed from future versions of spm1d.\n'
@@ -36,8 +51,13 @@ class InferenceArgumentParser0D( ArgumentParser ):
 			self.set_invalid_combinations( ('dirn', 'two_tailed'), [(0,False), (1,True), (-1,True)])
 		
 		if self.method=='perm':
-			self.add_kwarg(name='iterations', type=int, range=(-1,inf), default=-1, badvalues=list(range(0,10)))
-			self.add_kwarg(name='force_iterations', type=bool)
+			k0 = self.add_kwarg(name='iterations', type=int, range=(-1,inf), default=-1, badvalues=list(range(0,10)))
+			self.add_kwarg(name='nperm', type=int, range=(-1,inf), default=-1, badvalues=list(range(0,10)))
+			k1 = self.add_kwarg(name='force_iterations', type=bool)
+			
+			k0.set_deprecated_warning( _iterations_deprecation_msg() )
+			k1.set_deprecated_warning( _force_iterations_deprecation_msg() )
+			self.set_invalid_pairs( ('iterations', 'nperm'))
 		
 	# def parse(self, alpha, method='gauss', **kwargs):
 	# 	super().parse(alpha, method=method, **kwargs)
@@ -54,6 +74,11 @@ class InferenceArgumentParser0D( ArgumentParser ):
 			if 'dirn' not in kwargs:
 				self.kwargs['dirn'] = 0 if kwargs['two_tailed'] else 1
 			self.kwargs.pop( 'two_tailed' )
+		if (self.method=='perm') and ('iterations' in kwargs):
+			self.kwargs['nperm'] = self.kwargs['iterations']
+			self.kwargs.pop('iterations')
+		if (self.method=='perm') and ('force_iterations' in kwargs):
+			self.kwargs.pop('force_iterations')
 		
 
 
