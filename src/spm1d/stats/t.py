@@ -73,8 +73,11 @@ def glm(Y, X, c, Q=None, roi=None):
 			resels = rft1d.geom.resel_counts(mask, fwhm, element_based=False)
 			t      = np.ma.masked_array(t, np.logical_not(roi))
 		### assemble SPM{t} object
-		s      = np.asarray(sigma2).flatten()
-		t      = SPM1D_T(t, (1,df), fwhm, resels, np.asarray(X), np.asarray(b), eij, sigma2=s, roi=roi)
+		# s      = np.asarray(sigma2).flatten()
+		# t      = SPM1D_T(t, (1,df), fwhm, resels, np.asarray(X), np.asarray(b), eij, sigma2=s, roi=roi)
+		X      = np.asarray(X)
+		b,r,s2 = np.asarray(b), np.asarray(eij), np.asarray(sigma2)
+		t      = SPM1D('T', t, (1,df), beta=b, residuals=r, sigma2=s2, X=X, fwhm=fwhm, resels=resels, roi=roi)
 	else:
 		b,r,s2 = np.asarray(b).flatten(), eij.flatten(), float(sigma2)
 		t      = SPM0D('T', t, (1,df), beta=b, residuals=r, sigma2=s2)

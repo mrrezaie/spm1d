@@ -23,8 +23,9 @@ class _SPMParent(object):
 	
 	@property
 	def _class_str(self):
-		ss = '' if self.isparametric else 'n'
-		return f'S{ss}PM{{{self.STAT}}} ({self.dim}D)'
+		ss   = 'n' if (self.isinference and not self.isparametric) else ''
+		stat = 't' if (self.STAT=='T') else self.STAT
+		return f'S{ss}PM{{{stat}}} ({self.dim}D)'
 	@property
 	def isanova(self):
 		return self.STAT == 'F'

@@ -11,21 +11,21 @@ This module contains class definitions for raw 1D SPMs.
 # Copyright (C) 2022  Todd Pataky
 
 
+import numpy as np
 import rft1d
 from . _base import _SPMParent #, _SPMF
+from . _clusters import Cluster
 from ... plot import plot_spm, plot_spm_design
 from ... plot import plot_spmi, plot_spmi_p_values, plot_spmi_threshold_label
+from ... util import dflist2str
 
 
 
 class SPM1D(_SPMParent):
 	dim                     = 1
 	'''Parent class for all 1D SPM classes.'''
-	def __init__(self, STAT, z, df, fwhm, resels, X=None, beta=None, residuals=None, sigma2=None, roi=None):
-		# z[np.isnan(z)]      = 0              #this produces a MaskedArrayFutureWarning in Python 3.X
+	def __init__(self, STAT, z, df, beta=None, residuals=None, sigma2=None, X=None, fwhm=None, resels=None, roi=None):
 		self.STAT           = STAT             #test statistic ("T" or "F")
-		self.Q              = z.size           #number of nodes (field size = Q-1)
-		self.Qmasked        = z.size           #number of nodes in mask (if "roi" is not None)
 		self.X              = X                #design matrix
 		self.beta           = beta             #fitted parameters
 		self.residuals      = residuals        #model residuals
@@ -36,16 +36,10 @@ class SPM1D(_SPMParent):
 		self.resels         = resels           #resel counts
 		self.roi            = roi              #region of interest
 		self._ClusterClass  = Cluster          #class definition for parametric / non-parametric clusters
-		if roi is not None:
-			self.Qmasked    = self.z.count()
 
 
 	def __repr__(self):
-		stat     = self.STAT
-		if stat == 'T':
-			stat = 't'
-		s        = ''
-		s       += 'SPM{%s}\n' %stat
+		s        = f'{self._class_str}\n'
 		if self.isanova:
 			s   += '   SPM.effect :   %s\n' %self.effect
 		s       += '   SPM.z      :  %s\n' %self._repr_teststat()
@@ -62,6 +56,12 @@ class SPM1D(_SPMParent):
 	@property
 	def nNodes(self):
 		return self.Q
+	@property
+	def Q(self):
+		return self.z.size
+	@property
+	def Qmasked(self):
+		return self.z.size if (self.roi is None) else self.z.count()
 	
 	
 	def _repr_corrcoeff(self):
@@ -74,15 +74,18 @@ class SPM1D(_SPMParent):
 	
 
 	def _build_spmi(self, alpha, zstar, clusters, p_set, two_tailed):
+		
+		from . _spm1di import SPM1Di_T #, SPMi_F, SPMi_T2, SPMi_X2
+		
 		p_clusters  = [c.P for c in clusters]
 		if self.STAT == 'T':
-			spmi    = SPMi_T(self, alpha,  zstar, clusters, p_set, p_clusters, two_tailed)
-		elif self.STAT == 'F':
-			spmi    = SPMi_F(self, alpha,  zstar, clusters, p_set, p_clusters, two_tailed)
-		elif self.STAT == 'T2':
-			spmi    = SPMi_T2(self, alpha, zstar, clusters, p_set, p_clusters, two_tailed)
-		elif self.STAT == 'X2':
-			spmi    = SPMi_X2(self, alpha, zstar, clusters, p_set, p_clusters, two_tailed)
+			spmi    = SPM1Di_T(self, alpha,  zstar, clusters, p_set, p_clusters, two_tailed)
+		# elif self.STAT == 'F':
+		# 	spmi    = SPMi_F(self, alpha,  zstar, clusters, p_set, p_clusters, two_tailed)
+		# elif self.STAT == 'T2':
+		# 	spmi    = SPMi_T2(self, alpha, zstar, clusters, p_set, p_clusters, two_tailed)
+		# elif self.STAT == 'X2':
+		# 	spmi    = SPMi_X2(self, alpha, zstar, clusters, p_set, p_clusters, two_tailed)
 		return spmi
 		
 	def _cluster_geom(self, u, interp, circular, csign=+1, z=None):
@@ -175,23 +178,92 @@ class SPM1D(_SPMParent):
 				p_set = rft1d.chi2.p_set_resels(nUpcrossings, minextent, zstar, self.df[1], self.resels, withBonf=withBonf, nNodes=self.Q)
 		return p_set
 	
-	def inference(self, alpha=0.05, cluster_size=0, two_tailed=False, interp=True, circular=False, withBonf=True):
-		check_neg  = two_tailed
-		### check ROI and "two_tailed" compatability:
-		if self.roi is not None:
-			if self.roi.dtype != bool:
-				if two_tailed:
-					raise( ValueError('If the ROI contains directional predictions two_tailed must be FALSE.') )
-				else:
-					check_neg  = np.any( self.roi == -1 )
-		### conduct inference:
-		a          = 0.5*alpha if two_tailed else alpha  #adjusted alpha (if two-tailed)
-		zstar      = self._isf(a, withBonf)  #critical threshold (RFT inverse survival function)
-		clusters   = self._get_clusters(zstar, check_neg, interp, circular)  #assemble all suprathreshold clusters
-		clusters   = self._cluster_inference(clusters, two_tailed, withBonf)  #conduct cluster-level inference
-		p_set      = self._setlevel_inference(zstar, clusters, two_tailed, withBonf)  #conduct set-level inference
-		spmi       = self._build_spmi(alpha, zstar, clusters, p_set, two_tailed)    #assemble SPMi object
+
+	def _isf_sf_t(self, a, z, df, dirn=0, withBonf=True):
+		
+		zc     = rft1d.t.isf_resels(a, self.df[1], self.resels, withBonf=withBonf, nNodes=self.Q)
+		p      = None
+		
+		
+		
+		
+		check_neg  = False
+		interp     = True
+		circular   = False
+		
+		
+		# 	zstar      = self._isf(a, withBonf)  #critical threshold (RFT inverse survival function)
+		clusters   = self._get_clusters(zc, check_neg, interp, circular)  #assemble all suprathreshold clusters
+		# 	clusters   = self._cluster_inference(clusters, two_tailed, withBonf)  #conduct cluster-level inference
+		# 	p_set      = self._setlevel_inference(zstar, clusters, two_tailed, withBonf)  #conduct set-level inference
+		# 	spmi       = self._build_spmi(alpha, zstar, clusters, p_set, two_tailed)    #assemble SPMi object
+		# 	return spmi
+		
+		print(clusters)
+		return zc, p
+		
+		
+		# _z     = np.abs(z) if (dirn==0) else dirn*z
+		# a      = 0.5 * a if (dirn==0) else a
+		# zc     = stats.t.isf( a, df )
+		# zc     = -zc if (dirn==-1) else zc
+		# p      = stats.t.sf( _z, df )
+		# p      = min(1, 2*p) if (dirn==0) else p
+		# return zc,p
+
+	def _inference_rft_t(self, alpha, dirn=0):
+		
+		zc,p           = self._isf_sf_t(alpha, self.z, self.df[1], dirn)
+		
+		print( zc, p )
+		
+		
+		# from . _spm1di import SPM1Di
+		# spmi           = deepcopy( self )
+		# spmi.__class__ = SPM0Di
+		# spmi.method    = 'gauss'
+		# spmi.alpha     = alpha
+		# spmi.zc        = zc
+		# spmi.p         = p
+		# spmi.dirn      = dirn
+		# return spmi
+
+
+	def inference(self, alpha, method='rft', **kwargs):
+		# parser   = InferenceArgumentParser1D(self.STAT, method)
+		# parser.parse( alpha, **kwargs )
+		
+		if method == 'rft':
+			spmi = self.inference_rft(alpha)
+			# spmi = self.inference_rft(alpha, **parser.kwargs)
+		# elif method == 'perm':
+		# 	spmi = self.inference_perm(alpha, **parser.kwargs)
 		return spmi
+		
+		
+	
+	def inference_rft(self, alpha, **kwargs):
+		# f = self._inference_rft_t if (self.STAT=='T') else self._inference_rft
+		f = self._inference_rft_t
+		return f(alpha, **kwargs)
+
+	# def inference(self, alpha=0.05, cluster_size=0, two_tailed=False, interp=True, circular=False, withBonf=True):
+	# 	check_neg  = two_tailed
+	# 	### check ROI and "two_tailed" compatability:
+	# 	if self.roi is not None:
+	# 		if self.roi.dtype != bool:
+	# 			if two_tailed:
+	# 				raise( ValueError('If the ROI contains directional predictions two_tailed must be FALSE.') )
+	# 			else:
+	# 				check_neg  = np.any( self.roi == -1 )
+	# 	### conduct inference:
+	# 	a          = 0.5*alpha if two_tailed else alpha  #adjusted alpha (if two-tailed)
+	# 	zstar      = self._isf(a, withBonf)  #critical threshold (RFT inverse survival function)
+	# 	clusters   = self._get_clusters(zstar, check_neg, interp, circular)  #assemble all suprathreshold clusters
+	# 	clusters   = self._cluster_inference(clusters, two_tailed, withBonf)  #conduct cluster-level inference
+	# 	p_set      = self._setlevel_inference(zstar, clusters, two_tailed, withBonf)  #conduct set-level inference
+	# 	spmi       = self._build_spmi(alpha, zstar, clusters, p_set, two_tailed)    #assemble SPMi object
+	# 	return spmi
 
 	def plot(self, **kwdargs):
 		return plot_spm(self, **kwdargs)
