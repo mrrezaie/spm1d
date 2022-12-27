@@ -18,7 +18,7 @@ from scipy import stats
 # from . _base import _SPMParent, _SPMF
 from . _argparsers import InferenceArgumentParser0D, InferenceArgumentParser1D
 # from .. _argparse import KeywordArgumentParser
-from .. import prob
+# from .. import prob
 from ... util import dflist2str
 from . _base import _SPMParent
 

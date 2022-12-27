@@ -27,6 +27,7 @@ __all__ = ['data', 'io', 'plot', 'rft1d', 'stats', 'util']
 
 from . import data
 from . import io
+from . import prob
 from . import plot
 from . import stats
 from . import util
