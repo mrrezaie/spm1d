@@ -19,6 +19,7 @@ from scipy import stats
 from . _argparsers import InferenceArgumentParser0D, InferenceArgumentParser1D
 # from .. _argparse import KeywordArgumentParser
 # from .. import prob
+from ... import prob
 from ... util import dflist2str
 from . _base import _SPMParent
 
@@ -58,101 +59,66 @@ class SPM0D(_SPMParent):
 		return s
 
 
-	def _isf_sf_t(self, a, z, df, dirn=0):
-		_z     = np.abs(z) if (dirn==0) else dirn*z
-		a      = 0.5 * a if (dirn==0) else a
-		zc     = stats.t.isf( a, df )
-		zc     = -zc if (dirn==-1) else zc
-		p      = stats.t.sf( _z, df )
-		p      = min(1, 2*p) if (dirn==0) else p
-		return zc,p
 
-	def _inference_gauss_t(self, alpha, dirn=0):
+
+	def inference_param(self, alpha, dirn=0):
 		from . _spm0di import SPM0Di
-		zc,p           = self._isf_sf_t(alpha, self.z, self.df[1], dirn)
+		
+		results        = prob.param(self.STAT, self.z, self.df, alpha=alpha, dirn=dirn)
+		# spmi = self.inference_gauss(alpha, **parser.kwargs)
+		
 		spmi           = deepcopy( self )
 		spmi.__class__ = SPM0Di
-		spmi.method    = 'gauss'
+		spmi.method    = 'param'
 		spmi.alpha     = alpha
-		spmi.zc        = zc
-		spmi.p         = p
-		spmi.dirn      = dirn
+		spmi.zc        = results.zc
+		spmi.p         = results.p
+		if self.STAT=='T':
+			spmi.dirn  = dirn
+			# spmi.dirn  = parser.kwargs['dirn']
 		return spmi
-		
-
-	def _inference_gauss(self, alpha):
-		pass
-	
 	
 
-	def _inference_perm_t(self, alpha, dirn=0, nperm=10000):
-		# two_tailed = dirn==0
-
-		from .. nonparam.permuters import get_permuter
-		permuter   = get_permuter(self.testname, self.dim)( *self._args )
+	def inference_perm(self, alpha, nperm=10000, dirn=0):
 		
-		# print(permuter)
-		# print(permuter.nPermTotal)
+		if self.isinlist:
+			raise( NotImplementedError( 'Permutation inference must be conducted using the parent SnPMList (for two- and three-way ANOVA).' ) )
 		
-		if nperm > permuter.nPermTotal:
-			raise ValueError( f'Number of specified permutations ({nperm}) exceeds the total number of possible permutations ({permuter.nPermTotal}).')
-
-		permuter.build_pdf(  nperm  )
-		zc         = permuter.get_z_critical(alpha, dirn)
-
-
-
-		if not isinstance(zc, float):
-			zc     = zc.flatten()
-		p          = permuter.get_p_value(self.z, zc, alpha, dirn)
-
+		# self._check_iterations(iterations, alpha, force_iterations)
+		
 		from . _spm0di import SPM0Di
+		
+		results          = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dirn=dirn)
+		
 		spmi             = deepcopy( self )
 		spmi.__class__   = SPM0Di
 		spmi.method      = 'perm'
 		spmi.alpha       = alpha
-		spmi.zc          = zc
-		spmi.p           = p
-		spmi.dirn        = dirn
+		spmi.zc          = results.zc
+		spmi.p           = results.p
 		spmi.nperm       = nperm
-		spmi.permuter    = permuter
-		# spmi._set_inference_params('perm', alpha, zc, p, dirn)
+		spmi.permuter    = results.permuter
+		if self.STAT=='T':
+			# spmi.dirn    = parser.kwargs['dirn']
+			spmi.dirn    = dirn
+			
 		return spmi
-
-
-		
-	
-	def _inference_perm(self, alpha, nperm=-1):
-		pass
 	
 	
 	
 	
 	
-	def inference(self, alpha, method='gauss', **kwargs):
+	def inference(self, alpha, method='param', **kwargs):
 		parser   = InferenceArgumentParser0D(self.STAT, method)
 		parser.parse( alpha, **kwargs )
-		
-		if method == 'gauss':
-			spmi = self.inference_gauss(alpha, **parser.kwargs)
+
+		if method == 'param':
+			spmi = self.inference_param(alpha, **kwargs)
+
 		elif method == 'perm':
-			spmi = self.inference_perm(alpha, **parser.kwargs)
+			spmi = self.inference_perm(alpha, **kwargs)
+
 		return spmi
-		
-		
-	
-	def inference_gauss(self, alpha, **kwargs):
-		f = self._inference_gauss_t if (self.STAT=='T') else self._inference_gauss
-		return f(alpha, **kwargs)
-
-
-	def inference_perm(self, alpha, **kwargs):
-		if self.isinlist:
-			raise( NotImplementedError( 'Non-parametric inference must be conducted using the parent SnPMList (for two- and three-way ANOVA).' ) )
-		# self._check_iterations(iterations, alpha, force_iterations)
-		f = self._inference_perm_t if (self.STAT=='T') else self._inference_perm
-		return f(alpha, **kwargs)
-
 
 
 

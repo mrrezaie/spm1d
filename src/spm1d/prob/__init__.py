@@ -1,7 +1,7 @@
 
 
-from . gauss import gauss, gauss_T
-from . perm import perm_T
+from . param import param
+from . perm import perm
 
 
 

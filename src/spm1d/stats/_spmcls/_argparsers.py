@@ -43,7 +43,7 @@ class InferenceArgumentParser0D( ArgumentParser ):
 	
 	def _init(self):
 		self.add_arg('alpha', type=float, range=(0,1))
-		self.add_kwarg('method', values=['gauss','perm'])
+		self.add_kwarg('method', values=['param','perm'])
 		if self.stat =='T':
 			self.add_kwarg(name='dirn', values=[-1,0,1], default=0)
 			k = self.add_kwarg(name='two_tailed', values=[True,False,None], default=None)

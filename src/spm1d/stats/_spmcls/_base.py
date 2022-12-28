@@ -66,7 +66,7 @@ class _SPMiParent(object):
 
 	@property
 	def isparametric(self):
-		return self.method in ['gauss', 'rft', 'fdr', 'bonferroni', 'uncorrected']
+		return self.method in ['param', 'rft', 'fdr', 'bonferroni', 'uncorrected']
 
 	@property
 	def zstar(self):   # legacy support ("zc" was "zstar" in spm1d versions < 0.5)
