@@ -12,6 +12,7 @@ and inference SPMs (thresholded test statistic).
 # Copyright (C) 2022  Todd Pataky
 
 import warnings
+import numpy as np
 
 
 
@@ -20,6 +21,8 @@ class _SPMParent(object):
 	dim           = 0
 	isinference   = False
 	isinlist      = False
+	ismultigroup  = False
+	testname      = None
 	
 	@property
 	def _class_str(self):
@@ -35,12 +38,27 @@ class _SPMParent(object):
 	@property
 	def isregress(self):
 		return self.testname == 'regress'
+	@property
+	def ismultigroup(self):
+		return self.testname in ['ttest2', 'anova1']
+	
+	def _set_effect_label(self, s):
+		self.effect_label   = s
+		self.effect_label_s = s.split(' ')[1]
 	
 	def _set_data(self, *args):
 		self._args = args
 	
 	def _set_testname(self, name):
 		self.testname = str( name )
+
+
+class _SPM0DParent(_SPMParent):
+	
+	def _set_anova_attrs(self, ss=None, ms=None):
+		self.ss   = tuple( np.asarray(ss, dtype=float) )
+		self.ms   = tuple( np.asarray(ms, dtype=float) )
+
 
 
 class _SPMiParent(object):

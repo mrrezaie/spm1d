@@ -20,14 +20,14 @@ from . _argparsers import InferenceArgumentParser0D, InferenceArgumentParser1D
 # from .. _argparse import KeywordArgumentParser
 # from .. import prob
 from ... import prob
-from ... util import dflist2str
-from . _base import _SPMParent
+from ... util import dflist2str, tuple2str
+from . _base import _SPM0DParent
 
 
 
 
 
-class SPM0D(_SPMParent):
+class SPM0D(_SPM0DParent):
 
 	def __init__(self, STAT, z, df, beta=None, residuals=None, sigma2=None):
 		self.STAT           = STAT             # test statistic type ("T" or "F")
@@ -41,15 +41,15 @@ class SPM0D(_SPMParent):
 
 	def __repr__(self):
 		s        = f'{self._class_str}\n'
-		s       += '   SPM.testname :  %s\n'        %self.testname
-		s       += '   SPM.z        :  %.5f\n'      %self.z
-		s       += '   SPM.df       :  %s\n'        %dflist2str(self.df)
-		# if self.isanova:
-		# 	s   += '   SPM.effect     :  %s\n'      %self.effect
-		# 	s   += '   SPM.ms         : (%s, %s)\n' %self.ms
-		# 	s   += '   SPM.ss         : (%s, %s)\n' %self.ss
+		s       += '   SPM.testname         :  %s\n'        %self.testname
+		if self.isanova:
+			s   += '   SPM.effect_label     :  %s\n'        %self.effect_label
+			s   += '   SPM.ms               :  %s\n'        %tuple2str(self.ms, '%.3f')
+			s   += '   SPM.ss               :  %s\n'        %tuple2str(self.ss, '%.3f')
+		s       += '   SPM.z                :  %.5f\n'      %self.z
+		s       += '   SPM.df               :  %s\n'        %dflist2str(self.df)
 		if self.isregress:
-			s   += '   SPM.r        :  %.5f\n'      %self.r
+			s   += '   SPM.r                :  %.5f\n'      %self.r
 		s       += '\n'
 		return s
 
@@ -83,7 +83,9 @@ class SPM0D(_SPMParent):
 		results = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dirn=dirn)
 		return self._build_spmi(results, alpha, dirn=dirn)
 		
-		
+	
+	
+	
 		# # self._check_iterations(iterations, alpha, force_iterations)
 		#
 		# from . _spm0di import SPM0Di

@@ -37,3 +37,6 @@ def plist2stringlist(pList):
 		else:
 			s[i]  = 'p=' + ss
 	return s
+	
+def tuple2str(x, fmt='%.3f'):
+	return '(' +  ', '.join( (fmt%xx for xx in x) ) + ')'

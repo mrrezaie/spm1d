@@ -214,7 +214,58 @@ def ttest_paired(YA, YB, roi=None):
 
 
 
-def ttest2(YA, YB, equal_var=False, roi=None):
+# def ttest2(YA, YB, equal_var=False, roi=None):
+# 	'''
+# 	Two-sample t test.
+#
+# 	:Parameters:
+#
+# 	- *YA* --- (J x Q) data array  (J responses, Q nodes)
+# 	- *YB* --- (J x Q) data array  (J responses, Q nodes)
+# 	- *equal_var* --- If *True*, equal group variance will be assumed
+#
+# 	:Returns:
+#
+# 	- An **spm1d._spm.SPM_T** object.
+#
+# 	:Example:
+#
+# 	>>> YA,YB  = np.random.randn(8, 101), np.random.randn(8, 101)
+# 	>>> YA,YB  = spm1d.util.smooth(Y, fwhm=10), spm1d.util.smooth(Y, fwhm=10)
+#
+# 	>>> t  = spm1d.stats.ttest2(YA, YB)
+# 	>>> ti = t.inference(alpha=0.05)
+# 	>>> ti.plot()
+# 	'''
+# 	### check data:
+# 	_yA,_yB  = YA, YB
+# 	YA,YB    = _datachecks.asmatrix(YA, dtype=float), _datachecks.asmatrix(YB, dtype=float)
+# 	_datachecks.check('ttest2', YA, YB)
+# 	### assemble data
+# 	JA,JB    = YA.shape[0], YB.shape[0]
+# 	Y        = np.vstack(  (YA, YB)  )
+# 	### specify design and contrast:
+# 	X        = np.zeros( (JA+JB, 2) )
+# 	X[:JA,0] = 1
+# 	X[JA:,1] = 1
+# 	c        = (1, -1)
+# 	### non-sphericity:
+# 	Q        = None
+# 	if not equal_var:
+# 		J           = JA + JB
+# 		q0,q1       = np.eye(JA), np.eye(JB)
+# 		Q0,Q1       = np.matrix(np.zeros((J,J))), np.matrix(np.zeros((J,J)))
+# 		Q0[:JA,:JA] = q0
+# 		Q1[JA:,JA:] = q1
+# 		Q           = [Q0, Q1]
+# 	### compute SPM{t}:
+# 	spm = glm(Y, X, c, Q, roi=roi)
+# 	spm._set_testname( 'ttest2' )
+# 	spm._set_data( _yA, _yB )
+# 	return spm
+
+
+def ttest2(YA, YB, equal_var=None, roi=None):
 	'''
 	Two-sample t test.
 	
@@ -263,7 +314,4 @@ def ttest2(YA, YB, equal_var=False, roi=None):
 	spm._set_testname( 'ttest2' )
 	spm._set_data( _yA, _yB )
 	return spm
-
-
-
 

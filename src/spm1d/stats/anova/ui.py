@@ -50,6 +50,7 @@ def aov(model, contrasts, f_terms, nFactors=1):
 	residuals = np.asarray( model.eij )
 	sigma2    = None
 	spm       = SPM0D('F', f, (df0,df1), beta=beta, residuals=residuals, sigma2=sigma2)
+	spm._set_anova_attrs( ss=(ss0,ss1) , ms=(ms0,ms1) )
 	return spm
 
 
@@ -90,14 +91,15 @@ def anova1(Y, A=None, equal_var=False, roi=None):
 	model   = models.LinearModel(Y, design.X, roi=roi)
 	model.fit()
 	spm     = aov(model, design.contrasts, design.f_terms, nFactors=1)  #[0]
-	# if not equal_var:
-	# 	warnings.warn('\nWARNING:  Non-sphericity corrections for one-way ANOVA are currently approximate and have not been verified.\n', UserWarning, stacklevel=2)
-	# 	Y,X,r = model.Y, model.X, model.eij
-	# 	Q,C   = design.A.get_Q(), design.contrasts.C.T
-	# 	F.df  = _reml.estimate_df_anova1(Y, X, r, Q, C)
+	if not equal_var:
+		warnings.warn('\nWARNING:  Non-sphericity corrections for one-way ANOVA are currently approximate and have not been verified.\n', UserWarning, stacklevel=2)
+		Y,X,r   = model.Y, model.X, model.eij
+		Q,C     = design.A.get_Q(), design.contrasts.C.T
+		spm.df  = _reml.estimate_df_anova1(Y, X, r, Q, C)
 
 	spm._set_testname( 'anova1' )
 	spm._set_data( Y, A )
+	spm._set_effect_label( design.effect_labels[0] )
 	return spm
 
 

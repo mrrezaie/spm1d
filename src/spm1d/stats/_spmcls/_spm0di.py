@@ -20,38 +20,30 @@ from ... util import dflist2str
 class SPM0Di(_SPMiParent, SPM0D):
 	
 	def __repr__(self):
-		s        = f'{self._class_str}\n'
-		s       += '   SPM.testname         :  %s\n'      %self.testname
-		if self.isanova:
-			s   += '   SPM.effect           :  %s\n'      %self.effect
-			s   += '   SPM.SS               : (%s, %s)\n' %self.ss
-			s   += '   SPM.df               : (%s, %s)\n' %self.df
-			s   += '   SPM.MS               : (%s, %s)\n' %self.ms
-			s   += '   SPM.z                :  %.5f\n'    %self.z
-		else:
-			s   += '   SPM.z                :  %.5f\n'    %self.z
-			s   += '   SPM.df               :  %s\n'      %dflist2str(self.df)
-		if self.isregress:
-			s   += '   SPM.r                :  %.5f\n'    %self.r
+		s        = super().__repr__()
 		s       += 'Inference:\n'
-		s       += '   SPM.method           :  %s\n'      %self.method
-		s       += '   SPM.isparametric     :  %s\n'      %self.isparametric
+		s       += '   SPM.method            :  %s\n'      %self.method
+		s       += '   SPM.isparametric      :  %s\n'      %self.isparametric
+		if self.ismultigroup:
+			s   += '   SPM.assumes_equal_var :  %s\n'      %self.isparametric
 		if not self.isparametric:
-			s   += '   SPM.nperm_possible   :  %d\n'      %self.nperm_possible
-			s   += '   SPM.nperm_actual     :  %d\n'      %self.nperm_actual
-		s       += '   SPM.alpha            :  %.3f\n'    %self.alpha
+			s   += '   SPM.nperm_possible    :  %d\n'      %self.nperm_possible
+			s   += '   SPM.nperm_actual      :  %d\n'      %self.nperm_actual
+		s       += '   SPM.alpha             :  %.3f\n'    %self.alpha
 		if self.STAT == 'T':
-			s   += '   SPM.dirn             :  %s\n'      %self._dirn_str
-		s       += '   SPM.zc               :  %s\n'      %self._zcstr
-		s       += '   SPM.h0reject         :  %s\n'      %self.h0reject
-		s       += '   SPM.p                :  %.5f\n'    %self.p
+			s   += '   SPM.dirn              :  %s\n'      %self._dirn_str
+		s       += '   SPM.zc                :  %s\n'      %self._zcstr
+		s       += '   SPM.h0reject          :  %s\n'      %self.h0reject
+		s       += '   SPM.p                 :  %.5f\n'    %self.p
 		s       += '\n'
 		return s
 	
 	@property
 	def h0reject(self):
 		z,zc  = self.z, self.zc
-		if self.dirn==0:
+		if self.dirn is None:
+			h       = z > zc
+		elif self.dirn==0:
 			zc0,zc1 = (-zc,zc) if self.isparametric else zc
 			h       = (z < zc0) or (z > zc1)
 		elif self.dirn==1:
@@ -96,9 +88,10 @@ class SPM0Di(_SPMiParent, SPM0D):
 
 
 
-	def _set_inference_params(self, method, alpha, zc, p, dirn):
+	def _set_inference_params(self, method, alpha, zc, p, dirn, df_adjusted=None):
 		self.method      = method         # inference method
 		self.alpha       = alpha          # Type I error rate
+		self.df_adjusted = df_adjusted    # degrees of freedom (adjusted for unequal variance)
 		self.zc          = zc             # critical value
 		self.p           = p              # p-value
 		self.dirn        = dirn           # one-tailed direction (-1 or +1)
