@@ -20,8 +20,7 @@ from ... util import dflist2str
 class SPM0Di(_SPMiParent, SPM0D):
 	
 	def __repr__(self):
-		s        = ''
-		s       += f'{self._class_str} inference\n'
+		s        = f'{self._class_str}\n'
 		s       += '   SPM.testname         :  %s\n'      %self.testname
 		if self.isanova:
 			s   += '   SPM.effect           :  %s\n'      %self.effect

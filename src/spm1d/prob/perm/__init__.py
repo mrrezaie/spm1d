@@ -4,10 +4,12 @@ from . permuters import get_permuter
 
 
 class PermResults(object):
-	def __init__(self, zc, p, permuter):
+	def __init__(self, zc, p, permuter, nperm):
+		self.method   = 'perm'
 		self.zc       = zc
 		self.p        = p
 		self.permuter = permuter
+		self.nperm    = nperm
 
 
 def isf_sf_t(z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000):
@@ -30,5 +32,5 @@ def perm(stat, z, alpha=0.05, testname=None, args=None, nperm=10000, **kwargs):
 		pass
 	else:
 		raise ValueError( f'Unknown statistic: {stat}. Must be one of: ["T", "F", "T2", "X2"]' )
-	results = PermResults(zc, p, permuter)
+	results = PermResults(zc, p, permuter, nperm)
 	return results

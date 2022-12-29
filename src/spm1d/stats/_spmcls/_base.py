@@ -23,9 +23,12 @@ class _SPMParent(object):
 	
 	@property
 	def _class_str(self):
-		ss   = 'n' if (self.isinference and not self.isparametric) else ''
-		stat = 't' if (self.STAT=='T') else self.STAT
-		return f'S{ss}PM{{{stat}}} ({self.dim}D)'
+		ss     = 'n' if (self.isinference and not self.isparametric) else ''
+		stat   = 't' if (self.STAT=='T') else self.STAT
+		s      = f'S{ss}PM{{{stat}}} ({self.dim}D)'
+		if self.isinference:
+			s += ' inference'
+		return s
 	@property
 	def isanova(self):
 		return self.STAT == 'F'
@@ -76,13 +79,13 @@ class _SPMiParent(object):
 
 
 
-class _SPMF(object):
+class _SPMFParent(object):
 	'''Additional attrubutes and methods specific to SPM{F} objects.'''
 	effect        = 'Main A'
 	effect_short  = 'A'
 
-	def _repr_summ(self):  # abstract method to be implemented by all subclasses
-		pass
+	# def _repr_summ(self):  # abstract method to be implemented by all subclasses
+	# 	pass
 
 	def set_effect_label(self, label=""):
 		self.effect        = str(label)

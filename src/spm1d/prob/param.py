@@ -9,6 +9,7 @@ import rft1d
 
 class ParamResults(object):
 	def __init__(self, zc, p):
+		self.method   = 'param'
 		self.zc = zc
 		self.p  = p
 
@@ -38,22 +39,6 @@ def param(stat, z, df, alpha=0.05, **kwargs):
 		raise ValueError( f'Unknown statistic: {stat}. Must be one of: ["T", "F", "T2", "X2"]' )
 	results = ParamResults( zc, p )
 	return results
-
-
-
-
-
-
-# def inference(z, df, alpha=0.05, method='gauss', **kwargs):
-# 	# parser   = InferenceArgumentParser0D(self.STAT, method)
-# 	# parser.parse( alpha, **kwargs )
-#
-# 	if method == 'gauss':
-# 		spmi = self.inference_gauss(alpha, **parser.kwargs)
-# 	elif method == 'perm':
-# 		spmi = self.inference_perm(alpha, **parser.kwargs)
-# 	return spmi
-
 
 
 

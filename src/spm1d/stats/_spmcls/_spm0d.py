@@ -40,70 +40,70 @@ class SPM0D(_SPMParent):
 
 
 	def __repr__(self):
-		stat     = 't' if self.STAT=='T' else self.STAT
-		s        = ''
-		s       += 'SPM{%s} (0D)\n' %stat
-		s       += '   SPM.testname :  %s\n'      %self.testname
-		if self.isanova:
-			s   += '   SPM.effect     :  %s\n'      %self.effect
-			s   += '   SPM.SS         : (%s, %s)\n' %self.ss
-			s   += '   SPM.df         : (%s, %s)\n' %self.df
-			s   += '   SPM.MS         : (%s, %s)\n' %self.ms
-			s   += '   SPM.z          :  %.5f\n'    %self.z
-		else:
-			s   += '   SPM.z        :  %.5f\n'      %self.z
-			s   += '   SPM.df       :  %s\n'        %dflist2str(self.df)
+		s        = f'{self._class_str}\n'
+		s       += '   SPM.testname :  %s\n'        %self.testname
+		s       += '   SPM.z        :  %.5f\n'      %self.z
+		s       += '   SPM.df       :  %s\n'        %dflist2str(self.df)
+		# if self.isanova:
+		# 	s   += '   SPM.effect     :  %s\n'      %self.effect
+		# 	s   += '   SPM.ms         : (%s, %s)\n' %self.ms
+		# 	s   += '   SPM.ss         : (%s, %s)\n' %self.ss
 		if self.isregress:
 			s   += '   SPM.r        :  %.5f\n'      %self.r
 		s       += '\n'
 		return s
 
 
-
-
-	def inference_param(self, alpha, dirn=0):
+	def _build_spmi(self, results, alpha, dirn=0):
 		from . _spm0di import SPM0Di
-		
-		results        = prob.param(self.STAT, self.z, self.df, alpha=alpha, dirn=dirn)
-		# spmi = self.inference_gauss(alpha, **parser.kwargs)
-		
 		spmi           = deepcopy( self )
 		spmi.__class__ = SPM0Di
-		spmi.method    = 'param'
+		spmi.method    = results.method
 		spmi.alpha     = alpha
 		spmi.zc        = results.zc
 		spmi.p         = results.p
 		if self.STAT=='T':
-			spmi.dirn  = dirn
-			# spmi.dirn  = parser.kwargs['dirn']
+			spmi.dirn     = dirn
+			# spmi.dirn   = parser.kwargs['dirn']
+		if results.method=='perm':
+			spmi.nperm    = results.nperm
+			spmi.permuter = results.permuter
 		return spmi
+		
+
+	def _inference_param(self, alpha, dirn=0):
+		results  = prob.param(self.STAT, self.z, self.df, alpha=alpha, dirn=dirn)
+		return self._build_spmi(results, alpha, dirn=dirn)
 	
 
-	def inference_perm(self, alpha, nperm=10000, dirn=0):
-		
+	def _inference_perm(self, alpha, nperm=10000, dirn=0):
 		if self.isinlist:
 			raise( NotImplementedError( 'Permutation inference must be conducted using the parent SnPMList (for two- and three-way ANOVA).' ) )
 		
-		# self._check_iterations(iterations, alpha, force_iterations)
+		results = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dirn=dirn)
+		return self._build_spmi(results, alpha, dirn=dirn)
 		
-		from . _spm0di import SPM0Di
 		
-		results          = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dirn=dirn)
-		
-		spmi             = deepcopy( self )
-		spmi.__class__   = SPM0Di
-		spmi.method      = 'perm'
-		spmi.alpha       = alpha
-		spmi.zc          = results.zc
-		spmi.p           = results.p
-		spmi.nperm       = nperm
-		spmi.permuter    = results.permuter
-		if self.STAT=='T':
-			# spmi.dirn    = parser.kwargs['dirn']
-			spmi.dirn    = dirn
-			
-		return spmi
-	
+		# # self._check_iterations(iterations, alpha, force_iterations)
+		#
+		# from . _spm0di import SPM0Di
+		#
+		# results          = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dirn=dirn)
+		#
+		# spmi             = deepcopy( self )
+		# spmi.__class__   = SPM0Di
+		# spmi.method      = 'perm'
+		# spmi.alpha       = alpha
+		# spmi.zc          = results.zc
+		# spmi.p           = results.p
+		# spmi.nperm       = nperm
+		# spmi.permuter    = results.permuter
+		# if self.STAT=='T':
+		# 	# spmi.dirn    = parser.kwargs['dirn']
+		# 	spmi.dirn    = dirn
+		#
+		# return spmi
+		#
 	
 	
 	
@@ -113,10 +113,10 @@ class SPM0D(_SPMParent):
 		parser.parse( alpha, **kwargs )
 
 		if method == 'param':
-			spmi = self.inference_param(alpha, **kwargs)
+			spmi = self._inference_param(alpha, **kwargs)
 
 		elif method == 'perm':
-			spmi = self.inference_perm(alpha, **kwargs)
+			spmi = self._inference_perm(alpha, **kwargs)
 
 		return spmi
 
