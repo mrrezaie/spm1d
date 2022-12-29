@@ -17,6 +17,12 @@ class RSWeightClinic(_base.DatasetTpaired):
 		self.df   = 1,14
 		self.p    = 1.028e-5
 
+		self.set_spm1d_args( self.YA, self.YB )
+		self.set_spm1d_inference_args( 0.05, dirn=0 )
+		# self.tol.z      = 1e-5
+		# self.tol.p      = 1e-5
+		# self.tol.df     = 1e-5
+		
 
 
 class ColumbiaMileage(_base.DatasetTpaired):
@@ -31,6 +37,11 @@ class ColumbiaMileage(_base.DatasetTpaired):
 		self.df   = 1,9
 		self.p    = 0.000775
 
+		self.set_spm1d_args( self.YA, self.YB )
+		self.set_spm1d_inference_args( 0.05, dirn=1 )
+		self.tol.z      = 1e-4
+		# self.tol.p      = 1e-5
+		# self.tol.df     = 1e-5
 
 
 

@@ -392,7 +392,7 @@ def ttest2(YA, YB, equal_var=None, roi=None):
 	X[JA:,1] = 1
 	c        = (1, -1)
 	### compute SPM{t}:
-	spm = glm(Y, X, c, Q, roi=roi)
+	spm = glm(Y, X, c, Q=None, roi=roi)
 	spm._set_testname( 'ttest2' )
 	spm._set_data( _yA, _yB )
 	### heteroscedacity correction:

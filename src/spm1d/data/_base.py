@@ -14,21 +14,53 @@ def get_datafilepath():
 	return os.path.join( os.path.dirname(__file__), 'datafiles' )
 
 
+# class PyTestParameters(object):
+# 	def __init__(self):
+# 		self.testname = None
+# 		self.atol     = None
+# 		self.rtol     = None
+
+class Tolerance(object):
+	def __init__(self):
+		self.z        = 1e-5
+		self.p        = 1e-5
+		self.df       = 1e-5
+		
+	def __repr__(self):
+		s  =  'Tolerance\n'
+		s += f'    z   = {self.z}\n'
+		s += f'    df  = {self.p}\n'
+		s += f'    p   = {self.df}\n'
+		return s
+		
+		
+
+class SPM1DArguments(object):
+	def __init__(self):
+		self.args             = ()
+		self.kwargs           = {}
+		self.inference_args   = ()
+		self.inference_kwargs = {}
+
+
 class _Dataset(object):
-	STAT              = 'Z'    #test statistic
-	design            = ''     #design string (e.g. "One-way ANOVA")
-	dim               = 0      #data dimensionality
+	STAT              = 'Z'    # test statistic
+	design            = ''     # design string (e.g. "One-way ANOVA")
+	dim               = 0      # data dimensionality
+	testname          = None   # spm1d.stats function name
 	
 	def __init__(self):
-		self._rtol    = 0.001  #relative tolerance (for unit tests)
-		self.Y        = None   #dataset
-		self.z        = None   #expected test stat
-		self.df       = None   #expected degrees of freedom
-		self.p        = None   #expected p value
-		self.cite     = None   #literature citation (if relevant)
-		self.datafile = None   #data file (if available on the web)
-		self.www      = None   #web source
-		self.note     = None   #note
+		# self._rtol    = 0.001  #relative tolerance (for unit tests)
+		self.Y            = None   # dataset
+		self.z            = None   # expected test stat
+		self.df           = None   # expected degrees of freedom
+		self.p            = None   # expected p value
+		self.spm1d_args   = SPM1DArguments()
+		self.cite         = None   # literature citation (if relevant)
+		self.datafile     = None   # data file (if relevant)
+		self.tol          = Tolerance()  # numerical tolerance (for unit tests)
+		self.www          = None   # web source
+		self.note         = None   # note
 		self._set_values()
 	def __repr__(self):
 		s      = 'Dataset\n'
@@ -52,7 +84,21 @@ class _Dataset(object):
 		for x,name in zip(xx,names):
 			print
 			self._printR(x, name)
-	def _set_values(self):    #abstract method;  instantiated by all subclasses
+
+	def _runtest(self, verbose=False):
+		import pytest
+		spm    = self.run()
+		if verbose:
+			s  = f'{self.__class__.__name__} ({self.dim}D, {self.testname})\n'
+			s += f'   z  = {self.z}, {spm.z}\n'
+			s += f'   df = {self.df}, {spm.df}\n'
+			s += f'   p  = {self.p}, {spm.p}\n'
+			print(s)
+		assert self.z     == pytest.approx(spm.z,  abs=self.tol.z)
+		assert self.p     == pytest.approx(spm.p,  abs=self.tol.p)
+		assert self.df    == pytest.approx(spm.df, abs=self.tol.df)
+
+	def _set_values(self):    #abstract method;  redefined by all subclasses
 		pass
 	def get_dependent_variable(self):
 		return self.Y
@@ -71,6 +117,27 @@ class _Dataset(object):
 			s += '  df         :  %s\n' %str(self.df)
 		s     += '  p          :  %s\n' %str(self.p)
 		return s
+	def get_spm1d_stats_fn(self):
+		import spm1d
+		return eval(  f'spm1d.stats.{self.testname}' )
+		
+	def run(self):
+		fn = self.get_spm1d_stats_fn()
+		a0 = self.spm1d_args.args
+		k0 = self.spm1d_args.kwargs
+		a1 = self.spm1d_args.inference_args
+		k1 = self.spm1d_args.inference_kwargs
+		return fn( *a0 , **k0 ).inference(*a1, **k1)
+	
+	def set_spm1d_args(self, *args, **kwargs):
+		self.spm1d_args.args   = args
+		self.spm1d_args.kwargs = kwargs
+	def set_spm1d_inference_args(self, *args, **kwargs):
+		self.spm1d_args.inference_args   = args
+		self.spm1d_args.inference_kwargs = kwargs
+		
+	
+
 
 
 
@@ -276,25 +343,30 @@ class DatasetCI2(_CI, _DatasetT):
 
 
 class DatasetT1(_DatasetT):
-	design  = 'One-sample t test'
-	mu      = None
+	design   = 'One-sample t test'
+	testname = 'ttest'
+	mu       = None
+	
 	def get_data(self):
 		return self.Y, self.mu
 
 class DatasetT2(_DatasetT):
-	design  = 'Two-sample t test'
-	YA      = None
-	YB      = None
-	A       = None
+	design   = 'Two-sample t test'
+	testname = 'ttest2'
+	YA       = None
+	YB       = None
+	A        = None
 	def get_data(self):
 		return self.YA, self.YB
 
 class DatasetTpaired(DatasetT2):
-	design  = 'Paired t test'
+	design   = 'Paired t test'
+	testname = 'ttest_paired'
 
 class DatasetRegress(_DatasetT):
-	design  = 'Simple linear regression OK?'
-	x       = None
+	design   = 'Linear regression'
+	testname = 'ttest'
+	x        = None
 	def get_data(self):
 		return self.Y, self.x
 	def get_expected_results_as_string(self):

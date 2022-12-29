@@ -16,6 +16,12 @@ class RSFlavor(_base.DatasetT2):
 		self.df   = 1,18
 		self.p    = 0.021526
 
+		self.set_spm1d_args( self.YA, self.YB, equal_var=True )
+		self.set_spm1d_inference_args( 0.05, dirn=0 )
+		# self.tol.z      = 1e-5
+		# self.tol.p      = 1e-5
+		# self.tol.df     = 1e-5
+
 
 
 class ColumbiaPlacebo(_base.DatasetT2):
@@ -28,6 +34,12 @@ class ColumbiaPlacebo(_base.DatasetT2):
 		self.z    = 3.4456
 		self.df   = 1,10
 		self.p    = 0.003136
+
+		self.set_spm1d_args( self.YA, self.YB, equal_var=True )
+		self.set_spm1d_inference_args( 0.05, dirn=0 )
+		# self.tol.z      = 1e-5
+		# self.tol.p      = 1e-5
+		# self.tol.df     = 1e-5
 
 
 

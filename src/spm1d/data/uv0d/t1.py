@@ -7,13 +7,21 @@ from .. import _base
 
 class RSWeightReduction(_base.DatasetT1):
 	def _set_values(self):
-		self.www  = 'http://www.real-statistics.com/students-t-distribution/one-sample-t-test/'
-		self.Y    = np.array([23, 15, -5, 7, 1, -10, 12, -8, 20, 8, -2, -5])
-		self.mu   = 0
+		self.www        = 'http://www.real-statistics.com/students-t-distribution/one-sample-t-test/'
+		self.Y          = np.array([23, 15, -5, 7, 1, -10, 12, -8, 20, 8, -2, -5])
+		self.mu         = 0
 		self.two_tailed = False
-		self.z    = 1.449255
-		self.df   = 1,11
-		self.p    = 0.087585
+		self.z          = 1.449255
+		self.df         = 1,11
+		self.p          = 0.087585
+
+		self.set_spm1d_args( self.Y, self.mu )
+		self.set_spm1d_inference_args( 0.05, dirn=1 )
+		# self.tol.z      = 1e-5
+		# self.tol.p      = 1e-5
+		# self.tol.df     = 1e-5
+		
+
 
 
 class ColumbiaSalmonella(_base.DatasetT1):
@@ -25,6 +33,13 @@ class ColumbiaSalmonella(_base.DatasetT1):
 		self.z    = 2.2051
 		self.df   = 1,8
 		self.p    = 0.02927
+		
+		self.set_spm1d_args( self.Y, self.mu )
+		self.set_spm1d_inference_args( 0.05, dirn=1 )
+		self.tol.z      = 1e-4
+		# self.tol.p      = 1e-5
+		# self.tol.df     = 1e-6
+		
 	
 	
 	
