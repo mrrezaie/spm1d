@@ -19,7 +19,6 @@ eps    = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero err
 
 
 
-
 def glm(Y, X, c, Q=None, roi=None):
 	'''
 	General linear model (for t contrasts).
@@ -29,7 +28,6 @@ def glm(Y, X, c, Q=None, roi=None):
 	- *Y* --- (J x Q) numpy array (dependent variable)
 	- *X* --- (J x B) design matrix  (J responses, B parameters)
 	- *c* --- B-component contrast vector (list or array)
-	- *Q* --- non-sphericity specifiers (not currently supported for **glm**)
 	
 	.. note:: Non-sphericity estimates are not supported for **spm1d.stats.glm**
 	
@@ -44,26 +42,18 @@ def glm(Y, X, c, Q=None, roi=None):
 	>>> ti.plot()
 	'''
 	from . _spmcls import SPM0D, SPM1D
-	### assemble data:
-	Y      = np.matrix(Y)
-	X      = np.matrix(X)
-	c      = np.matrix(c).T
-	### solve the GLM:
-	b      = np.linalg.pinv(X)*Y    #parameters
-	eij    = Y - X*b                #residuals
-	R      = eij.T*eij              #residuals: sum of squares
-	df     = Y.shape[0] - rank(X)   #degrees of freedom
-	sigma2 = np.diag(R)/df          #variance
-	### compute t statistic
-	t      = np.array(c.T*b).flatten()  /   (np.sqrt(sigma2*float(c.T*(np.linalg.inv(X.T*X))*c)) + eps)
-	### estimate df due to non-sphericity:
-	if Q is not None:
-		df = _reml.estimate_df_T(Y, X, eij, Q)
-	eij    = np.asarray(eij)
-	if Y.shape[1] > 1:
-		### estimate field smoothness:
+	
+	b      = np.linalg.pinv(X) @ Y    # parameters
+	eij    = Y - X @ b                # residuals
+	ss     = (eij ** 2).sum(axis=0)   # sum-of-squared residuals
+	df     = Y.shape[0] - rank(X)     # degrees of freedom
+	s2     = ss / df                  # variance
+	t      = (c @ b)  /   ( np.sqrt( s2 * (c @ np.linalg.inv(X.T @ X) @ c) ) + eps )
+
+	if Y.ndim == 1:
+		spm  = SPM0D('T', t, (1,df), beta=b, residuals=eij, sigma2=s2)
+	else:
 		fwhm   = rft1d.geom.estimate_fwhm(eij)
-		### compute resel counts:
 		if roi is None:
 			resels = rft1d.geom.resel_counts(eij, fwhm, element_based=False)
 		else:
@@ -75,13 +65,77 @@ def glm(Y, X, c, Q=None, roi=None):
 		### assemble SPM{t} object
 		# s      = np.asarray(sigma2).flatten()
 		# t      = SPM1D_T(t, (1,df), fwhm, resels, np.asarray(X), np.asarray(b), eij, sigma2=s, roi=roi)
-		X      = np.asarray(X)
-		b,r,s2 = np.asarray(b), np.asarray(eij), np.asarray(sigma2)
-		t      = SPM1D('T', t, (1,df), beta=b, residuals=r, sigma2=s2, X=X, fwhm=fwhm, resels=resels, roi=roi)
-	else:
-		b,r,s2 = np.asarray(b).flatten(), eij.flatten(), float(sigma2)
-		t      = SPM0D('T', t, (1,df), beta=b, residuals=r, sigma2=s2)
-	return t
+		# X      = np.asarray(X)
+		# b,r,s2 = np.asarray(b), np.asarray(eij), np.asarray(sigma2)
+		spm      = SPM1D('T', t, (1,df), beta=b, residuals=eij, sigma2=s2, X=X, fwhm=fwhm, resels=resels, roi=roi)
+	return spm
+	
+	
+
+	
+	
+# def glm(Y, X, c, Q=None, roi=None):
+# 	'''
+# 	General linear model (for t contrasts).
+#
+# 	:Parameters:
+#
+# 	- *Y* --- (J x Q) numpy array (dependent variable)
+# 	- *X* --- (J x B) design matrix  (J responses, B parameters)
+# 	- *c* --- B-component contrast vector (list or array)
+# 	- *Q* --- non-sphericity specifiers (not currently supported for **glm**)
+#
+# 	.. note:: Non-sphericity estimates are not supported for **spm1d.stats.glm**
+#
+# 	:Returns:
+#
+# 	- An **spm1d._spm.SPM_T** object.
+#
+# 	:Example:
+#
+# 	>>> t  = spm1d.stats.glm(Y, X, (-1,1))
+# 	>>> ti = t.inference(alpha=0.05, two_tailed=True)
+# 	>>> ti.plot()
+# 	'''
+# 	from . _spmcls import SPM0D, SPM1D
+# 	### assemble data:
+# 	Y      = np.matrix(Y)
+# 	X      = np.matrix(X)
+# 	c      = np.matrix(c).T
+# 	### solve the GLM:
+# 	b      = np.linalg.pinv(X)*Y    #parameters
+# 	eij    = Y - X*b                #residuals
+# 	R      = eij.T*eij              #residuals: sum of squares
+# 	df     = Y.shape[0] - rank(X)   #degrees of freedom
+# 	sigma2 = np.diag(R)/df          #variance
+# 	### compute t statistic
+# 	t      = np.array(c.T*b).flatten()  /   (np.sqrt(sigma2*float(c.T*(np.linalg.inv(X.T*X))*c)) + eps)
+# 	### estimate df due to non-sphericity:
+# 	if Q is not None:
+# 		df = _reml.estimate_df_T(Y, X, eij, Q)
+# 	eij    = np.asarray(eij)
+# 	if Y.shape[1] > 1:
+# 		### estimate field smoothness:
+# 		fwhm   = rft1d.geom.estimate_fwhm(eij)
+# 		### compute resel counts:
+# 		if roi is None:
+# 			resels = rft1d.geom.resel_counts(eij, fwhm, element_based=False)
+# 		else:
+# 			B      = np.any( np.isnan(eij), axis=0)  #node is true if NaN
+# 			B      = np.logical_and(np.logical_not(B), roi)  #node is true if in ROI and also not NaN
+# 			mask   = np.logical_not(B)  #true for masked-out regions
+# 			resels = rft1d.geom.resel_counts(mask, fwhm, element_based=False)
+# 			t      = np.ma.masked_array(t, np.logical_not(roi))
+# 		### assemble SPM{t} object
+# 		# s      = np.asarray(sigma2).flatten()
+# 		# t      = SPM1D_T(t, (1,df), fwhm, resels, np.asarray(X), np.asarray(b), eij, sigma2=s, roi=roi)
+# 		X      = np.asarray(X)
+# 		b,r,s2 = np.asarray(b), np.asarray(eij), np.asarray(sigma2)
+# 		t      = SPM1D('T', t, (1,df), beta=b, residuals=r, sigma2=s2, X=X, fwhm=fwhm, resels=resels, roi=roi)
+# 	else:
+# 		b,r,s2 = np.asarray(b).flatten(), eij.flatten(), float(sigma2)
+# 		t      = SPM0D('T', t, (1,df), beta=b, residuals=r, sigma2=s2)
+# 	return t
 
 
 
@@ -120,7 +174,7 @@ def regress(Y, x, roi=None):
 	X              = np.ones((J,2))
 	X[:,0]         = x
 	c              = [1,0]
-	spmt           = glm(Y, X, c, roi=roi)
+	# spmt           = glm(Y, X, c, roi=roi)
 	
 	
 	# spmt.r         = spmt.z / (  (J - 2 + spmt.z**2)**0.5)  #t = r * ((J-2)/(1-r*r) )**0.5
@@ -144,14 +198,14 @@ def regress(Y, x, roi=None):
 
 
 
-def ttest(Y, y0=None, roi=None):
+def ttest(Y, mu=None, roi=None):
 	'''
 	One-sample t test.
 	
 	:Parameters:
 	
 	- *Y* --- (J x Q) data array  (J responses, Q nodes)
-	- *y0* --- optional Q-component datum array (default is the null continuum)
+	- *mu* --- optional Q-component datum array (default is the null continuum)
 	
 	:Returns:
 	
@@ -166,19 +220,56 @@ def ttest(Y, y0=None, roi=None):
 	>>> ti.plot()
 	'''
 	_y      = Y
-	Y       = _datachecks.asmatrix(Y, dtype=float)
-	_datachecks.check('ttest', Y, y0)
+	Y       = np.asarray( Y, dtype=float )
+	# _datachecks.check('ttest', Y, y0)
 	J       = Y.shape[0]
 	Ytemp   = Y.copy()
-	if y0 is not None:
-		Ytemp -= y0
+	if mu is not None:
+		Ytemp -= mu
 	X       = np.ones((J,1))
-	c       = (1)
+	c       = (1,)
 	### compute SPM{t}:
 	spm = glm(Ytemp, X, c, roi=roi)
-	spm._set_testname( 'ttest' )
-	spm._set_data( _y )
+	# spm._set_testname( 'ttest' )
+	# spm._set_data( _y, mu, roi )
 	return spm
+
+
+# def ttest(Y, y0=None, roi=None):
+# 	'''
+# 	One-sample t test.
+#
+# 	:Parameters:
+#
+# 	- *Y* --- (J x Q) data array  (J responses, Q nodes)
+# 	- *y0* --- optional Q-component datum array (default is the null continuum)
+#
+# 	:Returns:
+#
+# 	- An **spm1d._spm.SPM_T** object.
+#
+# 	:Example:
+#
+# 	>>> Y  = np.random.randn(8, 101)
+# 	>>> Y  = spm1d.util.smooth(Y, fwhm=15)
+# 	>>> t  = spm1d.stats.ttest(Y)
+# 	>>> ti = t.inference(alpha=0.05, two_tailed=True)
+# 	>>> ti.plot()
+# 	'''
+# 	_y      = Y
+# 	Y       = _datachecks.asmatrix(Y, dtype=float)
+# 	_datachecks.check('ttest', Y, y0)
+# 	J       = Y.shape[0]
+# 	Ytemp   = Y.copy()
+# 	if y0 is not None:
+# 		Ytemp -= y0
+# 	X       = np.ones((J,1))
+# 	c       = (1)
+# 	### compute SPM{t}:
+# 	spm = glm(Ytemp, X, c, roi=roi)
+# 	spm._set_testname( 'ttest' )
+# 	spm._set_data( _y )
+# 	return spm
 
 
 
@@ -300,18 +391,19 @@ def ttest2(YA, YB, equal_var=None, roi=None):
 	X[:JA,0] = 1
 	X[JA:,1] = 1
 	c        = (1, -1)
-	### non-sphericity:
-	Q        = None
-	if not equal_var:
-		J           = JA + JB
-		q0,q1       = np.eye(JA), np.eye(JB)
-		Q0,Q1       = np.matrix(np.zeros((J,J))), np.matrix(np.zeros((J,J)))
-		Q0[:JA,:JA] = q0
-		Q1[JA:,JA:] = q1
-		Q           = [Q0, Q1]
 	### compute SPM{t}:
 	spm = glm(Y, X, c, Q, roi=roi)
 	spm._set_testname( 'ttest2' )
 	spm._set_data( _yA, _yB )
+	### heteroscedacity correction:
+	if not equal_var:
+		J               = JA + JB
+		q0,q1           = np.eye(JA), np.eye(JB)
+		Q0,Q1           = np.matrix(np.zeros((J,J))), np.matrix(np.zeros((J,J)))
+		Q0[:JA,:JA]     = q0
+		Q1[JA:,JA:]     = q1
+		Q               = [Q0, Q1]
+		df              = _reml.estimate_df_T(Y, X, eij, Q)
+		spm.df_adjusted = df
 	return spm
 
