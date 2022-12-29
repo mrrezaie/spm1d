@@ -29,7 +29,7 @@ from . _base import _SPM0DParent
 
 class SPM0D(_SPM0DParent):
 
-	def __init__(self, STAT, z, df, beta=None, residuals=None, sigma2=None):
+	def __init__(self, STAT, z, df, beta=None, residuals=None, sigma2=None, X=None):
 		self.STAT           = STAT             # test statistic type ("T" or "F")
 		self.z              = np.float64(z)    # test statistic value
 		self.df             = df               # degrees of freedom
@@ -37,6 +37,7 @@ class SPM0D(_SPM0DParent):
 		self.residuals      = residuals        # model residuals
 		self.sigma2         = sigma2           # variance
 		self.testname       = None             # hypothesis test name (set using set_testname method)
+		self.X              = X                # design matrix
 
 
 	def __repr__(self):
@@ -54,14 +55,15 @@ class SPM0D(_SPM0DParent):
 		return s
 
 
-	def _build_spmi(self, results, alpha, dirn=0):
+	def _build_spmi(self, results, alpha, dirn=0, df_adjusted=None):
 		from . _spm0di import SPM0Di
-		spmi           = deepcopy( self )
-		spmi.__class__ = SPM0Di
-		spmi.method    = results.method
-		spmi.alpha     = alpha
-		spmi.zc        = results.zc
-		spmi.p         = results.p
+		spmi             = deepcopy( self )
+		spmi.__class__   = SPM0Di
+		spmi.df_adjusted = df_adjusted
+		spmi.method      = results.method
+		spmi.alpha       = alpha
+		spmi.zc          = results.zc
+		spmi.p           = results.p
 		if self.STAT=='T':
 			spmi.dirn     = dirn
 			# spmi.dirn   = parser.kwargs['dirn']
@@ -71,9 +73,29 @@ class SPM0D(_SPM0DParent):
 		return spmi
 		
 
-	def _inference_param(self, alpha, dirn=0):
-		results  = prob.param(self.STAT, self.z, self.df, alpha=alpha, dirn=dirn)
-		return self._build_spmi(results, alpha, dirn=dirn)
+	def _inference_param(self, alpha, dirn=0, equal_var=False):
+		
+		df  = self.df
+		dfa = None
+		
+		### heteroscedacity correction:
+		if not equal_var:
+			from .. import _reml
+			yA,yB            = self._args
+			y                = np.hstack([yA,yB]) if (self.dim==0) else np.vstack([yA,yB])
+			JA,JB            = yA.shape[0], yB.shape[0]
+			J                = JA + JB
+			q0,q1            = np.eye(JA), np.eye(JB)
+			Q0,Q1            = np.matrix(np.zeros((J,J))), np.matrix(np.zeros((J,J)))
+			Q0[:JA,:JA]      = q0
+			Q1[JA:,JA:]      = q1
+			Q                = [Q0, Q1]
+			df               = _reml.estimate_df_T(y, self.X, self.residuals, Q)
+			dfa              = (1, df)
+		
+		
+		results  = prob.param(self.STAT, self.z, df, alpha=alpha, dirn=dirn)
+		return self._build_spmi(results, alpha, dirn=dirn, df_adjusted=dfa)
 	
 
 	def _inference_perm(self, alpha, nperm=10000, dirn=0):

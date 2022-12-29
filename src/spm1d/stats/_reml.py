@@ -47,6 +47,9 @@ def _rank(A, tol=None):
 
 
 def estimate_df_T(Y, X, eij, Q):
+	Y           = np.matrix(Y).T if (Y.ndim==1) else np.matrix(Y)
+	X           = np.matrix(X)
+	eij         = np.matrix(eij).T if (eij.ndim==1) else np.matrix(eij)
 	n,s         = Y.shape
 	### ReML estimates:
 	trRV        = n - _rank(X)
@@ -60,6 +63,22 @@ def estimate_df_T(Y, X, eij, Q):
 	trRV,trRVRV = traceRV(V, X)
 	df          = trRV**2 / trRVRV
 	return df
+
+
+# def estimate_df_T(Y, X, eij, Q):
+# 	n,s         = Y.shape if (Y.ndim==2) else (Y.size,1)
+# 	### ReML estimates:
+# 	trRV        = n - _rank(X)
+# 	ResSS       = (np.asarray(eij)**2).sum(axis=0)
+# 	q           = np.diag(np.sqrt( trRV / ResSS )).T
+# 	Ym          = Y*q
+# 	YY          = Ym*Ym.T / s
+# 	V,h         = reml(YY, X, Q)
+# 	V           = V * (n / np.trace(V))
+# 	### effective degrees of freedom:
+# 	trRV,trRVRV = traceRV(V, X)
+# 	df          = trRV**2 / trRVRV
+# 	return df
 
 
 

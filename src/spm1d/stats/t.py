@@ -51,7 +51,7 @@ def glm(Y, X, c, Q=None, roi=None):
 	t      = (c @ b)  /   ( np.sqrt( s2 * (c @ np.linalg.inv(X.T @ X) @ c) ) + eps )
 
 	if Y.ndim == 1:
-		spm  = SPM0D('T', t, (1,df), beta=b, residuals=eij, sigma2=s2)
+		spm  = SPM0D('T', t, (1,df), beta=b, residuals=eij, sigma2=s2, X=X)
 	else:
 		fwhm   = rft1d.geom.estimate_fwhm(eij)
 		if roi is None:
@@ -296,8 +296,8 @@ def ttest_paired(YA, YB, roi=None):
 	>>> ti.plot()
 	'''
 	_yA,_yB  = YA,YB
-	YA,YB    = _datachecks.asmatrix(YA, dtype=float), _datachecks.asmatrix(YB, dtype=float)
-	_datachecks.check('ttest_paired', YA, YB)
+	# YA,YB    = _datachecks.asmatrix(YA, dtype=float), _datachecks.asmatrix(YB, dtype=float)
+	# _datachecks.check('ttest_paired', YA, YB)
 	spm      = ttest(_yA-_yB, roi=roi)
 	spm._set_testname( 'ttest_paired' )
 	# spm._set_data( _yA, _yB )
@@ -356,7 +356,8 @@ def ttest_paired(YA, YB, roi=None):
 # 	return spm
 
 
-def ttest2(YA, YB, equal_var=None, roi=None):
+# def ttest2(YA, YB, equal_var=None, roi=None):
+def ttest2(YA, YB, roi=None):
 	'''
 	Two-sample t test.
 	
@@ -381,11 +382,12 @@ def ttest2(YA, YB, equal_var=None, roi=None):
 	'''
 	### check data:
 	_yA,_yB  = YA, YB
-	YA,YB    = _datachecks.asmatrix(YA, dtype=float), _datachecks.asmatrix(YB, dtype=float)
-	_datachecks.check('ttest2', YA, YB)
+	# YA,YB    = _datachecks.asmatrix(YA, dtype=float), _datachecks.asmatrix(YB, dtype=float)
+	# _datachecks.check('ttest2', YA, YB)
 	### assemble data
 	JA,JB    = YA.shape[0], YB.shape[0]
-	Y        = np.vstack(  (YA, YB)  )
+	# Y        = np.vstack(  (YA, YB)  )
+	Y        = np.hstack(  (YA, YB)  ) if (YA.ndim==1) else np.vstack(  (YA, YB)  )
 	### specify design and contrast:
 	X        = np.zeros( (JA+JB, 2) )
 	X[:JA,0] = 1
@@ -395,15 +397,15 @@ def ttest2(YA, YB, equal_var=None, roi=None):
 	spm = glm(Y, X, c, Q=None, roi=roi)
 	spm._set_testname( 'ttest2' )
 	spm._set_data( _yA, _yB )
-	### heteroscedacity correction:
-	if not equal_var:
-		J               = JA + JB
-		q0,q1           = np.eye(JA), np.eye(JB)
-		Q0,Q1           = np.matrix(np.zeros((J,J))), np.matrix(np.zeros((J,J)))
-		Q0[:JA,:JA]     = q0
-		Q1[JA:,JA:]     = q1
-		Q               = [Q0, Q1]
-		df              = _reml.estimate_df_T(Y, X, eij, Q)
-		spm.df_adjusted = df
+	# ### heteroscedacity correction:
+	# if not equal_var:
+	# 	J               = JA + JB
+	# 	q0,q1           = np.eye(JA), np.eye(JB)
+	# 	Q0,Q1           = np.matrix(np.zeros((J,J))), np.matrix(np.zeros((J,J)))
+	# 	Q0[:JA,:JA]     = q0
+	# 	Q1[JA:,JA:]     = q1
+	# 	Q               = [Q0, Q1]
+	# 	df              = _reml.estimate_df_T(Y, X, spm.residuals, Q)
+	# 	spm.df_adjusted = df
 	return spm
 

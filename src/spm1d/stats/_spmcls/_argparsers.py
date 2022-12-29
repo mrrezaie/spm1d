@@ -46,6 +46,7 @@ class InferenceArgumentParser0D( ArgumentParser ):
 		self.add_kwarg('method', values=['param','perm'])
 		if self.stat =='T':
 			self.add_kwarg(name='dirn', values=[-1,0,1], default=0)
+			self.add_kwarg(name='equal_var', type=bool, default=False)
 			k = self.add_kwarg(name='two_tailed', values=[True,False,None], default=None)
 			k.set_deprecated_warning( _two_tailed_deprecation_msg() )
 			self.set_invalid_combinations( ('dirn', 'two_tailed'), [(0,False), (1,True), (-1,True)])
