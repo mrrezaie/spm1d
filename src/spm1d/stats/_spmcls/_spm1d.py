@@ -15,6 +15,7 @@ import numpy as np
 import rft1d
 from . _base import _SPMParent #, _SPMF
 from . _clusters import Cluster
+from ... import prob
 from ... plot import plot_spm, plot_spm_design
 from ... plot import plot_spmi, plot_spmi_p_values, plot_spmi_threshold_label
 from ... util import dflist2str
@@ -211,22 +212,22 @@ class SPM1D(_SPMParent):
 		# p      = min(1, 2*p) if (dirn==0) else p
 		# return zc,p
 
-	def _inference_rft_t(self, alpha, dirn=0):
-		
-		zc,p           = self._isf_sf_t(alpha, self.z, self.df[1], dirn)
-		
-		print( zc, p )
-		
-		
-		# from . _spm1di import SPM1Di
-		# spmi           = deepcopy( self )
-		# spmi.__class__ = SPM0Di
-		# spmi.method    = 'gauss'
-		# spmi.alpha     = alpha
-		# spmi.zc        = zc
-		# spmi.p         = p
-		# spmi.dirn      = dirn
-		# return spmi
+	# def _inference_rft_t(self, alpha, dirn=0):
+	#
+	# 	zc,p           = self._isf_sf_t(alpha, self.z, self.df[1], dirn)
+	#
+	# 	print( zc, p )
+	#
+	#
+	# 	# from . _spm1di import SPM1Di
+	# 	# spmi           = deepcopy( self )
+	# 	# spmi.__class__ = SPM0Di
+	# 	# spmi.method    = 'gauss'
+	# 	# spmi.alpha     = alpha
+	# 	# spmi.zc        = zc
+	# 	# spmi.p         = p
+	# 	# spmi.dirn      = dirn
+	# 	# return spmi
 
 
 	def inference(self, alpha, method='rft', **kwargs):
@@ -234,7 +235,7 @@ class SPM1D(_SPMParent):
 		# parser.parse( alpha, **kwargs )
 		
 		if method == 'rft':
-			spmi = self.inference_rft(alpha)
+			spmi = self.inference_rft(alpha, **kwargs)
 			# spmi = self.inference_rft(alpha, **parser.kwargs)
 		# elif method == 'perm':
 		# 	spmi = self.inference_perm(alpha, **parser.kwargs)
@@ -243,9 +244,14 @@ class SPM1D(_SPMParent):
 		
 	
 	def inference_rft(self, alpha, **kwargs):
+		
+		# rft(stat, z, df, resels, alpha=0.05, cluster_size=0, interp=True, circular=False, withBonf=True, **kwargs)
+		
+		results = prob.rft(self.STAT, self.z, self.df, self.resels, alpha=alpha, **kwargs)
+		return results
 		# f = self._inference_rft_t if (self.STAT=='T') else self._inference_rft
-		f = self._inference_rft_t
-		return f(alpha, **kwargs)
+		# f = self._inference_rft_t
+		# return f(alpha, **kwargs)
 
 	# def inference(self, alpha=0.05, cluster_size=0, two_tailed=False, interp=True, circular=False, withBonf=True):
 	# 	check_neg  = two_tailed

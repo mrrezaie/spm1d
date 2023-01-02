@@ -48,12 +48,12 @@ def param(stat, z, df, alpha=0.05, **kwargs):
 
 
 
-	### non-sphericity:
-	Q        = None
-	if not equal_var:
-		J           = JA + JB
-		q0,q1       = np.eye(JA), np.eye(JB)
-		Q0,Q1       = np.matrix(np.zeros((J,J))), np.matrix(np.zeros((J,J)))
-		Q0[:JA,:JA] = q0
-		Q1[JA:,JA:] = q1
-		Q           = [Q0, Q1]
+	# ### non-sphericity:
+	# Q        = None
+	# if not equal_var:
+	# 	J           = JA + JB
+	# 	q0,q1       = np.eye(JA), np.eye(JB)
+	# 	Q0,Q1       = np.matrix(np.zeros((J,J))), np.matrix(np.zeros((J,J)))
+	# 	Q0[:JA,:JA] = q0
+	# 	Q1[JA:,JA:] = q1
+	# 	Q           = [Q0, Q1]
