@@ -150,7 +150,7 @@ class ClusterList(list):
 		# clusters  = np.array(clusters)[ind].tolist()
 
 
-class ClusterCalculator(object):
+class _ClusterCalculator(object):
 	def __init__(self, z, u, sign=1):
 		self.L             = None                  # labeled domain
 		self.clusters      = []                    # list of cluster objects
@@ -179,8 +179,44 @@ class ClusterCalculator(object):
 
 
 
+class ClusterCalculator(object):
+	def __init__(self, z, u, dirn=0):
+		self.dirn     = dirn
+		self.z        = z
+		self.u        = u
+		self.calcpos  = None
+		self.calcneg  = None
+		self.clusters = None
+		self._init_calculators()
+	
+	def _init_calculators(self):
+		if self.dirn == 0:
+			self.calcpos = _ClusterCalculator(self.z, self.u, sign=1)
+			self.calcneg = _ClusterCalculator(self.z, self.u, sign=-1)
+		elif self.dirn == 1:
+			self.calcpos = _ClusterCalculator(self.z, self.u, sign=1)
+		elif self.dirn == -1:
+			self.calcneg = _ClusterCalculator(self.z, self.u, sign=-1)
 
+	def assemble_clusters(self):
+		c0,c1 = [],[]
+		if self.calcpos is not None:
+			self.calcpos.assemble_clusters()
+			c0 = self.calcpos.clusters
+		if self.calcneg is not None:
+			self.calcneg.assemble_clusters()
+			c1 = self.calcneg.clusters
+		self.clusters = ClusterList( c0 + c1 ).sort()
 
+	def label(self):
+		if self.calcpos is not None:
+			self.calcpos.label()
+		if self.calcneg is not None:
+			self.calcneg.label()
+
+	def interp(self):
+		for c in self.clusters:
+			c.interp(self.z)
 
 
 
