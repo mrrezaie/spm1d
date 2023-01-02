@@ -7,7 +7,7 @@ from .. import _base
 
 
 
-class Dorn2012(_base.DatasetMANOVA1, _base.Dataset1D):
+class Dorn2012manova(_base.DatasetMANOVA1, _base.Dataset1D):
 	def _set_values(self):
 		self.cite     = 'Dorn, T. W., Schache, A. G., & Pandy, M. G. (2012). Muscular strategy shift in human running: dependence of running speed on hip and ankle muscle performance. Journal of Experimental Biology, 215(11), 1944–1956. http://doi.org/10.1242/jeb.064527'
 		self.www      = 'https://simtk.org/home/runningspeeds'
