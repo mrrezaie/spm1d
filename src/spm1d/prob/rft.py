@@ -64,6 +64,11 @@ def rft(stat, z, df, resels, alpha=0.05, cluster_size=0, interp=True, circular=F
 	calc = rft1d.prob.RFTCalculatorResels(STAT=stat, df=df, resels=resels, withBonf=withBonf, nNodes=z.size)
 	zc   = calc.isf(a)
 	print( f'zc = {zc}' )
+	
+	# clusters   = self._get_clusters(zstar, check_neg, interp, circular)  #assemble all suprathreshold clusters
+	# clusters   = self._cluster_inference(clusters, two_tailed, withBonf)  #conduct cluster-level inference
+	# p_set      = self._setlevel_inference(zstar, clusters, two_tailed, withBonf)  #conduct set-level inference
+	# spmi       = self._build_spmi(alpha, zstar, clusters, p_set, two_tailed)    #assemble SPMi object
 
 
 	# results = RFTResults( zc, p )
