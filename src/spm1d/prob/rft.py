@@ -55,14 +55,13 @@ def rft(STAT, z, df, fwhm, resels, alpha=0.05, cluster_size=0, interp=True, circ
 	clusters = _clusterlevel_inference(calc, z, zc, fwhm, dirn=dirn, circular=circular)
 	p_set    = _setlevel_inference(calc, zc, clusters)
 	return zc,clusters,p_set
+	# results = RFTResults( zc, p )
+	# return results
 	
 
 
-	# spmi       = self._build_spmi(alpha, zstar, clusters, p_set, two_tailed)    #assemble SPMi object
 
 
-	# results = RFTResults( zc, p )
-	# return results
 
 
 
