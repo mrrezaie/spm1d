@@ -1,10 +1,7 @@
 
 
 '''
-Clusters module
-
-This module contains class definitions for raw SPMs (raw test statistic continua)
-and inference SPMs (thresholded test statistic).
+Clusters base class module
 '''
 
 # Copyright (C) 2023  Todd Pataky
@@ -23,10 +20,6 @@ class _Cluster(metaclass=ABCMeta):
 	u           = None
 	sign        = None
 	
-	# def __init_subclass__(cls):
-	# 	print( dir(cls) )
-	# 	# assert hasattr(cls, 'min'), 'No "min" property.'
-
 	def __repr__(self):
 		s       = f'{self.__class__.__name__}\n'
 		s      += '   centroid            :  %s\n'   %tuple2str(self.centroid, '%.3f')

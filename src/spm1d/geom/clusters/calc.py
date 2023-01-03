@@ -1,6 +1,6 @@
 
 '''
-ClusterList module
+Cluster calculators
 '''
 
 # Copyright (C) 2023  Todd Pataky
@@ -10,6 +10,7 @@ import numpy as np
 import rft1d
 from . cluster import Cluster
 from . lst import ClusterList
+
 
 
 class _SignedClusterCalculator(object):
@@ -36,14 +37,36 @@ class _SignedClusterCalculator(object):
 			c.interp(self.z)
 	
 	def label(self):
-		b      = (self.z >= self.u) if (self.sign==1) else (self.z <= self.u)
-		L,n    = rft1d.geom.bwlabel(b)
-		self.L = L
-		self.n = n
+		b        = (self.z >= self.u) if (self.sign==1) else (self.z <= self.u)
+		L,n      = rft1d.geom.bwlabel(b)
+		self.L   = L
+		self.n   = n
 
+class _SignedClusterCalculatorMasked( _SignedClusterCalculator ):
+	
+	def label(self):
+		msk,zz   = self.z.mask, self.z.data
+		b        = (zz >= self.u) if (self.sign==1) else (zz <= self.u)
+		b[msk]   = False
+		L,n      = rft1d.geom.bwlabel(b)
+		self.L   = L
+		self.n   = n
 
 
 class ClusterCalculator(object):
+	'''
+	Calculations should be done in the following order:
+	
+	
+	calc = ClusterCalculator(z, zc, dirn=0)
+	calc.label()
+	calc.assemble_clusters()
+	calc.interp()
+	if circular:
+		clusters.wrap()
+	
+	See also the "assemble_clusters" function.
+	'''
 	def __init__(self, z, u, dirn=0):
 		self.dirn     = dirn
 		self.z        = z
@@ -54,13 +77,14 @@ class ClusterCalculator(object):
 		self._init_calculators()
 	
 	def _init_calculators(self):
+		CalculatorClass = _SignedClusterCalculatorMasked if np.ma.is_masked(self.z) else _SignedClusterCalculator
 		if self.dirn == 0:
-			self.calcpos = _SignedClusterCalculator(self.z, self.u, sign=1)
-			self.calcneg = _SignedClusterCalculator(self.z, self.u, sign=-1)
+			self.calcpos = CalculatorClass(self.z, self.u, sign=1)
+			self.calcneg = CalculatorClass(self.z, self.u, sign=-1)
 		elif self.dirn == 1:
-			self.calcpos = _SignedClusterCalculator(self.z, self.u, sign=1)
+			self.calcpos = CalculatorClass(self.z, self.u, sign=1)
 		elif self.dirn == -1:
-			self.calcneg = _SignedClusterCalculator(self.z, self.u, sign=-1)
+			self.calcneg = CalculatorClass(self.z, self.u, sign=-1)
 
 	def assemble_clusters(self):
 		c0,c1 = [],[]
@@ -84,5 +108,12 @@ class ClusterCalculator(object):
 
 
 
-def assemble_clusters():
-	pass
+def assemble_clusters(z, zc, dirn=0, circular=False):
+	calc = ClusterCalculator(z, zc, dirn=dirn)
+	calc.label()
+	calc.assemble_clusters()
+	calc.interp()
+	clusters = calc.clusters
+	if circular:
+		clusters.wrap()
+	return clusters

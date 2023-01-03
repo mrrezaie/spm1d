@@ -24,12 +24,7 @@ class WrappedCluster( _Cluster ):
 		self.z              = c0.z + c1.z      # post-interpolated
 		self.u              = c0.u             # threshold
 		self.sign           = c0.sign
-		# # pre-interpolated:
-		# self._x             = c0._x + c1._x  # pre-interpolated
-		# self._z             = list( z )  # pre-interpolated
 		self._endpoints     = c1._endpoints[0], c0._endpoints[-1]  # pre-interpolation
-
-
 
 	@property
 	def centroid(self):

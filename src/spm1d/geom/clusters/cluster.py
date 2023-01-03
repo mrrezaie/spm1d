@@ -2,9 +2,6 @@
 
 '''
 Clusters module
-
-This module contains class definitions for raw SPMs (raw test statistic continua)
-and inference SPMs (thresholded test statistic).
 '''
 
 # Copyright (C) 2023  Todd Pataky
@@ -24,44 +21,23 @@ class Cluster( _Cluster ):
 	iswrapped = False
 	
 	def __init__(self, x, z, u, sign=1):
-		self.Q              = None       # domain size (defined during right-boundary interpolation)
-		self.x              = list( x )  # post-interpolated
-		self.z              = list( z )  # post-interpolated
-		self.u              = u          # threshold
+		self.Q              = None          # domain size (defined during right-boundary interpolation)
+		self.x              = list( x )     # post-interpolated
+		self.z              = list( z )     # post-interpolated
+		self.u              = u             # threshold
 		self.sign           = sign
 		self._endpoints     = x[0], x[-1]   # pre-interpolation
-		# # pre-interpolated:
-		# self._x             = list( x )  # pre-interpolated
-		# self._z             = list( z )  # pre-interpolated
-		# self._endpoints     = x[0], x[-1]   # pre-interpolation
 		
 	def __lt__(self, other):
 		return self.x[0] < other.x[0]
-	
-	# def __repr__(self):
-	# 	s       = f'{self.__class__.__name__}\n'
-	# 	s      += '   centroid            :  %s\n'   %tuple2str(self.centroid, '%.3f')
-	# 	s      += '   endpoints           :  %s\n'   %tuple2str(self.endpoints, '%.3f')
-	# 	s      += '   endpoints_preinterp :  %s\n'   %tuple2str(self.endpoints_preinterp, '%d')
-	# 	s      += '   extent              :  %.3f\n' %self.extent
-	# 	s      += '   height              :  %.3f\n' %self.height
-	# 	s      += '   integral            :  %.3f\n' %self.integral
-	# 	s      += '   isLboundary         :  %s\n'   %self.isLboundary
-	# 	s      += '   isRboundary         :  %s\n'   %self.isRboundary
-	# 	s      += '   iswrapped           :  %s\n'   %self.iswrapped
-	# 	s      += '   max                 :  %.3f\n' %self.max
-	# 	s      += '   min                 :  %.3f\n' %self.min
-	# 	s      += '   nnodes              :  %d\n'   %self.nnodes
-	# 	s      += '   sign                :  %d\n'   %self.sign
-	# 	return s
 
 
 	def _interp_left(self, zf):
 		i,u        = self.x[0], self.u
-		if i==0:
-			self.x = [0] + self.x
+		if (i==0) or np.ma.is_masked( zf[i-1] ): # leftmost domain point OR previous point outside ROI
+			self.x = [i] + self.x
 			self.z = [u] + self.z
-		elif (i>0) and not np.isnan( zf[i-1] ):  # first cluster point not domain edge && previous point not outside ROI
+		else:   # first cluster point not domain edge && previous point not outside ROI
 			z0,z1  = zf[i-1], zf[i]
 			dx     = (z1-u) / (z1-z0)
 			self.x = [i-dx] + self.x
@@ -69,16 +45,15 @@ class Cluster( _Cluster ):
 	
 	def _interp_right(self, zf):
 		i,u,Q      = self.x[-1], self.u, zf.size
-		if i==(Q-1):
-			self.x += [Q-1]
+		if i==(Q-1) or np.ma.is_masked( zf[i+1] ): # rightmost domain point OR next point outside ROI
+			self.x += [i]
 			self.z += [u]
-		elif (i<(Q-1)) and not np.isnan( zf[i+1] ):  #last cluster point not domain edge && next point not outside ROI
+		else:  #last cluster point not domain edge && next point not outside ROI
 			z0,z1   = zf[i], zf[i+1]
 			dx      = (z0-u) / (z0-z1)
 			self.x += [i+dx]
 			self.z += [u]
 		self.Q      = Q
-
 
 	@property
 	def centroid(self):
