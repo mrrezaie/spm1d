@@ -5,6 +5,7 @@ Common parametric (0D) probabilities
 
 import numpy as np
 import rft1d
+# from .. geom import assemble_clusters
 
 
 class ParamResults(object):
@@ -61,8 +62,9 @@ def rft(stat, z, df, resels, alpha=0.05, cluster_size=0, interp=True, circular=F
 		raise ValueError( f'Unknown statistic: {stat}. Must be one of: ["T", "F", "T2", "X2"]' )
 		
 	
-	calc = rft1d.prob.RFTCalculatorResels(STAT=stat, df=df, resels=resels, withBonf=withBonf, nNodes=z.size)
-	zc   = calc.isf(a)
+	calc     = rft1d.prob.RFTCalculatorResels(STAT=stat, df=df, resels=resels, withBonf=withBonf, nNodes=z.size)
+	zc       = calc.isf(a)
+	# clusters = assemble_clusters()
 	print( f'zc = {zc}' )
 	
 	# clusters   = self._get_clusters(zstar, check_neg, interp, circular)  #assemble all suprathreshold clusters

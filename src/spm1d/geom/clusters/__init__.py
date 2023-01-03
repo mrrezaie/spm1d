@@ -1,3 +1,2 @@
 
-from . cls import Cluster, ClusterList, ClusterCalculator
-from . fun import assemble
+from . calc import ClusterCalculator, assemble_clusters

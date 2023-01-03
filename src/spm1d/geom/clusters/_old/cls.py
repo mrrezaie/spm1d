@@ -20,10 +20,14 @@ from ... util import tuple2str
 
 
 class Cluster(object):
+	
 	def __init__(self, x, z, u, sign=1):
+		self.Q              = None       # domain size (defined during right-boundary interpolation)
 		self.x              = list( x )  # post-interpolated
 		self.z              = list( z )  # post-interpolated
-		self.u              = u
+		self.u              = u          # threshold
+		self.iswrapped      = False      # True only for boundary clusters AND circular domains
+		self.other          = None       # wrapped cluster (right boundary)
 		self.sign           = sign
 		self._endpoints     = x[0], x[-1]   # pre-interpolation
 		
@@ -31,56 +35,91 @@ class Cluster(object):
 		return self.x[0] < other.x[0]
 	
 	def __repr__(self):
-		s    = 'Cluster\n'
-		s   += '   centroid            :  %s\n'   %tuple2str(self.centroid, '%.3f')
-		s   += '   endpoints           :  %s\n'   %tuple2str(self.endpoints, '%.3f')
-		s   += '   endpoints_preinterp :  %s\n'   %tuple2str(self.endpoints_preinterp, '%d')
-		s   += '   extent              :  %.3f\n' %self.extent
-		s   += '   height              :  %.3f\n' %self.height
-		s   += '   integral            :  %.3f\n' %self.integral
-		s   += '   max                 :  %.3f\n' %self.max
-		s   += '   min                 :  %.3f\n' %self.min
-		s   += '   nnodes              :  %d\n'   %self.nnodes
-		s   += '   sign                :  %d\n'   %self.sign
+		s       = f'{self.__class__.__name__}\n'
+		s      += '   centroid            :  %s\n'   %tuple2str(self.centroid, '%.3f')
+		s      += '   endpoints           :  %s\n'   %tuple2str(self.endpoints, '%.3f')
+		s      += '   endpoints_preinterp :  %s\n'   %tuple2str(self.endpoints_preinterp, '%d')
+		s      += '   extent              :  %.3f\n' %self.extent
+		s      += '   height              :  %.3f\n' %self.height
+		s      += '   integral            :  %.3f\n' %self.integral
+		s      += '   isLboundary         :  %s\n'   %self.isLboundary
+		s      += '   isRboundary         :  %s\n'   %self.isRboundary
+		s      += '   iswrapped           :  %s\n'   %self.iswrapped
+		s      += '   max                 :  %.3f\n' %self.max
+		s      += '   min                 :  %.3f\n' %self.min
+		s      += '   nnodes              :  %d\n'   %self.nnodes
+		s      += '   sign                :  %d\n'   %self.sign
 		return s
 
 
 	def _interp_left(self, zf):
 		i,u        = self.x[0], self.u
-		if (i>0) and not np.isnan( zf[i-1] ):  # first cluster point not domain edge && previous point not outside ROI
+		if i==0:
+			self.x = [0] + self.x
+			self.z = [u] + self.z
+		elif (i>0) and not np.isnan( zf[i-1] ):  # first cluster point not domain edge && previous point not outside ROI
 			z0,z1  = zf[i-1], zf[i]
 			dx     = (z1-u) / (z1-z0)
 			self.x = [i-dx] + self.x
 			self.z = [u] + self.z
 	
 	def _interp_right(self, zf):
-		i,u        = self.x[-1], self.u
-		Q       = zf.size
-		if (i<(Q-1)) and not np.isnan( zf[i+1] ):  #last cluster point not domain edge && next point not outside ROI
+		i,u,Q      = self.x[-1], self.u, zf.size
+		if i==(Q-1):
+			self.x += [Q-1]
+			self.z += [u]
+		elif (i<(Q-1)) and not np.isnan( zf[i+1] ):  #last cluster point not domain edge && next point not outside ROI
 			z0,z1   = zf[i], zf[i+1]
 			dx      = (z0-u) / (z0-z1)
 			self.x += [i+dx]
 			self.z += [u]
+		self.Q      = Q
 
-	
+	def _wrapped_xz(self, modular=False):
+		x0,z0 = self.asarray().T
+		x1,z1 = self.other.asarray().T
+		x     = np.hstack( [x1, self.Q + x0] )
+		z     = np.hstack( [z1, z0] )
+		if modular:
+			x = x % self.Q
+		return np.vstack( [x,z] ).T
+		
+		
+		
 	@property
 	def _endpointstr(self):
 		return 'okok'
 
 	@property
+	def _endpoints_interp(self):
+		return self.x[0], self.x[-1]
+
+	@property
 	def centroid(self):
-		x,z = np.asarray(self.x), np.asarray(self.z)
-		xc  = (x*z).sum() / z.sum()
-		zc  = z.mean()
+		if self.iswrapped:
+			x,z   = self._wrapped_xz(modular=False).T
+			xc,zc = x.mean() % self.Q, z.mean()
+		else:
+			x,z = self.asarray().T
+			xc  = (x*z).sum() / z.sum()
+			zc  = z.mean()
 		return xc, zc
 	
 	@property
 	def endpoints(self):
-		return self.x[0], self.x[-1]
+		if self.iswrapped:
+			e = self.other.x[0], self.x[-1]
+		else:
+			e = self._endpoints_interp
+		return e
 
 	@property
 	def endpoints_preinterp(self):
-		return self._endpoints
+		if self.iswrapped:
+			e = self.other._endpoints[0], self._endpoints[1]
+		else:
+			e = self._endpoints
+		return e
 	
 	@property
 	def extent(self):
@@ -105,6 +144,14 @@ class Cluster(object):
 		else:
 			m = np.trapz(  z - self.u  )
 		return self.sign * m
+
+	@property
+	def isLboundary(self):
+		return self._endpoints[0] == 0
+
+	@property
+	def isRboundary(self):
+		return self._endpoints[1] == (self.Q-1)
 
 	@property
 	def nnodes(self):
@@ -132,22 +179,40 @@ class Cluster(object):
 	def plot(self, ax, **kwargs):
 		patch  = Polygon( self.asarray() )
 		ax.add_patch( patch, **kwargs )
-		
+		if self.iswrapped:
+			patch  = Polygon( self.other.asarray() )
+			ax.add_patch( patch, **kwargs )
+
+	def wrap(self, other):
+		self.other     = other
+		self.iswrapped = True
+
+# class WrappedCluster(Cluster):
+# 	iswrapped = True
+# 	other     = None
+#
+# 	def __init__(self, c0, c1):
+# 		self.c0
+# 	# def __init
+
 
 class ClusterList(list):
-	# def __init__(self, x):
-	# 	super().__init__( x )
-	
 	def plot(self, ax, **kwargs):
-		patches = [Polygon( c.asarray() )  for c in self]
-		coll    = PatchCollection(patches, **kwargs)
-		ax.add_collection( coll )
-	
+		for c in self:
+			c.plot(ax, **kwargs)
+		# patches = [c.make_]
+		# for c in self:
+		# 	patches.append( Polygon( c.asarray() ) )
+		# 	if c.iswrapped:
+		# 		patches.append( Polygon( c.other.asarray() ) )
+		# coll    = PatchCollection(patches, **kwargs)
+		# ax.add_collection( coll )
 	def sort(self):
 		return self.__class__( sorted( self ) )
-		# x         = [c.xy[0]  for c in clusters]
-		# ind       = np.argsort(x).flatten()
-		# clusters  = np.array(clusters)[ind].tolist()
+	def wrap(self):
+		if len(self)>1 and self[0].isLboundary and self[-1].isRboundary:
+			self[0].wrap( self[-1] )
+			self.pop(-1)
 
 
 class _ClusterCalculator(object):
@@ -159,6 +224,8 @@ class _ClusterCalculator(object):
 		self.x             = np.arange( z.size )   # domain position
 		self.z             = z                     # test stat
 		self.u             = u                     # (critical) threshold
+		if sign==-1:
+			self.u         *= -1
 
 	def assemble_clusters(self):
 		inds      = []
