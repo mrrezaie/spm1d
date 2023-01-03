@@ -8,17 +8,19 @@ Clusters base class module
 
 
 from abc import ABCMeta, abstractmethod, abstractproperty
-from ... util import tuple2str
+from copy import deepcopy
+from ... util import tuple2str, p2string
 
 
 class _Cluster(metaclass=ABCMeta):
 	
-	iswrapped   = False
-	Q           = None
-	x           = None
-	z           = None
-	u           = None
-	sign        = None
+	_InferenceClass = None
+	iswrapped       = False
+	Q               = None
+	x               = None
+	z               = None
+	u               = None
+	sign            = None
 	
 	def __repr__(self):
 		s       = f'{self.__class__.__name__}\n'
@@ -78,5 +80,47 @@ class _Cluster(metaclass=ABCMeta):
 	@abstractmethod
 	def plot(self):
 		pass
+
+
+	def as_inference_cluster(self, k, p, **kwargs):
+		c = deepcopy( self )
+		c.__class__ = self._InferenceClass
+		c.set_inference_params(k, p, **kwargs)
+		return c
+		
+		# if self.iswrapped:
+		# 	self.__class__ = WrappedClusterWithInference
+		# else:
+		# 	c.__class__ = ClusterWithInference
+		# c.set_inference_params( k, p )
+		# clusters[i] = c
+		
+		
+
+class _WithInference(object):
+	
+	def __repr__(self):
+		s   = super().__repr__()
+		s  += 'Inference:\n'
+		s  += '   extent_resels       :  %.5f\n' %self.extent_resels
+		s  += '   p                   :  %s\n'   %p2string(self.p)
+		return s
+	
+	def set_inference_params(self, extent_resels, p, **kwargs):
+		self.extent_resels    = extent_resels
+		self.p                = p
+		self.inference_params = kwargs
+	
+	# legacy properties:
+	@property
+	def extentR(self):
+		return self.extent_resels
+	
+	@property
+	def P(self):
+		return self.p
+		
+		
+
 
 

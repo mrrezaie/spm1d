@@ -11,6 +11,20 @@ from . wrapped import WrappedCluster
 
 class ClusterList(list):
 
+	
+	@property
+	def min_extent(self):
+		return min(  [c.extent for c in self]  )
+
+	@property
+	def min_extent_resels(self):
+		if (len(self)>0) and hasattr(self[0], 'extent_resels'):
+			e = min(  [c.extent_resels for c in self]  )
+		else:
+			e = None
+		return e
+
+	
 	def plot(self, ax, **kwargs):
 		for c in self:
 			c.plot(ax, **kwargs)

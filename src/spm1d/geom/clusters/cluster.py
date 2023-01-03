@@ -7,20 +7,25 @@ Clusters module
 # Copyright (C) 2023  Todd Pataky
 
 
+# from copy import deepcopy
 import numpy as np
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
 # import rft1d
 from ... util import tuple2str
-from . _base import _Cluster
+from . _base import _Cluster, _WithInference
+
 
 
 
 class Cluster( _Cluster ):
 	
-	iswrapped = False
+	# _InferenceClass = ClusterWithInference
+	iswrapped       = False
+	
 	
 	def __init__(self, x, z, u, sign=1):
+		self._InferenceClass = ClusterWithInference
 		self.Q              = None          # domain size (defined during right-boundary interpolation)
 		self.x              = list( x )     # post-interpolated
 		self.z              = list( z )     # post-interpolated
@@ -120,6 +125,8 @@ class Cluster( _Cluster ):
 	def asarray(self):
 		return np.array( [ self.x, self.z ] ).T
 	
+
+	
 	def interp(self, zfull):
 		# interpolate to threshold u using similar triangles method
 		self._interp_left(zfull)
@@ -133,6 +140,8 @@ class Cluster( _Cluster ):
 
 
 
+class ClusterWithInference(_WithInference, Cluster):
+	pass
 
 
 

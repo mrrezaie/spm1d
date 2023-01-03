@@ -8,15 +8,17 @@ Wrapped Clusters module
 
 import numpy as np
 # from ... util import tuple2str
-from . _base import _Cluster
-
+from . _base import _Cluster, _WithInference
+# from . inference import WrappedClusterWithInference
 
 
 class WrappedCluster( _Cluster ):
 
-	iswrapped = True
+	# _InferenceClass = WrappedClusterWithInference
+	iswrapped       = True
 
 	def __init__(self, c0, c1):
+		self._InferenceClass = WrappedClusterWithInference
 		self.c0             = c0
 		self.c1             = c1
 		self.Q              = c0.Q             # domain size (defined during right-boundary interpolation)
@@ -82,6 +84,8 @@ class WrappedCluster( _Cluster ):
 
 
 
+class WrappedClusterWithInference(_WithInference, WrappedCluster):
+	pass
 
 
 
