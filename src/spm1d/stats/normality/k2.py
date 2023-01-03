@@ -24,7 +24,7 @@ from .. anova import anova3nested as _main_anova3nested
 from .. anova import anova3rm as _main_anova3rm
 from .. anova import anova3onerm as _main_anova3onerm
 from .. anova import anova3tworm as _main_anova3tworm
-import rft1d
+from ... geom import estimate_fwhm, resel_counts
 
 
 
@@ -131,8 +131,8 @@ def residuals(y):
 		spm    = SPM0D_X2(k2, df, residuals=y)
 	else:
 		k2     = np.array( [k2_single_node(yy)   for yy in y.T] )
-		fwhm   = rft1d.geom.estimate_fwhm(y)
-		resels = rft1d.geom.resel_counts(y, fwhm, element_based=False)
+		fwhm   = estimate_fwhm(y)
+		resels = resel_counts(y, fwhm, element_based=False)
 		spm    = SPM_X2(k2, df, fwhm, resels, residuals=y)
 	return spm
 

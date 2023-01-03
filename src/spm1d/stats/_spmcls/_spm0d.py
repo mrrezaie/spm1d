@@ -147,45 +147,6 @@ class SPM0D(_SPM0DParent):
 
 
 
-#
-# class SPM0D_F(_SPMF, _SPM0D):
-# 	def __init__(self, z, df, ss=(0,0), ms=(0,0), eij=0, X0=None):
-# 		_SPM0D.__init__(self, 'F', z, df)
-# 		self.ss        = tuple( map(float, ss) )
-# 		self.ms        = tuple( map(float, ms) )
-# 		self.eij       = eij
-# 		self.residuals = np.asarray(eij).flatten()
-# 		self.X0        = X0
-#
-# 	def _repr_summ(self):
-# 		return '{:<5} F = {:<8} df = {}\n'.format(self.effect_short,  '%.3f'%self.z, dflist2str(self.df))
-#
-# 	def inference(self, alpha=0.05):
-# 		from . _spmi import SPM0Di_F
-# 		zstar  = stats.f.isf(alpha, self.df[0], self.df[1])
-# 		p      = stats.f.sf(self.z, self.df[0], self.df[1])
-# 		return SPM0Di_F(self, alpha, zstar, p)
-#
-#
-
-# class SPM0D_T2(_SPM0D):
-# 	def __init__(self, z, df):
-# 		_SPM0D.__init__(self, 'T2', z, df)
-# 	def inference(self, alpha=0.05):
-# 		from . _spmi import SPM0Di_T2
-# 		zstar  = rft1d.T2.isf0d(alpha, self.df)
-# 		p      = rft1d.T2.sf0d( self.z, self.df)
-# 		return SPM0Di_T2(self, alpha, zstar, p)
-#
-# class SPM0D_X2(_SPM0D):
-# 	def __init__(self, z, df, residuals=None):
-# 		_SPM0D.__init__(self, 'X2', z, df, residuals=residuals)
-# 	def inference(self, alpha=0.05):
-# 		from . _spmi import SPM0Di_X2
-# 		zstar  = rft1d.chi2.isf0d(alpha, self.df[1])
-# 		p      = rft1d.chi2.sf0d( self.z, self.df[1])
-# 		return SPM0Di_X2(self, alpha, zstar, p)
-
 
 
 

@@ -11,8 +11,7 @@ One- and two sample tests.
 import numpy as np
 from matplotlib import pyplot, cm as colormaps
 from . import _datachecks, _reml
-import rft1d
-
+from .. geom import estimate_fwhm, resel_counts
 
 rank   = np.linalg.matrix_rank
 eps    = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero errors
@@ -41,7 +40,6 @@ def glm(Y, X, c, Q=None, roi=None):
 	>>> ti = t.inference(alpha=0.05, two_tailed=True)
 	>>> ti.plot()
 	'''
-	from . _spmcls import SPM0D, SPM1D
 	
 	b      = np.linalg.pinv(X) @ Y    # parameters
 	eij    = Y - X @ b                # residuals
@@ -51,93 +49,16 @@ def glm(Y, X, c, Q=None, roi=None):
 	t      = (c @ b)  /   ( np.sqrt( s2 * (c @ np.linalg.inv(X.T @ X) @ c) ) + eps )
 
 	if Y.ndim == 1:
+		from . _spmcls import SPM0D
 		spm  = SPM0D('T', t, (1,df), beta=b, residuals=eij, sigma2=s2, X=X)
 	else:
-		fwhm   = rft1d.geom.estimate_fwhm(eij)
-		if roi is None:
-			resels = rft1d.geom.resel_counts(eij, fwhm, element_based=False)
-		else:
-			B      = np.any( np.isnan(eij), axis=0)  #node is true if NaN
-			B      = np.logical_and(np.logical_not(B), roi)  #node is true if in ROI and also not NaN
-			mask   = np.logical_not(B)  #true for masked-out regions
-			resels = rft1d.geom.resel_counts(mask, fwhm, element_based=False)
-			t      = np.ma.masked_array(t, np.logical_not(roi))
-		### assemble SPM{t} object
-		# s      = np.asarray(sigma2).flatten()
-		# t      = SPM1D_T(t, (1,df), fwhm, resels, np.asarray(X), np.asarray(b), eij, sigma2=s, roi=roi)
-		# X      = np.asarray(X)
-		# b,r,s2 = np.asarray(b), np.asarray(eij), np.asarray(sigma2)
+		from . _spmcls import SPM1D
+		fwhm   = estimate_fwhm(eij)
+		resels = resel_counts(eij, fwhm, element_based=False, roi=roi)
+		if roi is not None:
+			t  = np.ma.masked_array(t, np.logical_not(roi))
 		spm      = SPM1D('T', t, (1,df), beta=b, residuals=eij, sigma2=s2, X=X, fwhm=fwhm, resels=resels, roi=roi)
 	return spm
-	
-	
-
-	
-	
-# def glm(Y, X, c, Q=None, roi=None):
-# 	'''
-# 	General linear model (for t contrasts).
-#
-# 	:Parameters:
-#
-# 	- *Y* --- (J x Q) numpy array (dependent variable)
-# 	- *X* --- (J x B) design matrix  (J responses, B parameters)
-# 	- *c* --- B-component contrast vector (list or array)
-# 	- *Q* --- non-sphericity specifiers (not currently supported for **glm**)
-#
-# 	.. note:: Non-sphericity estimates are not supported for **spm1d.stats.glm**
-#
-# 	:Returns:
-#
-# 	- An **spm1d._spm.SPM_T** object.
-#
-# 	:Example:
-#
-# 	>>> t  = spm1d.stats.glm(Y, X, (-1,1))
-# 	>>> ti = t.inference(alpha=0.05, two_tailed=True)
-# 	>>> ti.plot()
-# 	'''
-# 	from . _spmcls import SPM0D, SPM1D
-# 	### assemble data:
-# 	Y      = np.matrix(Y)
-# 	X      = np.matrix(X)
-# 	c      = np.matrix(c).T
-# 	### solve the GLM:
-# 	b      = np.linalg.pinv(X)*Y    #parameters
-# 	eij    = Y - X*b                #residuals
-# 	R      = eij.T*eij              #residuals: sum of squares
-# 	df     = Y.shape[0] - rank(X)   #degrees of freedom
-# 	sigma2 = np.diag(R)/df          #variance
-# 	### compute t statistic
-# 	t      = np.array(c.T*b).flatten()  /   (np.sqrt(sigma2*float(c.T*(np.linalg.inv(X.T*X))*c)) + eps)
-# 	### estimate df due to non-sphericity:
-# 	if Q is not None:
-# 		df = _reml.estimate_df_T(Y, X, eij, Q)
-# 	eij    = np.asarray(eij)
-# 	if Y.shape[1] > 1:
-# 		### estimate field smoothness:
-# 		fwhm   = rft1d.geom.estimate_fwhm(eij)
-# 		### compute resel counts:
-# 		if roi is None:
-# 			resels = rft1d.geom.resel_counts(eij, fwhm, element_based=False)
-# 		else:
-# 			B      = np.any( np.isnan(eij), axis=0)  #node is true if NaN
-# 			B      = np.logical_and(np.logical_not(B), roi)  #node is true if in ROI and also not NaN
-# 			mask   = np.logical_not(B)  #true for masked-out regions
-# 			resels = rft1d.geom.resel_counts(mask, fwhm, element_based=False)
-# 			t      = np.ma.masked_array(t, np.logical_not(roi))
-# 		### assemble SPM{t} object
-# 		# s      = np.asarray(sigma2).flatten()
-# 		# t      = SPM1D_T(t, (1,df), fwhm, resels, np.asarray(X), np.asarray(b), eij, sigma2=s, roi=roi)
-# 		X      = np.asarray(X)
-# 		b,r,s2 = np.asarray(b), np.asarray(eij), np.asarray(sigma2)
-# 		t      = SPM1D('T', t, (1,df), beta=b, residuals=r, sigma2=s2, X=X, fwhm=fwhm, resels=resels, roi=roi)
-# 	else:
-# 		b,r,s2 = np.asarray(b).flatten(), eij.flatten(), float(sigma2)
-# 		t      = SPM0D('T', t, (1,df), beta=b, residuals=r, sigma2=s2)
-# 	return t
-
-
 
 
 

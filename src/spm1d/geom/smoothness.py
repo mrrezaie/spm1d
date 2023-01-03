@@ -1,45 +1,20 @@
 
+from math import log
 import numpy as np
 eps = np.finfo(float).eps
+from . label import bwlabel
 
 
 def estimate_fwhm(r):
 	'''
-	(Copied from rft1d.geom)
-	
-	Estimate field smoothness (FWHM) from a set of random fields or a set of residuals.
-	
-	:Parameters:
-
-		*r* --- a set of random fields or a set of residuals
-		
-	:Returns:
-
-		*fwhm* --- the estimated FWHM
-	
-	:Example:
-	
-		>>> fwhm = 12.5
-		>>> y = rft1d.random.randn1d(8, 101, fwhm)
-		>>> w = rft1d.geom.estimate_fwhm(y)  # should be close to the specified fwhm value
-		
-	.. note:: The estimated sample fwhm will differ from the specified population fwhm (just like sample means differ from the population mean). This function implements an unbiased estimate of the fwhm, so the average of many fwhm estimates is expected to converge to the specified value.
-	
+	(Modified from rft1d.geom)
 	'''
 	ssq    = (r**2).sum(axis=0)
-	# ### gradient estimation (Method 1:  SPM5, SPM8)
-	# dx     = np.diff(R, axis=1)
-	# v      = (dx**2).sum(axis=0)
-	# v      = np.append(v, 0)   #this is likely a mistake but is entered to match the code in SPM5 and SPM8;  including this yields a more conservative estimate of smoothness
 	### gradient estimation (Method 2)
 	dy,dx  = np.gradient(r)
 	v      = (dx**2).sum(axis=0)
 	# normalize:
 	v     /= (ssq + eps)
-	# ### gradient estimation (Method 3)
-	# dx     = np.diff(R, axis=1)
-	# v      = (dx**2).sum(axis=0)
-	# v     /= (ssq[:-1] + eps)
 	# ignore zero-variance nodes:
 	i      = np.isnan(v)
 	v      = v[np.logical_not(i)]
@@ -47,3 +22,34 @@ def estimate_fwhm(r):
 	rpn    = np.sqrt(v / (4*log(2)))  # resels per node
 	fwhm   = 1 / rpn.mean()
 	return fwhm
+	
+	
+
+def _resel_counts(R, fwhm=1, element_based=False):
+	'''
+	(Modified from rft1d.geom.resel_counts)
+	'''
+	if R.ndim==2:
+		b     = np.any( np.logical_not(np.isnan(R)), axis=0)
+	else:
+		b     = np.asarray(np.logical_not(R), dtype=bool)
+	### Summarize search area geometry:
+	nNodes    = b.sum()
+	nClusters = bwlabel(b)[1]
+	if element_based:
+		resels    = nClusters,  float(nNodes)/fwhm
+	else:
+		resels    = nClusters,  float(nNodes-nClusters)/fwhm
+	return resels
+
+
+def resel_counts(r, fwhm=1, element_based=False, roi=None):
+	# define binary search area (False = masked):
+	if roi is None:
+		resels = _resel_counts(r, fwhm, element_based)
+	else:
+		b      = np.any( np.isnan(r), axis=0)            # node is True if nan
+		b      = np.logical_and(np.logical_not(b), roi)  # node is True if (in roi) and (not nan)
+		mask   = np.logical_not(b)                       # True for masked-out regions
+		resels = resel_counts(mask, fwhm, element_based)
+	return resels

@@ -6,6 +6,7 @@ Tests for variance.
 
 import numpy as np
 import rft1d
+from .. geom import estimate_fwhm #, resel_counts
 
 
 def eqvartest(y0, y1, alt="unequal", alpha=None, withBonf=True):
@@ -70,7 +71,7 @@ def eqvartest(y0, y1, alt="unequal", alpha=None, withBonf=True):
 		df        = J0-1, J1-1
 		r0,r1     = y0 - y0.mean(axis=0), y1 - y1.mean(axis=0)
 		r         = np.vstack( [r0,r1] )
-		efwhm     = rft1d.geom.estimate_fwhm(r)
+		efwhm     = estimate_fwhm(r)
 		pcrit     = alpha/2 if (alt.upper()=="UNEQUAL") else alpha
 		fcrit     = rft1d.f.isf(pcrit, df, Q, efwhm, withBonf=withBonf)
 	return f,fcrit

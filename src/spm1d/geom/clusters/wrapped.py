@@ -14,7 +14,6 @@ from . _base import _Cluster, _WithInference
 
 class WrappedCluster( _Cluster ):
 
-	# _InferenceClass = WrappedClusterWithInference
 	iswrapped       = True
 
 	def __init__(self, c0, c1):

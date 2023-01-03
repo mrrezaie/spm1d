@@ -5,7 +5,7 @@ from math import sqrt,log
 import numpy as np
 from scipy import ndimage
 from . import _spm
-import rft1d
+from .. geom import estimate_fwhm, resel_counts
 
 eps        = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero errors
 
@@ -18,7 +18,7 @@ eps        = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero
 
 def _fwhm(R):
 	nComp  = R.shape[2]
-	W      = [rft1d.geom.estimate_fwhm(R[:,:,i])  for i in range(nComp)]
+	W      = [estimate_fwhm(R[:,:,i])  for i in range(nComp)]
 	return np.mean(W)
 
 	

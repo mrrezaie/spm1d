@@ -1,3 +1,6 @@
 
 from . import clusters
-assemble_clusters = clusters.assemble_clusters
+from . clusters import assemble_clusters
+from . label import bwlabel
+from . smoothness import estimate_fwhm, resel_counts
+

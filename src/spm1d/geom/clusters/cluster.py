@@ -11,7 +11,6 @@ Clusters module
 import numpy as np
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
-# import rft1d
 from ... util import tuple2str
 from . _base import _Cluster, _WithInference
 
@@ -20,7 +19,6 @@ from . _base import _Cluster, _WithInference
 
 class Cluster( _Cluster ):
 	
-	# _InferenceClass = ClusterWithInference
 	iswrapped       = False
 	
 	

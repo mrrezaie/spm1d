@@ -7,9 +7,10 @@ Cluster calculators
 
 
 import numpy as np
-import rft1d
 from . cluster import Cluster
 from . lst import ClusterList
+from .. smoothness import estimate_fwhm
+from .. label import bwlabel
 
 
 
@@ -38,7 +39,7 @@ class _SignedClusterCalculator(object):
 	
 	def label(self):
 		b        = (self.z >= self.u) if (self.sign==1) else (self.z <= self.u)
-		L,n      = rft1d.geom.bwlabel(b)
+		L,n      = bwlabel(b)
 		self.L   = L
 		self.n   = n
 
@@ -48,7 +49,7 @@ class _SignedClusterCalculatorMasked( _SignedClusterCalculator ):
 		msk,zz   = self.z.mask, self.z.data
 		b        = (zz >= self.u) if (self.sign==1) else (zz <= self.u)
 		b[msk]   = False
-		L,n      = rft1d.geom.bwlabel(b)
+		L,n      = bwlabel(b)
 		self.L   = L
 		self.n   = n
 

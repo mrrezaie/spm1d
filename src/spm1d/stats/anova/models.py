@@ -7,7 +7,7 @@ ANOVA computational core using an R-like linear model interface.
 
 
 import numpy as np
-import rft1d
+from ... geom import estimate_fwhm, resel_counts
 
 
 eps         = np.finfo(float).eps
@@ -74,15 +74,15 @@ class LinearModel(object):
 			beta        = Ai*Y
 			self.eij    = np.asarray(Y - A*beta)  #approximate residuals
 		if self.dim==1:
-			self.fwhm   = rft1d.geom.estimate_fwhm(self.eij)            #smoothness
+			self.fwhm   = estimate_fwhm(self.eij)            #smoothness
 			### compute resel counts:
 			if self.roi is None:
-				self.resels = rft1d.geom.resel_counts(self.eij, self.fwhm, element_based=False) #resel
+				self.resels = resel_counts(self.eij, self.fwhm, element_based=False) #resel
 			else:
 				B      = np.any( np.isnan(self.eij), axis=0)  #node is true if NaN
 				B      = np.logical_and(np.logical_not(B), self.roi)  #node is true if in ROI and also not NaN
 				mask   = np.logical_not(B)  #true for masked-out regions
-				self.resels = rft1d.geom.resel_counts(mask, self.fwhm, element_based=False) #resel
+				self.resels = resel_counts(mask, self.fwhm, element_based=False) #resel
 		self.QT         = np.linalg.qr(X)[0].T
 
 
