@@ -180,55 +180,55 @@ class SPM1D(_SPMParent):
 		return p_set
 	
 
-	def _isf_sf_t(self, a, z, df, dirn=0, withBonf=True):
-		
-		zc     = rft1d.t.isf_resels(a, self.df[1], self.resels, withBonf=withBonf, nNodes=self.Q)
-		p      = None
-		
-		
-		
-		
-		check_neg  = False
-		interp     = True
-		circular   = False
-		
-		
-		# 	zstar      = self._isf(a, withBonf)  #critical threshold (RFT inverse survival function)
-		clusters   = self._get_clusters(zc, check_neg, interp, circular)  #assemble all suprathreshold clusters
-		# 	clusters   = self._cluster_inference(clusters, two_tailed, withBonf)  #conduct cluster-level inference
-		# 	p_set      = self._setlevel_inference(zstar, clusters, two_tailed, withBonf)  #conduct set-level inference
-		# 	spmi       = self._build_spmi(alpha, zstar, clusters, p_set, two_tailed)    #assemble SPMi object
-		# 	return spmi
-		
-		print(clusters)
-		return zc, p
-		
-		
-		# _z     = np.abs(z) if (dirn==0) else dirn*z
-		# a      = 0.5 * a if (dirn==0) else a
-		# zc     = stats.t.isf( a, df )
-		# zc     = -zc if (dirn==-1) else zc
-		# p      = stats.t.sf( _z, df )
-		# p      = min(1, 2*p) if (dirn==0) else p
-		# return zc,p
-
-	# def _inference_rft_t(self, alpha, dirn=0):
+	# def _isf_sf_t(self, a, z, df, dirn=0, withBonf=True):
 	#
-	# 	zc,p           = self._isf_sf_t(alpha, self.z, self.df[1], dirn)
-	#
-	# 	print( zc, p )
+	# 	zc     = rft1d.t.isf_resels(a, self.df[1], self.resels, withBonf=withBonf, nNodes=self.Q)
+	# 	p      = None
 	#
 	#
-	# 	# from . _spm1di import SPM1Di
-	# 	# spmi           = deepcopy( self )
-	# 	# spmi.__class__ = SPM0Di
-	# 	# spmi.method    = 'gauss'
-	# 	# spmi.alpha     = alpha
-	# 	# spmi.zc        = zc
-	# 	# spmi.p         = p
-	# 	# spmi.dirn      = dirn
-	# 	# return spmi
-
+	#
+	#
+	# 	check_neg  = False
+	# 	interp     = True
+	# 	circular   = False
+	#
+	#
+	# 	# 	zstar      = self._isf(a, withBonf)  #critical threshold (RFT inverse survival function)
+	# 	clusters   = self._get_clusters(zc, check_neg, interp, circular)  #assemble all suprathreshold clusters
+	# 	# 	clusters   = self._cluster_inference(clusters, two_tailed, withBonf)  #conduct cluster-level inference
+	# 	# 	p_set      = self._setlevel_inference(zstar, clusters, two_tailed, withBonf)  #conduct set-level inference
+	# 	# 	spmi       = self._build_spmi(alpha, zstar, clusters, p_set, two_tailed)    #assemble SPMi object
+	# 	# 	return spmi
+	#
+	# 	print(clusters)
+	# 	return zc, p
+	#
+	#
+	# 	# _z     = np.abs(z) if (dirn==0) else dirn*z
+	# 	# a      = 0.5 * a if (dirn==0) else a
+	# 	# zc     = stats.t.isf( a, df )
+	# 	# zc     = -zc if (dirn==-1) else zc
+	# 	# p      = stats.t.sf( _z, df )
+	# 	# p      = min(1, 2*p) if (dirn==0) else p
+	# 	# return zc,p
+	#
+	# # def _inference_rft_t(self, alpha, dirn=0):
+	# #
+	# # 	zc,p           = self._isf_sf_t(alpha, self.z, self.df[1], dirn)
+	# #
+	# # 	print( zc, p )
+	# #
+	# #
+	# # 	# from . _spm1di import SPM1Di
+	# # 	# spmi           = deepcopy( self )
+	# # 	# spmi.__class__ = SPM0Di
+	# # 	# spmi.method    = 'gauss'
+	# # 	# spmi.alpha     = alpha
+	# # 	# spmi.zc        = zc
+	# # 	# spmi.p         = p
+	# # 	# spmi.dirn      = dirn
+	# # 	# return spmi
+	#
 
 	def inference(self, alpha, method='rft', **kwargs):
 		# parser   = InferenceArgumentParser1D(self.STAT, method)
@@ -247,7 +247,7 @@ class SPM1D(_SPMParent):
 		
 		# rft(stat, z, df, resels, alpha=0.05, cluster_size=0, interp=True, circular=False, withBonf=True, **kwargs)
 		
-		results = prob.rft(self.STAT, self.z, self.df, self.resels, alpha=alpha, **kwargs)
+		results = prob.rft(self.STAT, self.z, self.df, self.fwhm, self.resels, alpha=alpha, **kwargs)
 		return results
 		# f = self._inference_rft_t if (self.STAT=='T') else self._inference_rft
 		# f = self._inference_rft_t

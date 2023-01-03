@@ -3,9 +3,12 @@
 Common parametric (0D) probabilities
 '''
 
+from copy import deepcopy
 import numpy as np
 import rft1d
-# from .. geom import assemble_clusters
+from .. geom import assemble_clusters
+from .. geom.clusters import Cluster, WrappedCluster, ClusterList
+from .. util import p2string
 
 
 class ParamResults(object):
@@ -37,9 +40,67 @@ class ParamResults(object):
 
 # alpha=0.05, cluster_size=0, two_tailed=False, interp=True, circular=False, withBonf=True
 
-
-def rft(stat, z, df, resels, alpha=0.05, cluster_size=0, interp=True, circular=False, withBonf=True, **kwargs):
+class _WithInference(object):
 	
+	def __repr__(self):
+		s   = super().__repr__()
+		s  += 'Inference:\n'
+		s  += '   extent_resels       :  %.5f\n' %self.extent_resels
+		s  += '   p                   :  %s\n' %p2string(self.p)
+		return s
+	
+	def set_inference_params(self, extent_resels, p, **kwargs):
+		self.extent_resels    = extent_resels
+		self.p                = p
+		self.inference_params = kwargs
+	
+	# legacy properties:
+	@property
+	def extentR(self):
+		return self.extent_resels
+	
+	@property
+	def P(self):
+		return self.p
+
+
+class ClusterWithInference(_WithInference, Cluster):
+	pass
+
+class WrappedClusterWithInference(_WithInference, WrappedCluster):
+	pass
+
+
+
+def _cluster_inference(cluster, STAT, df, fwhm, resels, two_tailed, withBonf, nNodes):
+	extentR = cluster.extent / fwhm
+	k,u     = extentR, cluster.height
+	if STAT == 'T':
+		p = rft1d.t.p_cluster_resels(k, u, df[1], resels, withBonf=withBonf, nNodes=nNodes)
+		p = min(1, 2*p) if two_tailed else p
+	elif STAT == 'F':
+		p = rft1d.f.p_cluster_resels(k, u, df, resels, withBonf=withBonf, nNodes=nNodes)
+	elif STAT == 'T2':
+		p = rft1d.T2.p_cluster_resels(k, u, df, resels, withBonf=withBonf, nNodes=nNodes)
+	elif STAT == 'X2':
+		p = rft1d.chi2.p_cluster_resels(k, u, df[1], resels, withBonf=withBonf, nNodes=nNodes)
+	
+	cluster = deepcopy( cluster )
+	if cluster.iswrapped:
+		cluster.__class__ = WrappedClusterWithInference
+	else:
+		cluster.__class__ = ClusterWithInference
+	cluster.set_inference_params( extentR, p )
+	return cluster
+	
+	
+
+
+def rft(stat, z, df, fwhm, resels, alpha=0.05, cluster_size=0, interp=True, circular=False, withBonf=True, **kwargs):
+	
+	'''
+	fwhm is needed ONLY for cluster extent (in FWHM units)
+	'''
 	
 	
 	
@@ -64,8 +125,14 @@ def rft(stat, z, df, resels, alpha=0.05, cluster_size=0, interp=True, circular=F
 	
 	calc     = rft1d.prob.RFTCalculatorResels(STAT=stat, df=df, resels=resels, withBonf=withBonf, nNodes=z.size)
 	zc       = calc.isf(a)
-	# clusters = assemble_clusters()
-	print( f'zc = {zc}' )
+	clusters = assemble_clusters(z, zc, dirn=dirn, circular=circular)
+	args     = stat, df, fwhm, resels, dirn==0, withBonf, z.size
+	clusters = ClusterList(  [_cluster_inference(c, *args) for c in clusters]  )
+	
+	return zc,clusters
+	
+	# print( f'zc = {zc}' )
+	# print()
 	
 	# clusters   = self._get_clusters(zstar, check_neg, interp, circular)  #assemble all suprathreshold clusters
 	# clusters   = self._cluster_inference(clusters, two_tailed, withBonf)  #conduct cluster-level inference
