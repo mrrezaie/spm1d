@@ -18,11 +18,10 @@ Specifically:
 
 '''
 
-# Copyright (C) 2022  Todd Pataky
+# Copyright (C) 2023  Todd Pataky
 
 
 
-from . import _argparse
 from . import _spmcls
 # from . import prob
 

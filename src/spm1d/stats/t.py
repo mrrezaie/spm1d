@@ -151,8 +151,8 @@ def ttest(Y, mu=None, roi=None):
 	c       = (1,)
 	### compute SPM{t}:
 	spm = glm(Ytemp, X, c, roi=roi)
-	# spm._set_testname( 'ttest' )
-	# spm._set_data( _y, mu, roi )
+	spm._set_testname( 'ttest' )
+	spm._set_data( _y, mu )
 	return spm
 
 

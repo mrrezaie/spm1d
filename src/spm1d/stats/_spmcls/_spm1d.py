@@ -85,12 +85,12 @@ class SPM1D(_SPMParent):
 
 
 	def inference(self, alpha, method='rft', **kwargs):
-		from . _argparsers import InferenceArgumentParser1D
-		parser   = InferenceArgumentParser1D(self.STAT, method)
-		parser.parse( alpha, **kwargs )
+		# from . _argparsers import InferenceArgumentParser1D
+		# parser   = InferenceArgumentParser1D(self.STAT, self.testname, method)
+		# kwargs   = parser.parse( alpha, **kwargs )
 		
 		if method == 'rft':
-			results = prob.rft(self.STAT, self.z, self.df, self.fwhm, self.resels, alpha=alpha, **parser.kwargs)
+			results = prob.rft(self.STAT, self.z, self.df, self.fwhm, self.resels, alpha=alpha, **kwargs)
 			# results = self.inference_rft(alpha, **kwargs)
 			
 			# spmi = self.inference_rft(alpha, **parser.kwargs)

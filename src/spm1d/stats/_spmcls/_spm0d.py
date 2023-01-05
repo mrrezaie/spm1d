@@ -104,9 +104,9 @@ class SPM0D(_SPMParent):
 	
 	
 	def inference(self, alpha, method='param', **kwargs):
-		from . _argparsers import InferenceArgumentParser0D
-		parser   = InferenceArgumentParser0D(self.STAT, method)
-		parser.parse( alpha, **kwargs )
+		# from . _argparsers import InferenceArgumentParser0D
+		# parser   = InferenceArgumentParser0D(self.STAT, method)
+		# parser.parse( alpha, **kwargs )
 
 		if method == 'param':
 			spmi = self._inference_param(alpha, **kwargs)
