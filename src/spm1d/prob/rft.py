@@ -11,11 +11,12 @@ from .. geom import assemble_clusters
 
 
 class RFTResults(object):
-	def __init__(self, zc, clusters, p_set):
+	def __init__(self, zc, clusters, p_set, p_max):
 		self.method   = 'rft'
 		self.zc       = zc
 		self.clusters = clusters
 		self.p_set    = p_set
+		self.p_max    = p_max
 
 
 def _clusterlevel_inference(calc, z, zc, fwhm, dirn=1, circular=False):
@@ -27,12 +28,29 @@ def _clusterlevel_inference(calc, z, zc, fwhm, dirn=1, circular=False):
 	return clusters
 
 
+def _pmax(calc, z, dirn):
+	if dirn==0:
+		z = np.abs(z).max()
+		s = 2
+	elif dirn==1:
+		z = z.max()
+		s = 1
+	else:
+		z = z.min()
+		s = 1
+	return s * calc.sf(z)
+
+
 def _setlevel_inference(calc, zc, clusters):
 	c = len(clusters)
-	k = clusters.min_extent_resels
-	p = calc.p.set(c, k, zc)
+	if c==0:
+		p = np.nan
+	else:
+		k = clusters.min_extent_resels
+		p = calc.p.set(c, k, zc)
 	return p
 	
+
 
 	
 def rft(STAT, z, df, fwhm, resels, alpha=0.05, cluster_size=0, interp=True, circular=False, withBonf=True, **kwargs):
@@ -55,7 +73,8 @@ def rft(STAT, z, df, fwhm, resels, alpha=0.05, cluster_size=0, interp=True, circ
 	zc       = calc.isf(a)
 	clusters = _clusterlevel_inference(calc, z, zc, fwhm, dirn=dirn, circular=circular)
 	p_set    = _setlevel_inference(calc, zc, clusters)
-	results  = RFTResults( zc, clusters, p_set )
+	p_max    = _pmax(calc, z, dirn)
+	results  = RFTResults( zc, clusters, p_set, p_max )
 	return results
 	
 

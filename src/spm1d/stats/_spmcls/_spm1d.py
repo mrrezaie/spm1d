@@ -73,6 +73,7 @@ class SPM1D(_SPMParent):
 		spmi.alpha       = alpha
 		spmi.zc          = results.zc
 		spmi.p_set       = results.p_set
+		spmi.p_max       = results.p_max
 		spmi.clusters    = results.clusters
 		if self.STAT=='T':
 			spmi.dirn     = dirn
