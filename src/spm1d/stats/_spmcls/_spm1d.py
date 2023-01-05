@@ -5,7 +5,7 @@ SPM1D class definition
 
 # Copyright (C) 2023  Todd Pataky
 
-
+from copy import deepcopy
 import numpy as np
 from . _base import _SPMParent #, _SPMF
 # from . _clusters import Cluster
@@ -42,7 +42,7 @@ class SPM1D(_SPMParent):
 			s   += '   SPM.r      :  %s\n'             %self._repr_corrcoeff()
 		s       += '   SPM.df     :  %s\n'             %dflist2str(self.df)
 		s       += '   SPM.fwhm   :  %.5f\n'           %self.fwhm
-		s       += '   SPM.resels :  (%d, %.5f)\n\n\n' %tuple(self.resels)
+		s       += '   SPM.resels :  (%d, %.5f)\n'     %tuple(self.resels)
 		return s
 	
 	@property
@@ -83,7 +83,23 @@ class SPM1D(_SPMParent):
 	# 	# 	spmi    = SPMi_X2(self, alpha, zstar, clusters, p_set, p_clusters, two_tailed)
 	# 	return spmi
 		
-
+	def _build_spmi(self, results, alpha, dirn=0, df_adjusted=None):
+		from . _spm1di import SPM1Di
+		spmi             = deepcopy( self )
+		spmi.__class__   = SPM1Di
+		spmi.df_adjusted = df_adjusted
+		spmi.method      = results.method
+		spmi.alpha       = alpha
+		spmi.zc          = results.zc
+		spmi.p_set       = results.p_set
+		spmi.clusters    = results.clusters
+		if self.STAT=='T':
+			spmi.dirn     = dirn
+			# spmi.dirn   = parser.kwargs['dirn']
+		if results.method=='perm':
+			spmi.nperm    = results.nperm
+			spmi.permuter = results.permuter
+		return spmi
 
 
 	def inference(self, alpha, method='rft', **kwargs):
@@ -101,25 +117,16 @@ class SPM1D(_SPMParent):
 		
 		# spmi       = self._build_spmi(alpha, zstar, clusters, p_set, two_tailed)    #assemble SPMi object
 		# return spmi
+		
+		dfa = self.df
+		dirn = kwargs['dirn']
+		
+		
+		spmi = self._build_spmi(results, alpha, dirn=dirn, df_adjusted=dfa)
+		return( spmi )
+		
+		
 
-		
-		
-		# #
-		# # 	# from . _spm1di import SPM1Di
-		# # 	# spmi           = deepcopy( self )
-		# # 	# spmi.__class__ = SPM0Di
-		# # 	# spmi.method    = 'gauss'
-		# # 	# spmi.alpha     = alpha
-		# # 	# spmi.zc        = zc
-		# # 	# spmi.p         = p
-		# # 	# spmi.dirn      = dirn
-		# # 	# return spmi
-		#
-
-		
-		
-		return results
-		
 		
 
 
