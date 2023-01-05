@@ -11,7 +11,7 @@ from . wrapped import WrappedCluster
 
 class ClusterList(list):
 
-	
+
 	@property
 	def min_extent(self):
 		return min(  [c.extent for c in self]  )
@@ -24,6 +24,15 @@ class ClusterList(list):
 			e = None
 		return e
 
+	
+	def asshortstr(self):
+		n     = len(self)
+		if n==0:
+			s = '[]'
+		else:
+			o = 'objects' if n>1 else 'object'
+			s = f'[{n} Cluster {o}]'
+		return s
 	
 	def plot(self, ax, **kwargs):
 		for c in self:
