@@ -123,9 +123,18 @@ class _Permuter1D(_Permuter):
 			self.Y      = np.ma.masked_array( self.Y, np.logical_not(roi) )
 	
 	def build_secondary_pdf(self, zstar, circular=False):
-		self.Z2          = [self.metric.get_max_metric(z, zstar, circular)   for z in self.ZZ]
+		self.Z2          = np.asarray([self.metric.get_max_metric(z, zstar, circular)   for z in self.ZZ])
 	def get_clusters(self, z, zstar, two_tailed=False):
 		return self.metric.get_all_clusters(z, zstar, self.Z2, two_tailed)
+
+	def get_cluster_pvalue(self, x):
+		return (self.Z2 >= x).mean()
+
+
+	def get_p_max(self, z, dirn=0):
+		return (self.ZZ >= z.max()).mean()
+		
+
 	def get_test_stat_original(self):
 		z = self.get_test_stat( self.labels0 )
 		if self.hasroi:

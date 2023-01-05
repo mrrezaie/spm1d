@@ -15,8 +15,12 @@ def dflist2str(v):
 	return f'({s0}, {s1})'
 
 
-def p2string(p):
-	return '<0.001' if p<0.0005 else f'{p:.3f}'
+def p2string(p, allow_none=False):
+	if allow_none and (p is None):
+		s = 'None'
+	else:
+		s = '<0.001' if p<0.0005 else f'{p:.3f}'
+	return s
 
 
 def plist2string(plist):

@@ -94,8 +94,14 @@ class SPM1D(_SPMParent):
 			# results = self.inference_rft(alpha, **kwargs)
 			
 			# spmi = self.inference_rft(alpha, **parser.kwargs)
-		# elif method == 'perm':
-		# 	spmi = self.inference_perm(alpha, **parser.kwargs)
+		elif method == 'perm':
+			# nperm = kwargs['nperm']
+			# results = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dirn=dirn)
+			results = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, **kwargs)
+			
+			# return self._build_spmi(results, alpha, dirn=dirn)
+			#
+			# spmi = self.inference_perm(alpha, **parser.kwargs)
 		
 		
 		# spmi       = self._build_spmi(alpha, zstar, clusters, p_set, two_tailed)    #assemble SPMi object

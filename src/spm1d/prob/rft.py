@@ -24,7 +24,7 @@ def _clusterlevel_inference(calc, z, zc, fwhm, dirn=1, circular=False):
 	for i,c in enumerate( clusters ):
 		k,u  = c.extent / fwhm, c.height
 		p    = calc.p.cluster(k, u)
-		clusters[i] = c.as_inference_cluster( k, p )
+		clusters[i] = c.as_inference_cluster(k, p)
 	return clusters
 
 
@@ -46,7 +46,7 @@ def _setlevel_inference(calc, zc, clusters):
 	if c==0:
 		p = np.nan
 	else:
-		k = clusters.min_extent_resels
+		k = min([c.metric for c in clusters])  # min extent_resels
 		p = calc.p.set(c, k, zc)
 	return p
 	

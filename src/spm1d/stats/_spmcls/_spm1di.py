@@ -28,7 +28,7 @@ class SPM1Di(_SPMiParent, SPM1D):
 		s       += '   SPM.zc        :  %s\n'       %self._zcstr
 		s       += '   SPM.h0reject  :  %s\n'       %self.h0reject
 		s       += '   SPM.p_max     :  %s\n'       %p2string(self.p_max)
-		s       += '   SPM.p_set     :  %s\n'       %p2string(self.p_set)
+		s       += '   SPM.p_set     :  %s\n'       %p2string(self.p_set, allow_none=True)
 		s       += '   SPM.p_cluster :  (%s)\n'     %plist2string(self.p_cluster)
 		s       += '   SPM.clusters  :  %s\n'       %self.clusters.asshortstr()
 		return s

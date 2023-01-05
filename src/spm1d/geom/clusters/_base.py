@@ -82,11 +82,18 @@ class _Cluster(metaclass=ABCMeta):
 		pass
 
 
-	def as_inference_cluster(self, k, p, **kwargs):
+	def as_inference_cluster(self, x, p):  # , x, p, **kwargs):
 		c = deepcopy( self )
 		c.__class__ = self._InferenceClass
-		c.set_inference_params(k, p, **kwargs)
+		c.set_inference_params(x, p)
 		return c
+		
+
+	# def as_inference_cluster(self, k, p, **kwargs):
+	# 	c = deepcopy( self )
+	# 	c.__class__ = self._InferenceClass
+	# 	c.set_inference_params(k, p, **kwargs)
+	# 	return c
 		
 		# if self.iswrapped:
 		# 	self.__class__ = WrappedClusterWithInference
@@ -102,14 +109,29 @@ class _WithInference(object):
 	def __repr__(self):
 		s   = super().__repr__()
 		s  += 'Inference:\n'
-		s  += '   extent_resels       :  %.5f\n' %self.extent_resels
+		s  += '   metric              :  %.5f\n' %self.metric
 		s  += '   p                   :  %s\n'   %p2string(self.p)
 		return s
 	
-	def set_inference_params(self, extent_resels, p, **kwargs):
-		self.extent_resels    = extent_resels
+	# def set_inference_params(self, extent_resels, p, **kwargs):
+	# 	self.extent_resels    = extent_resels
+	# 	self.p                = p
+	# 	self.inference_params = kwargs
+
+
+	# def set_extent_resels(self, x):
+	# 	self.extent_resels = x
+	# 	self.metric        = x
+	#
+	# def set_metric(self, x):
+	# 	self.metric = x
+	#
+	# def set_p(self, x):
+	# 	self.p   = p
+	def set_inference_params(self, metric, p):
+		self.metric           = metric
 		self.p                = p
-		self.inference_params = kwargs
+		# self.inference_params = kwargs
 	
 	# legacy properties:
 	@property
