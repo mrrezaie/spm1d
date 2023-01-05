@@ -22,4 +22,4 @@ def get_dataset(*args):
 
 		**get_dataset** is deprecated and will be removed from future versions of **spm1d**.  Please access datasets using the "spm1d.data" interface.
 	'''
-	raise( DeprecationWarning('"get_dataset" is deprecated.  Access datasets using "spm1d.data"') )
+	raise( NotImplementedError('"get_dataset" has been deprecated.  Access datasets using "spm1d.data"') )

@@ -14,7 +14,7 @@ import warnings
 from . _base import _SPMiParent
 from . _spm1d import SPM1D
 from ... util import dflist2str, p2string, plist2string
-
+from ... cfg import SPM1DDeprecationWarning
 
 
 class SPM1Di(_SPMiParent, SPM1D):
@@ -47,7 +47,7 @@ class SPM1Di(_SPMiParent, SPM1D):
 	@property
 	def p(self):
 		msg = 'Use of "p" is deprecated. Use "p_cluster" to avoid this warning.'
-		warnings.warn( msg , DeprecationWarning , stacklevel=2 )
+		warnings.warn( msg , SPM1DDeprecationWarning , stacklevel=2 )
 		return self.p_cluster
 
 	@property

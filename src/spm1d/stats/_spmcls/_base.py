@@ -13,7 +13,7 @@ and inference SPMs (thresholded test statistic).
 
 import warnings
 import numpy as np
-
+from ... cfg import SPM1DDeprecationWarning
 
 
 class _SPMParent(object):
@@ -96,7 +96,7 @@ class _SPMiParent(object):
 	@property
 	def zstar(self):   # legacy support ("zc" was "zstar" in spm1d versions < 0.5)
 		msg = 'Use of "zstar" is deprecated. Use "zc" to avoid this warning.'
-		warnings.warn( msg , DeprecationWarning , stacklevel=2 )
+		warnings.warn( msg , SPM1DDeprecationWarning , stacklevel=2 )
 		return self.zc
 
 
