@@ -5,29 +5,26 @@ SPM-0D module
 (This and all modules whose names start with underscores
 are not meant to be accessed directly by the user.)
 
-This module contains class definitions for raw 0D SPMs.
+This module contains class definitions for 0D SPMs.
 '''
 
-# Copyright (C) 2022  Todd Pataky
+# Copyright (C) 2023  Todd Pataky
 
 
 from copy import deepcopy
 import warnings
 import numpy as np
 from scipy import stats
-# from . _base import _SPMParent, _SPMF
-from . _argparsers import InferenceArgumentParser0D, InferenceArgumentParser1D
-# from .. _argparse import KeywordArgumentParser
-# from .. import prob
+from . _base import _SPMParent
 from ... import prob
 from ... util import dflist2str, tuple2str
-from . _base import _SPM0DParent
 
 
 
 
 
-class SPM0D(_SPM0DParent):
+
+class SPM0D(_SPMParent):
 
 	def __init__(self, STAT, z, df, beta=None, residuals=None, sigma2=None, X=None):
 		self.STAT           = STAT             # test statistic type ("T" or "F")
@@ -104,35 +101,10 @@ class SPM0D(_SPM0DParent):
 		
 		results = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dirn=dirn)
 		return self._build_spmi(results, alpha, dirn=dirn)
-		
-	
-	
-	
-		# # self._check_iterations(iterations, alpha, force_iterations)
-		#
-		# from . _spm0di import SPM0Di
-		#
-		# results          = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dirn=dirn)
-		#
-		# spmi             = deepcopy( self )
-		# spmi.__class__   = SPM0Di
-		# spmi.method      = 'perm'
-		# spmi.alpha       = alpha
-		# spmi.zc          = results.zc
-		# spmi.p           = results.p
-		# spmi.nperm       = nperm
-		# spmi.permuter    = results.permuter
-		# if self.STAT=='T':
-		# 	# spmi.dirn    = parser.kwargs['dirn']
-		# 	spmi.dirn    = dirn
-		#
-		# return spmi
-		#
-	
-	
 	
 	
 	def inference(self, alpha, method='param', **kwargs):
+		from . _argparsers import InferenceArgumentParser0D
 		parser   = InferenceArgumentParser0D(self.STAT, method)
 		parser.parse( alpha, **kwargs )
 

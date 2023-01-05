@@ -9,7 +9,7 @@ This module contains class definitions for raw SPMs (raw test statistic continua
 and inference SPMs (thresholded test statistic).
 '''
 
-# Copyright (C) 2022  Todd Pataky
+# Copyright (C) 2023  Todd Pataky
 
 import warnings
 import numpy as np
@@ -42,6 +42,10 @@ class _SPMParent(object):
 	def ismultigroup(self):
 		return self.testname in ['ttest2', 'anova1']
 	
+	def _set_anova_attrs(self, ss=None, ms=None):
+		self.ss   = tuple( np.asarray(ss, dtype=float) )
+		self.ms   = tuple( np.asarray(ms, dtype=float) )
+	
 	def _set_effect_label(self, s):
 		self.effect_label   = s
 		self.effect_label_s = s.split(' ')[1]
@@ -53,11 +57,11 @@ class _SPMParent(object):
 		self.testname = str( name )
 
 
-class _SPM0DParent(_SPMParent):
-	
-	def _set_anova_attrs(self, ss=None, ms=None):
-		self.ss   = tuple( np.asarray(ss, dtype=float) )
-		self.ms   = tuple( np.asarray(ms, dtype=float) )
+# class _SPM0DParent(_SPMParent):
+#
+# 	def _set_anova_attrs(self, ss=None, ms=None):
+# 		self.ss   = tuple( np.asarray(ss, dtype=float) )
+# 		self.ms   = tuple( np.asarray(ms, dtype=float) )
 
 
 

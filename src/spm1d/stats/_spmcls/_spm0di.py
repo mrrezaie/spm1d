@@ -19,6 +19,8 @@ from ... util import dflist2str
 
 class SPM0Di(_SPMiParent, SPM0D):
 	
+	isinference   = True
+	
 	def __repr__(self):
 		s          = super().__repr__()
 		s         += 'Inference:\n'
@@ -71,41 +73,6 @@ class SPM0Di(_SPMiParent, SPM0D):
 	@property
 	def two_tailed(self):
 		return self.dirn == 0
-
-	# def _h0reject_parametric(self):
-	# 	z,zc  = self.z, self.zc
-	# 	if self.dirn==0:
-	# 		h = abs(z) > zc
-	# 	elif self.dirn==1:
-	# 		h = z > zc
-	# 	elif self.dirn==-1:
-	# 		h = z < zc
-	# 	return h
-	#
-	# def _h0reject_nonparametric(self):
-	# 	z,zc  = self.z, self.zc
-	# 	if self.dirn==0:
-	# 		zc0,zc1 = zc
-	# 		h       = (z < zc0) or (z > zc1)
-	# 	elif self.dirn==1:
-	# 		h       = z > zc
-	# 	elif self.dirn==-1:
-	# 		h       = z < zc
-	# 	return h
-
-
-
-
-	def _set_inference_params(self, method, alpha, zc, p, dirn, df_adjusted=None):
-		self.method      = method         # inference method
-		self.alpha       = alpha          # Type I error rate
-		self.df_adjusted = df_adjusted    # degrees of freedom (adjusted for unequal variance)
-		self.zc          = zc             # critical value
-		self.p           = p              # p-value
-		self.dirn        = dirn           # one-tailed direction (-1 or +1)
-		# self.isanova     = spm.isanova    # ANOVA boolean
-		# self.isregress   = spm.isregress  # regression boolean
-		
 
 
 
