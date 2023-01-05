@@ -88,5 +88,5 @@ class ExpectedKeywordArgument(ExpectedArgument):
 	def warn(self):
 		if self.warning_msg is not None:
 			# warnings.warn( self.warning_msg , UserWarning, stacklevel=5)
-			warnings.warn( self.warning_msg , SPM1DDeprecationWarning, stacklevel=5)
+			warnings.warn( self.warning_msg() , SPM1DDeprecationWarning, stacklevel=5)
 

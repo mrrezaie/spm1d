@@ -1,6 +1,7 @@
 
 from copy import deepcopy
 from math import inf
+import numpy as np
 from .. _argparse import ArgumentParser
 
 
@@ -9,6 +10,14 @@ def _force_iterations_deprecation_msg():
 	msg += 'WARNING!! The keyword argument "force_iterations" will be removed from future versions of spm1d.\n'
 	msg += '  - In spm1d-v0.4 "force_iterations=True" was used to confirm a large number of permutations (>1e5) during nonparametric (permutation-based) inference.\n'
 	msg += '  - In spm1d-v0.5 just set "nperm" to a large value (e.g. "nperm=1e6") to replicate "force_iterations=True" \n'
+	msg += '\n\n\n'
+	return msg
+
+def _interp_deprecation_msg():
+	msg  = '\n\n\n'
+	msg += 'WARNING!! The keyword argument "interp" has been deprecated and will be removed from future versions of spm1d.\n'
+	msg += '  - All inference now uses "interp=True"\n'
+	msg += '  - This implies that upcrossing extents are now always interpolated to the threshold.\n'
 	msg += '\n\n\n'
 	return msg
 
@@ -48,7 +57,7 @@ class InferenceArgumentParser0D( ArgumentParser ):
 			self.add_kwarg(name='dirn', values=[-1,0,1], default=0)
 			self.add_kwarg(name='equal_var', type=bool, default=False)
 			k = self.add_kwarg(name='two_tailed', values=[True,False,None], default=None)
-			k.set_deprecated_warning( _two_tailed_deprecation_msg() )
+			k.set_deprecated_warning( _two_tailed_deprecation_msg )
 			self.set_invalid_combinations( ('dirn', 'two_tailed'), [(0,False), (1,True), (-1,True)])
 		
 		if self.method=='perm':
@@ -56,7 +65,7 @@ class InferenceArgumentParser0D( ArgumentParser ):
 			self.add_kwarg(name='nperm', type=int, range=(-1,inf), default=-1, badvalues=list(range(0,10)))
 			k1 = self.add_kwarg(name='force_iterations', type=bool)
 			
-			k0.set_deprecated_warning( _iterations_deprecation_msg() )
+			k0.set_deprecated_warning( _iterations_deprecation_msg )
 			k1.set_deprecated_warning( _force_iterations_deprecation_msg() )
 			self.set_invalid_pairs( ('iterations', 'nperm'))
 		
@@ -80,6 +89,8 @@ class InferenceArgumentParser0D( ArgumentParser ):
 			self.kwargs.pop('iterations')
 		if (self.method=='perm') and ('force_iterations' in kwargs):
 			self.kwargs.pop('force_iterations')
+		if 'interp' in kwargs:
+			self.kwargs.pop('interp')
 		
 
 
@@ -90,16 +101,16 @@ class InferenceArgumentParser1D( InferenceArgumentParser0D ):
 		super()._init()
 		self.ek['method'].append_values(  ['rft', 'fmax', 'fdr', 'bonferroni', 'uncorrected'] )
 		self.add_kwarg(name='roi', type=np.ndarray)
+		k = self.add_kwarg('interp', type=bool, default=True)
+		k.set_deprecated_warning( _interp_deprecation_msg )
 
 		if (self.method in ['gauss', 'rft']):
 			self.add_kwarg(name='cluster_size', type=(int,float), default=0, range=(0,inf))
-			self.add_kwarg(name='interp', type=bool)
 			self.add_kwarg(name='circular', type=bool)
 			self.add_kwarg(name='withBonf', type=bool)
 
 		elif self.method in ['perm', 'fmax']:
 			self.add_kwarg(name='cluster_size', type=(int,float), default=0, range=(0,inf))
-			self.add_kwarg(name='interp', type=bool)
 			self.add_kwarg(name='circular', type=bool)
 			self.add_kwarg(name='cluster_metric', values=self._get_cluster_metrics(), default='MaxClusterExtent')
 

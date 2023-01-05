@@ -53,7 +53,7 @@ def _setlevel_inference(calc, zc, clusters):
 
 
 	
-def rft(STAT, z, df, fwhm, resels, alpha=0.05, cluster_size=0, interp=True, circular=False, withBonf=True, **kwargs):
+def rft(STAT, z, df, fwhm, resels, alpha=0.05, cluster_size=0, circular=False, withBonf=True, dirn=1):
 	
 	'''
 	COMMENT:  fwhm is needed ONLY for cluster extent (in FWHM units)
@@ -64,10 +64,10 @@ def rft(STAT, z, df, fwhm, resels, alpha=0.05, cluster_size=0, interp=True, circ
 	
 
 	if STAT=='T':
-		dirn = kwargs['dirn']
 		a    = 0.5 * alpha if (dirn==0) else alpha
 	else:
-		dirn = 1
+		if dirn!=1:
+			raise ValueError('"dirn=0" and "dirn=-1" can only be used when STAT=="T"')
 		a    = alpha
 	calc     = rft1d.prob.RFTCalculatorResels(STAT=STAT, df=df, resels=resels, withBonf=withBonf, nNodes=z.size)
 	zc       = calc.isf(a)
