@@ -19,18 +19,11 @@ def p2string(p):
 	return '<0.001' if p<0.0005 else f'{p:.3f}'
 
 
-def plist2string(pList):
-	s      = ''
-	if len(pList)>0:
-		for p in pList:
-			s += p2string(p)
-			s += ', '
-		s  = s[:-2]
-	return s
+def plist2string(plist):
+	return ', '.join( [p2string(p) for p in plist] )
 
-
-def plist2stringlist(pList):
-	s  = plist2string(pList).split(', ')
+def plist2stringlist(plist):
+	s  = plist2string(plist).split(', ')
 	for i,ss in enumerate(s):
 		if ss.startswith('<'):
 			s[i]  = 'p' + ss
