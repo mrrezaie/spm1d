@@ -97,7 +97,8 @@ class SPM0D(_SPMParent):
 
 	def _inference_perm(self, alpha, nperm=10000, dirn=0):
 		if self.isinlist:
-			raise( NotImplementedError( 'Permutation inference must be conducted using the parent SnPMList (for two- and three-way ANOVA).' ) )
+			raise NotImplementedError( 'Permutation inference must be conducted using the parent SnPMList (for two- and three-way ANOVA).' )
+		
 		
 		results = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dirn=dirn)
 		return self._build_spmi(results, alpha, dirn=dirn)

@@ -16,28 +16,18 @@ from . metrics import metric_dict
 class _Permuter(object):
 	CalculatorClass  = None
 	ismultivariate   = False
+	alpha            = None
+	dirn             = None
+	
+	@property
+	def nperm_actual(self):
+		return self.Z.size
+	
 	def _set_teststat_calculator(self, *args):
 		self.calc    = self.CalculatorClass(*args)
 	def build_pdf(self, iterations=-1):
 		self.check_nperm( iterations )
-	def constrain_p(self, z, zc, alpha, dirn, p):
-		# adjust the p value to alpha if (z > zc) but (p > alpha)
-		if dirn==0:
-			if ( abs(z) > zc ) and (p > alpha):
-				p     = alpha
-		elif dirn==1:
-			if (z > zc) and (p > alpha):
-				p     = alpha
-		elif dirn==-1:
-			if (z < -zc) and (p > alpha):
-				p     = alpha
-		# substitute with min/max p value if applicable:
-		self.minp     = 1.0 / self.Z.size
-		self.maxp     = 1 - self.minp
-		p             = min( max(p, self.minp), self.maxp )
-		return p
-		
-		
+
 	def check_nperm(self, n):
 		if n > self.nPermTotal:
 			raise ValueError( f'Number of specified permutations ({n}) exceeds the total number of possible permutations ({self.nPermTotal}).')
@@ -45,29 +35,7 @@ class _Permuter(object):
 		pass
 	def get_test_stat_original(self):
 		return self.get_test_stat( self.labels0 )
-	# def get_z_critical(self, alpha=0.05, two_tailed=False):
-	# 	perc     = [100*0.5*alpha, 100*(1-0.5*alpha)]  if two_tailed else 100*(1-alpha)
-	# 	# zstar    = np.percentile(self.Z, perc, interpolation='linear', axis=0)
-	# 	zstar    = np.percentile(self.Z, perc, interpolation='midpoint', axis=0)
-	# 	return zstar
 
-	# def get_z_critical(self, alpha=0.05, dirn=0):
-	# 	if dirn==0:
-	# 		perc = [ 100*0.5*alpha, 100*(1-0.5*alpha) ]
-	# 	elif dirn==1:
-	# 		perc = 100*(1-alpha)
-	# 	elif dirn==-1:
-	# 		perc = 100*alpha
-	# 	# zstar    = np.percentile(self.Z, perc, interpolation='linear', axis=0)
-	# 	zc       = np.percentile(self.Z, perc, interpolation='midpoint', axis=0)
-	# 	if not isinstance(zc, float):
-	# 		zc   = zc.flatten()
-	# 	return zc
-
-	def get_z_critical(self, alpha=0.05, dirn=0):
-		perc     = 100*(1-0.5*alpha) if (dirn==0) else 100*(1-alpha)
-		zc       = np.percentile(self.Z, perc, interpolation='midpoint', axis=0)
-		return float( zc )
 	
 
 
@@ -77,85 +45,7 @@ class _Permuter0D(_Permuter):
 	maxp = 1   #maximum possible p value
 	
 	
-	def get_p_value(self, z, zc, alpha, dirn, Z=None):
-		Z = self.Z if (Z is None) else Z
-		if dirn==0:
-			if z > 0:
-				p     = 2 * ( self.Z > z ).mean()
-			else:
-				p     = 2 * ( self.Z < z ).mean()
-		elif dirn==1:
-			p         = ( self.Z > z ).mean()
-		elif dirn==-1:
-			p         = ( self.Z < z ).mean()
-		p = self.constrain_p(z, zc, alpha, dirn, p)
-		return p
-		# ### adjust the p value to alpha if (z > z*) but (p > alpha)
-		# if dirn==0:
-		# 	if ( abs(z) > zc ) and (p > alpha):
-		# 		p     = alpha
-		# elif dirn==1:
-		# 	if (z > zc) and (p > alpha):
-		# 		p     = alpha
-		# elif dirn==-1:
-		# 	if (z < -zc) and (p > alpha):
-		# 		p     = alpha
-		# ### substitute with min/max p value if applicable:
-		# self.minp     = 1.0 / self.Z.size
-		# self.maxp     = 1 - self.minp
-		# p             = min( max(p, self.minp), self.maxp )
-		# return p
 
-	# def get_p_value(self, z, zstar, alpha, dirn, Z=None):
-	# 	Z             = self.Z if Z is None else Z
-	# 	if dirn==0:
-	# 		if z > 0:
-	# 			p     = 2 * ( self.Z > z ).mean()
-	# 		else:
-	# 			p     = 2 * ( self.Z < z ).mean()
-	# 	elif dirn==1:
-	# 		p         = ( self.Z > z ).mean()
-	# 	elif dirn==-1:
-	# 		p         = ( self.Z < z ).mean()
-	# 	### adjust the p value to alpha if (z > z*) but (p > alpha)
-	# 	if dirn==0:
-	# 		if (   (z < zstar[0]) or (z > zstar[1])   ) and (p > alpha):
-	# 			p     = alpha
-	# 	elif dirn==1:
-	# 		if (z > zstar) and (p > alpha):
-	# 			p     = alpha
-	# 	elif dirn==-1:
-	# 		if (z < zstar) and (p > alpha):
-	# 			p     = alpha
-	# 	### substitute with min/max p value if applicable:
-	# 	self.minp     = 1.0 / self.Z.size
-	# 	self.maxp     = 1 - self.minp
-	# 	p             = min( max(p, self.minp), self.maxp )
-	# 	return p
-
-
-	# def get_p_value(self, z, zstar, alpha, Z=None):
-	# 	two_tailed    = isinstance(zstar, np.ndarray)
-	# 	Z             = self.Z if Z is None else Z
-	# 	if two_tailed:
-	# 		if z > 0:
-	# 			p     = 2 * ( self.Z > z ).mean()
-	# 		else:
-	# 			p     = 2 * ( self.Z < z ).mean()
-	# 	else:
-	# 		p         = ( self.Z > z ).mean()
-	# 	### set miminum and maximum p values:
-	# 	self.minp     = 1.0 / self.Z.size
-	# 	self.maxp     = 1 - self.minp
-	# 	### adjust the p value to alpha if (z > z*) but (p > alpha)
-	# 	zc0,zc1       = zstar if two_tailed else (-np.inf, zstar)
-	# 	if (z > zc1) and (p > alpha):
-	# 		p         = alpha
-	# 	elif (z < zc0) and (p > alpha):
-	# 		p         = alpha
-	# 	### substitute with min/max p value if applicable:
-	# 	p             = min( max(p, self.minp), self.maxp )
-	# 	return p
 
 
 
@@ -177,66 +67,7 @@ class _Permuter1D(_Permuter):
 	
 	def build_secondary_pdf(self, zstar, circular=False):
 		self.Z2          = np.asarray([self.metric.get_max_metric(z, zstar, circular)   for z in self.ZZ])
-	def get_clusters(self, z, zstar, two_tailed=False):
-		return self.metric.get_all_clusters(z, zstar, self.Z2, two_tailed)
 
-	def get_cluster_pvalue(self, x):
-		return (self.Z2 >= x).mean()
-
-
-	
-	# def get_p_max(self, z, zc, alpha, dirn=0):
-	# 	if dirn==0:
-	# 		zmx  = max(-z.min(), z.max())
-	# 		p    = 2 * ( self.Z > zmx ).mean()
-	# 	elif dirn==1:
-	# 		p    = ( self.Z > z.max() ).mean()
-	# 	elif dirn==-1:
-	# 		p    = ( self.Z > -z.min() ).mean()
-	# 	# print(z, zc, alpha, dirn, p)
-	# 	p        = self.constrain_p(z, zc, alpha, dirn, p)
-	# 	return p
-		
-		
-	def get_p_max(self, z, zc, alpha, dirn=0):
-		if dirn==0:
-			zmx   = max(-z.min(), z.max())
-			p     = 2 * ( self.Z > zmx ).mean()
-			if (zmx > zc) and (p>alpha):
-				p = alpha
-		elif dirn==1:
-			p     = ( self.Z > z.max() ).mean()
-			if (z.max() > zc) and (p>alpha):
-				p = alpha
-		elif dirn==-1:
-			p    = ( self.Z > -z.min() ).mean()
-			if (z.min() < -zc) and (p>alpha):
-				p = alpha
-		
-		# substitute with min/max p value if applicable:
-		self.minp     = 1.0 / self.Z.size
-		self.maxp     = 1 - self.minp
-		p             = min( max(p, self.minp), self.maxp )
-		
-		# # adjust the p value to alpha if (z > zc) but (p > alpha)
-		# if dirn==0:
-		# 	if ( abs(z) > zc ) and (p > alpha):
-		# 		p     = alpha
-		# elif dirn==1:
-		# 	if (z > zc) and (p > alpha):
-		# 		p     = alpha
-		# elif dirn==-1:
-		# 	if (z < -zc) and (p > alpha):
-		# 		p     = alpha
-		# # substitute with min/max p value if applicable:
-		# self.minp     = 1.0 / self.Z.size
-		# self.maxp     = 1 - self.minp
-		# p             = min( max(p, self.minp), self.maxp )
-		
-		# print(z, zc, alpha, dirn, p)
-		# p        = self.constrain_p(z, zc, alpha, dirn, p)
-		# if h0reject and p
-		return p
 
 	def get_test_stat_original(self):
 		z = self.get_test_stat( self.labels0 )
