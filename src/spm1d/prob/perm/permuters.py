@@ -32,18 +32,24 @@ class _Permuter(object):
 	# 	# zstar    = np.percentile(self.Z, perc, interpolation='linear', axis=0)
 	# 	zstar    = np.percentile(self.Z, perc, interpolation='midpoint', axis=0)
 	# 	return zstar
+
+	# def get_z_critical(self, alpha=0.05, dirn=0):
+	# 	if dirn==0:
+	# 		perc = [ 100*0.5*alpha, 100*(1-0.5*alpha) ]
+	# 	elif dirn==1:
+	# 		perc = 100*(1-alpha)
+	# 	elif dirn==-1:
+	# 		perc = 100*alpha
+	# 	# zstar    = np.percentile(self.Z, perc, interpolation='linear', axis=0)
+	# 	zc       = np.percentile(self.Z, perc, interpolation='midpoint', axis=0)
+	# 	if not isinstance(zc, float):
+	# 		zc   = zc.flatten()
+	# 	return zc
+
 	def get_z_critical(self, alpha=0.05, dirn=0):
-		if dirn==0:
-			perc = [ 100*0.5*alpha, 100*(1-0.5*alpha) ]
-		elif dirn==1:
-			perc = 100*(1-alpha)
-		elif dirn==-1:
-			perc = 100*alpha
-		# zstar    = np.percentile(self.Z, perc, interpolation='linear', axis=0)
+		perc     = 100*(1-0.5*alpha) if (dirn==0) else 100*(1-alpha)
 		zc       = np.percentile(self.Z, perc, interpolation='midpoint', axis=0)
-		if not isinstance(zc, float):
-			zc   = zc.flatten()
-		return zc
+		return float( zc )
 	
 
 
@@ -53,8 +59,8 @@ class _Permuter0D(_Permuter):
 	maxp = 1   #maximum possible p value
 	
 	
-	def get_p_value(self, z, zstar, alpha, dirn, Z=None):
-		Z             = self.Z if Z is None else Z
+	def get_p_value(self, z, zc, alpha, dirn, Z=None):
+		Z = self.Z if (Z is None) else Z
 		if dirn==0:
 			if z > 0:
 				p     = 2 * ( self.Z > z ).mean()
@@ -66,19 +72,46 @@ class _Permuter0D(_Permuter):
 			p         = ( self.Z < z ).mean()
 		### adjust the p value to alpha if (z > z*) but (p > alpha)
 		if dirn==0:
-			if (   (z < zstar[0]) or (z > zstar[1])   ) and (p > alpha):
+			if ( abs(z) > zc ) and (p > alpha):
 				p     = alpha
 		elif dirn==1:
-			if (z > zstar) and (p > alpha):
+			if (z > zc) and (p > alpha):
 				p     = alpha
 		elif dirn==-1:
-			if (z < zstar) and (p > alpha):
+			if (z < -zc) and (p > alpha):
 				p     = alpha
 		### substitute with min/max p value if applicable:
 		self.minp     = 1.0 / self.Z.size
 		self.maxp     = 1 - self.minp
 		p             = min( max(p, self.minp), self.maxp )
 		return p
+
+	# def get_p_value(self, z, zstar, alpha, dirn, Z=None):
+	# 	Z             = self.Z if Z is None else Z
+	# 	if dirn==0:
+	# 		if z > 0:
+	# 			p     = 2 * ( self.Z > z ).mean()
+	# 		else:
+	# 			p     = 2 * ( self.Z < z ).mean()
+	# 	elif dirn==1:
+	# 		p         = ( self.Z > z ).mean()
+	# 	elif dirn==-1:
+	# 		p         = ( self.Z < z ).mean()
+	# 	### adjust the p value to alpha if (z > z*) but (p > alpha)
+	# 	if dirn==0:
+	# 		if (   (z < zstar[0]) or (z > zstar[1])   ) and (p > alpha):
+	# 			p     = alpha
+	# 	elif dirn==1:
+	# 		if (z > zstar) and (p > alpha):
+	# 			p     = alpha
+	# 	elif dirn==-1:
+	# 		if (z < zstar) and (p > alpha):
+	# 			p     = alpha
+	# 	### substitute with min/max p value if applicable:
+	# 	self.minp     = 1.0 / self.Z.size
+	# 	self.maxp     = 1 - self.minp
+	# 	p             = min( max(p, self.minp), self.maxp )
+	# 	return p
 
 
 	# def get_p_value(self, z, zstar, alpha, Z=None):

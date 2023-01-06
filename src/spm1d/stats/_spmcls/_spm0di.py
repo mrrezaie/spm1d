@@ -47,32 +47,45 @@ class SPM0Di(_SPMiParent, SPM0D):
 	@property
 	def h0reject(self):
 		z,zc  = self.z, self.zc
-		if self.dirn is None:
-			h       = z > zc
-		elif self.dirn==0:
-			zc0,zc1 = (-zc,zc) if self.isparametric else zc
-			h       = (z < zc0) or (z > zc1)
+		if self.dirn==0:
+			h = (z < -zc) or (z > zc)
 		elif self.dirn==1:
-			h       = z > zc
+			h = z > zc
 		elif self.dirn==-1:
-			h       = z < zc
+			h = z < -zc
 		return h
 
-	@property
-	def eqvar_assumed(self):
-		return self.df_adjusted is None
+	# @property
+	# def h0reject(self):
+	# 	z,zc  = self.z, self.zc
+	# 	if self.dirn in is None:
+	# 		h       = z > zc
+	# 	# elif self.dirn==0:
+	# 	# 	zc0,zc1 = (-zc,zc) if self.isparametric else zc
+	# 	# 	h       = (z < zc0) or (z > zc1)
+	# 	elif self.dirn==0:
+	# 		h       = (z < -zc) or (z > zc)
+	# 	elif self.dirn==1:
+	# 		h       = z > zc
+	# 	elif self.dirn==-1:
+	# 		h       = z < -zc
+	# 	return h
 
-	@property
-	def nperm_actual(self):
-		return self.nperm
-
-	@property
-	def nperm_possible(self):
-		return self.permuter.nPermTotal
-	
-	@property
-	def two_tailed(self):
-		return self.dirn == 0
+	# @property
+	# def eqvar_assumed(self):
+	# 	return self.df_adjusted is None
+	#
+	# @property
+	# def nperm_actual(self):
+	# 	return self.nperm
+	#
+	# @property
+	# def nperm_possible(self):
+	# 	return self.permuter.nPermTotal
+	#
+	# @property
+	# def two_tailed(self):
+	# 	return self.dirn == 0
 
 
 

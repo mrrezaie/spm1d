@@ -131,8 +131,8 @@ class Cluster( _Cluster ):
 		self._interp_right(zfull)
 		
 	def plot(self, ax, **kwargs):
-		patch  = Polygon( self.asarray() )
-		ax.add_patch( patch, **kwargs )
+		patch  = Polygon( self.asarray(), **kwargs )
+		ax.add_patch( patch )
 
 
 

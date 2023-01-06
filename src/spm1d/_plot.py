@@ -211,17 +211,19 @@ class SPMiPlotter(SPMPlotter):
 		self._set_ylim()
 
 	def plot_cluster_patches(self, facecolor='0.8'):
-		if self.spm.nClusters > 0:
-			polyg      = []
-			for cluster in self.spm.clusters:
-				x,z    = cluster.get_patch_vertices()
-				polyg.append(  Polygon( np.array([x,z]).T )  )
-				if cluster.iswrapped:
-					x,z    = cluster._other.get_patch_vertices()
-					polyg.append(  Polygon(  np.array([x,z]).T  )  )
-			patches    = PatchCollection(polyg, edgecolors=None)
-			self.ax.add_collection(patches)
-			pyplot.setp(patches, facecolor=facecolor, edgecolor=facecolor)
+		for c in self.spm.clusters:
+			c.plot( self.ax, color=facecolor )
+		# if self.spm.nClusters > 0:
+		# 	polyg      = []
+		# 	for cluster in self.spm.clusters:
+		# 		x,z    = cluster.get_patch_vertices()
+		# 		polyg.append(  Polygon( np.array([x,z]).T )  )
+		# 		if cluster.iswrapped:
+		# 			x,z    = cluster._other.get_patch_vertices()
+		# 			polyg.append(  Polygon(  np.array([x,z]).T  )  )
+		# 	patches    = PatchCollection(polyg, edgecolors=None)
+		# 	self.ax.add_collection(patches)
+		# 	pyplot.setp(patches, facecolor=facecolor, edgecolor=facecolor)
 
 	def plot_p_values(self, size=8, offsets=None, offset_all_clusters=None):
 		n          = len(self.spm.p)
@@ -243,10 +245,12 @@ class SPMiPlotter(SPMPlotter):
 		return h
 
 	def plot_threshold(self, color='k'):
-		ax,zs,spmi = self.ax, self.spm.zstar, self.spm
+		ax,zs,spmi = self.ax, self.spm.zc, self.spm
 		if spmi.roi is None:
-			h      = [ax.axhline(zs)]
-			if spmi.two_tailed:
+			h      = []
+			if spmi.dirn in [0,1]:
+				h.append( ax.axhline(zs) )
+			if spmi.dirn in [0,-1]:
 				h.append( ax.axhline(-zs) )
 		else:
 			if spmi.roi.dtype == bool:
@@ -272,14 +276,14 @@ class SPMiPlotter(SPMPlotter):
 			y0,y1 = self.ax.get_ylim()
 			x     = x0 + 0.4*(x1-x0)
 			if lower and spmi.two_tailed:
-				y     = -spmi.zstar + 0.005*(y1-y0)
+				y     = -spmi.zc + 0.005*(y1-y0)
 			else:
-				y     = spmi.zstar + 0.005*(y1-y0)
+				y     = spmi.zc + 0.005*(y1-y0)
 		else:
 			x,y   = pos
 		if 'color' not in kwdargs.keys():
 			kwdargs.update( dict(color='r') )
-		s         = r'$\alpha$=%.2f:  $%s^*$=%.3f' %(spmi.alpha, self._get_statstr(), spmi.zstar)
+		s         = r'$\alpha$=%.2f:  $%s^*$=%.3f' %(spmi.alpha, self._get_statstr(), spmi.zc)
 		h         = self.ax.text(x, y, s, **kwdargs)
 		return h
 

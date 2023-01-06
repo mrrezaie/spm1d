@@ -24,13 +24,18 @@ class SPM1Di(_SPMiParent, SPM1D):
 	def __repr__(self):
 		s        = super().__repr__()
 		s       += 'Inference:\n'
-		s       += '   SPM.alpha     :  %.3f\n'     %self.alpha
-		s       += '   SPM.zc        :  %s\n'       %self._zcstr
-		s       += '   SPM.h0reject  :  %s\n'       %self.h0reject
-		s       += '   SPM.p_max     :  %s\n'       %p2string(self.p_max)
-		s       += '   SPM.p_set     :  %s\n'       %p2string(self.p_set, allow_none=True)
-		s       += '   SPM.p_cluster :  (%s)\n'     %plist2string(self.p_cluster)
-		s       += '   SPM.clusters  :  %s\n'       %self.clusters.asshortstr()
+		s       += '   SPM.method          :  %s\n'       %self.method
+		s       += '   SPM.isparametric    :  %s\n'       %self.isparametric
+		if not self.isparametric:
+			s   += '   SPM.nperm_possible  :  %d\n'       %self.nperm_possible
+			s   += '   SPM.nperm_actual    :  %d\n'       %self.nperm_actual
+		s       += '   SPM.alpha           :  %.3f\n'     %self.alpha
+		s       += '   SPM.zc              :  %s\n'       %self._zcstr
+		s       += '   SPM.h0reject        :  %s\n'       %self.h0reject
+		s       += '   SPM.p_max           :  %s\n'       %p2string(self.p_max)
+		s       += '   SPM.p_set           :  %s\n'       %p2string(self.p_set, allow_none=True)
+		s       += '   SPM.p_cluster       :  (%s)\n'     %plist2string(self.p_cluster)
+		s       += '   SPM.clusters        :  %s\n'       %self.clusters.asshortstr()
 		return s
 	
 	@property
@@ -47,6 +52,10 @@ class SPM1Di(_SPMiParent, SPM1D):
 		return h
 
 	@property
+	def nClusters(self):
+		return len( self.clusters )
+	
+	@property
 	def p(self):
 		msg = 'Use of "p" is deprecated. Use "p_cluster" to avoid this warning.'
 		warnings.warn( msg , SPM1DDeprecationWarning , stacklevel=2 )
@@ -57,6 +66,7 @@ class SPM1Di(_SPMiParent, SPM1D):
 		return [c.p for c in self.clusters]
 	
 	def plot(self, **kwdargs):
+		from ... plot import plot_spmi
 		return plot_spmi(self, **kwdargs)
 
 	def plot_p_values(self, **kwdargs):

@@ -94,6 +94,22 @@ class _SPMiParent(object):
 		return self.method in ['param', 'rft', 'fdr', 'bonferroni', 'uncorrected']
 
 	@property
+	def eqvar_assumed(self):
+		return self.df_adjusted is None
+
+	@property
+	def nperm_actual(self):
+		return self.nperm
+
+	@property
+	def nperm_possible(self):
+		return self.permuter.nPermTotal
+	
+	@property
+	def two_tailed(self):
+		return self.dirn == 0
+
+	@property
 	def zstar(self):   # legacy support ("zc" was "zstar" in spm1d versions < 0.5)
 		msg = 'Use of "zstar" is deprecated. Use "zc" to avoid this warning.'
 		warnings.warn( msg , SPM1DDeprecationWarning , stacklevel=2 )
