@@ -65,8 +65,20 @@ class _Permuter1D(_Permuter):
 				roi     = np.dstack( [roi]*self.I )
 			self.Y      = np.ma.masked_array( self.Y, np.logical_not(roi) )
 	
+	# def build_secondary_pdf(self, zstar, circular=False):
+	# 	self.Z2          = np.asarray([self.metric.get_max_metric(z, zstar, circular)   for z in self.ZZ])
+
 	def build_secondary_pdf(self, zstar, circular=False):
-		self.Z2          = np.asarray([self.metric.get_max_metric(z, zstar, circular)   for z in self.ZZ])
+		Z2,C2 = [],[]
+		for z in self.ZZ:
+			x  = self.metric.get_all_cluster_metrics(z, zstar, circular)
+			n  = len(x)
+			mx = 0 if (n==0) else min(x)
+			C2.append( n )
+			Z2.append( mx )
+		self.Z2  = np.asarray( Z2 )
+		self.C2  = np.asarray( C2 )
+
 
 
 	def get_test_stat_original(self):

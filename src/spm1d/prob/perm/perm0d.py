@@ -24,7 +24,7 @@ class ProbabilityCalculator0D(object):
 	def get_p_value(self, z, Z=None, use_both_tails=True):
 		Z      = self.permuter.Z if (Z is None) else Z
 		dirn   = self.dirn
-		# if use_both_tails:   this can only be used for symmetrical distributions
+		# if use_both_tails and issymmetrical:   this can only be used for symmetrical distributions
 		# 	p0     = ( Z >  abs(z) ).mean()
 		# 	p1     = ( Z < -abs(z) ).mean()
 		# 	p2     = p0 + p1
@@ -35,7 +35,6 @@ class ProbabilityCalculator0D(object):
 		# 		p  = p if z>0 else (1-p)
 		# 	elif dirn==-1:
 		# 		p  = p if z<0 else (1-p)
-				
 		if dirn==0:
 			if use_both_tails: # using both tails tends to produce numerically more stable results
 				p0     = ( Z >  abs(z) ).mean()
@@ -59,7 +58,7 @@ class ProbabilityCalculator0D(object):
 		if dirn==0:
 			perc0 = 100*(0.5*a)
 			perc1 = 100*(1-0.5*a)
-			z0,z1 = np.percentile(a, [perc0,perc1], interpolation='midpoint')
+			z0,z1 = np.percentile(Z, [perc0,perc1], interpolation='midpoint')
 			zc    = 0.5 * (-z0 + z1) # must be a symmetrical distribution about zero for two-tailed inference
 		else:
 			perc  = 100*(1-0.5*a) if (dirn==0) else 100*(1-a)
@@ -72,12 +71,7 @@ class ProbabilityCalculator0D(object):
 def inference0d(z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000):
 	permuter = get_permuter(testname, 0)( *args )
 	permuter.build_pdf(  nperm  )
-
-	# permuter.set_alpha( alpha )
-	# permuter.set_dirn( dirn )
 	probcalc = ProbabilityCalculator0D(permuter, alpha, dirn)
 	zc       = probcalc.get_z_critical()
 	p        = probcalc.get_p_value(z, use_both_tails=True)
-	# zc       = permuter.get_z_critical(alpha, dirn)
-	# p        = permuter.get_p_value(z, zc, alpha, dirn)
 	return PermResults0D(zc, p, permuter, nperm)
