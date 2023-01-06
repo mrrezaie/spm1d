@@ -66,7 +66,7 @@ def isf_sf_t_1d(z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000, ci
 	
 	# clusters = self._cluster_inference(clusters, two_tailed)
 	# clusters = None
-	p_max    = permuter.get_p_max( z, dirn=dirn )
+	p_max    = permuter.get_p_max( z, zc, alpha, dirn=dirn )
 	p_set    = None
 	results  = PermResults1D(zc, clusters, p_max, p_set, permuter, nperm)
 	return results

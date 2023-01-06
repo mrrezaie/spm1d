@@ -52,6 +52,30 @@ class SPM1Di(_SPMiParent, SPM1D):
 		return h
 
 	@property
+	def h0reject(self):
+		z,zc  = self.z, self.zc
+		if self.dirn==0:
+			h = (z.min() < -zc) or (z.max() > zc)
+		elif self.dirn==1:
+			h = z.max() > zc
+		elif self.dirn==-1:
+			h = z.min() < -zc
+		return h
+
+	# @property
+	# def h0reject(self):
+	# 	zc       = self.zc
+	# 	if (self.dirn is None) or (self.dirn==1):
+	# 		h       = self.z.max() > zc
+	# 	elif self.dirn==0:
+	# 		zc0,zc1 = (-zc,zc) if self.isparametric else zc
+	# 		h       = (self.z.min() < zc0) or (self.z.max() > zc1)
+	# 	elif self.dirn==-1:
+	# 		zc0     = -zc if self.isparametric else zc[0]
+	# 		h       = self.z.min() < zc0
+	# 	return h
+
+	@property
 	def nClusters(self):
 		return len( self.clusters )
 	

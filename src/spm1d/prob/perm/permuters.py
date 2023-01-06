@@ -20,6 +20,24 @@ class _Permuter(object):
 		self.calc    = self.CalculatorClass(*args)
 	def build_pdf(self, iterations=-1):
 		self.check_nperm( iterations )
+	def constrain_p(self, z, zc, alpha, dirn, p):
+		# adjust the p value to alpha if (z > zc) but (p > alpha)
+		if dirn==0:
+			if ( abs(z) > zc ) and (p > alpha):
+				p     = alpha
+		elif dirn==1:
+			if (z > zc) and (p > alpha):
+				p     = alpha
+		elif dirn==-1:
+			if (z < -zc) and (p > alpha):
+				p     = alpha
+		# substitute with min/max p value if applicable:
+		self.minp     = 1.0 / self.Z.size
+		self.maxp     = 1 - self.minp
+		p             = min( max(p, self.minp), self.maxp )
+		return p
+		
+		
 	def check_nperm(self, n):
 		if n > self.nPermTotal:
 			raise ValueError( f'Number of specified permutations ({n}) exceeds the total number of possible permutations ({self.nPermTotal}).')
@@ -70,21 +88,23 @@ class _Permuter0D(_Permuter):
 			p         = ( self.Z > z ).mean()
 		elif dirn==-1:
 			p         = ( self.Z < z ).mean()
-		### adjust the p value to alpha if (z > z*) but (p > alpha)
-		if dirn==0:
-			if ( abs(z) > zc ) and (p > alpha):
-				p     = alpha
-		elif dirn==1:
-			if (z > zc) and (p > alpha):
-				p     = alpha
-		elif dirn==-1:
-			if (z < -zc) and (p > alpha):
-				p     = alpha
-		### substitute with min/max p value if applicable:
-		self.minp     = 1.0 / self.Z.size
-		self.maxp     = 1 - self.minp
-		p             = min( max(p, self.minp), self.maxp )
+		p = self.constrain_p(z, zc, alpha, dirn, p)
 		return p
+		# ### adjust the p value to alpha if (z > z*) but (p > alpha)
+		# if dirn==0:
+		# 	if ( abs(z) > zc ) and (p > alpha):
+		# 		p     = alpha
+		# elif dirn==1:
+		# 	if (z > zc) and (p > alpha):
+		# 		p     = alpha
+		# elif dirn==-1:
+		# 	if (z < -zc) and (p > alpha):
+		# 		p     = alpha
+		# ### substitute with min/max p value if applicable:
+		# self.minp     = 1.0 / self.Z.size
+		# self.maxp     = 1 - self.minp
+		# p             = min( max(p, self.minp), self.maxp )
+		# return p
 
 	# def get_p_value(self, z, zstar, alpha, dirn, Z=None):
 	# 	Z             = self.Z if Z is None else Z
@@ -164,9 +184,59 @@ class _Permuter1D(_Permuter):
 		return (self.Z2 >= x).mean()
 
 
-	def get_p_max(self, z, dirn=0):
-		return (self.ZZ >= z.max()).mean()
+	
+	# def get_p_max(self, z, zc, alpha, dirn=0):
+	# 	if dirn==0:
+	# 		zmx  = max(-z.min(), z.max())
+	# 		p    = 2 * ( self.Z > zmx ).mean()
+	# 	elif dirn==1:
+	# 		p    = ( self.Z > z.max() ).mean()
+	# 	elif dirn==-1:
+	# 		p    = ( self.Z > -z.min() ).mean()
+	# 	# print(z, zc, alpha, dirn, p)
+	# 	p        = self.constrain_p(z, zc, alpha, dirn, p)
+	# 	return p
 		
+		
+	def get_p_max(self, z, zc, alpha, dirn=0):
+		if dirn==0:
+			zmx   = max(-z.min(), z.max())
+			p     = 2 * ( self.Z > zmx ).mean()
+			if (zmx > zc) and (p>alpha):
+				p = alpha
+		elif dirn==1:
+			p     = ( self.Z > z.max() ).mean()
+			if (z.max() > zc) and (p>alpha):
+				p = alpha
+		elif dirn==-1:
+			p    = ( self.Z > -z.min() ).mean()
+			if (z.min() < -zc) and (p>alpha):
+				p = alpha
+		
+		# substitute with min/max p value if applicable:
+		self.minp     = 1.0 / self.Z.size
+		self.maxp     = 1 - self.minp
+		p             = min( max(p, self.minp), self.maxp )
+		
+		# # adjust the p value to alpha if (z > zc) but (p > alpha)
+		# if dirn==0:
+		# 	if ( abs(z) > zc ) and (p > alpha):
+		# 		p     = alpha
+		# elif dirn==1:
+		# 	if (z > zc) and (p > alpha):
+		# 		p     = alpha
+		# elif dirn==-1:
+		# 	if (z < -zc) and (p > alpha):
+		# 		p     = alpha
+		# # substitute with min/max p value if applicable:
+		# self.minp     = 1.0 / self.Z.size
+		# self.maxp     = 1 - self.minp
+		# p             = min( max(p, self.minp), self.maxp )
+		
+		# print(z, zc, alpha, dirn, p)
+		# p        = self.constrain_p(z, zc, alpha, dirn, p)
+		# if h0reject and p
+		return p
 
 	def get_test_stat_original(self):
 		z = self.get_test_stat( self.labels0 )
