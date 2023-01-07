@@ -89,8 +89,8 @@ def regress(Y, x, roi=None):
 		- statistical inferences are based on *t*, not on *r*
 	'''
 	_y,_x          = Y, x
-	Y              = _datachecks.asmatrix(Y, dtype=float)
-	_datachecks.check('regress', Y, x)
+	# Y              = _datachecks.asmatrix(Y, dtype=float)
+	# _datachecks.check('regress', Y, x)
 	J              = Y.shape[0]
 	X              = np.ones((J,2))
 	X[:,0]         = x
