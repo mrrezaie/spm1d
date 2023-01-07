@@ -18,11 +18,13 @@ from ... cfg import SPM1DDeprecationWarning
 
 class _SPMParent(object):
 	'''Parent class SPM classes.'''
-	dim           = 0
-	isinference   = False
-	isinlist      = False
-	ismultigroup  = False
-	testname      = None
+	dim            = 0
+	isinference    = False
+	isinlist       = False
+	ismultigroup   = False
+	testname       = None
+	effect_label   = None    # only for ANOVA-like designs
+	effect_label_s = None    # only for ANOVA-like designs
 	
 	@property
 	def _class_str(self):
@@ -46,15 +48,22 @@ class _SPMParent(object):
 		self.ss   = tuple( np.asarray(ss, dtype=float) )
 		self.ms   = tuple( np.asarray(ms, dtype=float) )
 	
-	def _set_effect_label(self, s):
-		self.effect_label   = s
-		self.effect_label_s = s.split(' ')[1]
 	
 	def _set_data(self, *args):
 		self._args = args
 	
 	def _set_testname(self, name):
 		self.testname = str( name )
+
+	def set_effect_label(self, s):
+		if self.STAT=='F':
+			self.effect_label   = s
+			self.effect_label_s = s.split(' ')[1]
+
+	# def set_effect_label(self, label=""):
+	# 	if self.STAT=='F':
+	# 		self.effect        = str(label)
+	# 		self.effect_short  = self.effect.split(' ')[1]
 
 
 # class _SPM0DParent(_SPMParent):
@@ -115,18 +124,23 @@ class _SPMiParent(object):
 		warnings.warn( msg , SPM1DDeprecationWarning , stacklevel=2 )
 		return self.zc
 
-
-
-class _SPMFParent(object):
-	'''Additional attrubutes and methods specific to SPM{F} objects.'''
-	effect        = 'Main A'
-	effect_short  = 'A'
-
+		
 	# def _repr_summ(self):  # abstract method to be implemented by all subclasses
 	# 	pass
 
-	def set_effect_label(self, label=""):
-		self.effect        = str(label)
-		self.effect_short  = self.effect.split(' ')[1]
+
+
+
+# class _SPMFParent(object):
+# 	'''Additional attrubutes and methods specific to SPM{F} objects.'''
+# 	effect        = 'Main A'
+# 	effect_short  = 'A'
+#
+# 	# def _repr_summ(self):  # abstract method to be implemented by all subclasses
+# 	# 	pass
+#
+# 	def set_effect_label(self, label=""):
+# 		self.effect        = str(label)
+# 		self.effect_short  = self.effect.split(' ')[1]
 
 

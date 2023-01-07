@@ -13,7 +13,7 @@ This module contains class definitions for inference SPMs.
 import warnings
 from . _base import _SPMiParent #, _SPMF
 from . _spm0d import SPM0D
-from ... util import dflist2str
+from ... util import dflist2str, p2string
 
 
 
@@ -28,9 +28,9 @@ class SPM0Di(_SPMiParent, SPM0D):
 		s         += '   SPM.isparametric      :  %s\n'      %self.isparametric
 		if self.ismultigroup:
 			a    = self.eqvar_assumed
-			s     += '   SPM.eqvar_assumed     :  %s\n' %a
+			s     += '   SPM.eqvar_assumed     :  %s\n'      %a
 			if not a:
-				s += '   SPM.df_adjusted       :  %s\n' %dflist2str(self.df_adjusted)
+				s += '   SPM.df_adjusted       :  %s\n'      %dflist2str(self.df_adjusted)
 			
 		if not self.isparametric:
 			s     += '   SPM.nperm_possible    :  %d\n'      %self.nperm_possible
@@ -49,11 +49,15 @@ class SPM0Di(_SPMiParent, SPM0D):
 		z,zc  = self.z, self.zc
 		if self.dirn==0:
 			h = (z < -zc) or (z > zc)
-		elif self.dirn==1:
+		elif self.dirn in (None,1):
 			h = z > zc
 		elif self.dirn==-1:
 			h = z < -zc
 		return h
+
+	def _repr_summ(self):
+		return '{:<5} F = {:<8} df = {:<9} p = {}\n'.format(self.effect_label_s,  '%.3f'%self.z, dflist2str(self.df), p2string(self.p,fmt='%.5f'))
+	
 
 	# @property
 	# def h0reject(self):

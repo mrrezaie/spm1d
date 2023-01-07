@@ -20,6 +20,7 @@ class SPM1D(_SPMParent):
 
 	def __init__(self, STAT, z, df, beta=None, residuals=None, sigma2=None, X=None, fwhm=None, resels=None, roi=None):
 		self.STAT           = STAT             # test statistic ("T" or "F")
+		self.testname       = None             # hypothesis test name (set using set_testname method)
 		self.X              = X                # design matrix
 		self.beta           = beta             # fitted parameters
 		self.residuals      = residuals        # residuals (same size as original data)

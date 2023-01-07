@@ -28,13 +28,16 @@ class SPM0D(_SPMParent):
 
 	def __init__(self, STAT, z, df, beta=None, residuals=None, sigma2=None, X=None):
 		self.STAT           = STAT             # test statistic type ("T" or "F")
-		self.z              = np.float64(z)    # test statistic value
-		self.df             = df               # degrees of freedom
+		self.testname       = None             # hypothesis test name (set using set_testname method)
+		self.X              = X                # design matrix
 		self.beta           = beta             # fitted parameters
 		self.residuals      = residuals        # model residuals
 		self.sigma2         = sigma2           # variance
-		self.testname       = None             # hypothesis test name (set using set_testname method)
-		self.X              = X                # design matrix
+		self.z              = np.float64(z)    # test statistic value
+		self.df             = df               # degrees of freedom
+		if self.STAT=='F':
+			self.effect_label       = 'Main A'
+			self.effect_label_s     = 'A'
 
 
 	def __repr__(self):
@@ -48,7 +51,7 @@ class SPM0D(_SPMParent):
 		s       += '   SPM.df               :  %s\n'        %dflist2str(self.df)
 		if self.isregress:
 			s   += '   SPM.r                :  %.5f\n'      %self.r
-		s       += '\n'
+		# s       += '\n'
 		return s
 
 
@@ -70,13 +73,10 @@ class SPM0D(_SPMParent):
 		return spmi
 		
 
-	def _inference_param(self, alpha, dirn=0, equal_var=False):
-		
-		df  = self.df
-		dfa = None
+	def _adjust_df(self):
 		
 		### heteroscedacity correction:
-		if not equal_var:
+		if self.testname == 'ttest2':
 			from .. import _reml
 			yA,yB            = self._args
 			y                = np.hstack([yA,yB]) if (self.dim==0) else np.vstack([yA,yB])
@@ -90,8 +90,35 @@ class SPM0D(_SPMParent):
 			df               = _reml.estimate_df_T(y, self.X, self.residuals, Q)
 			dfa              = (1, df)
 		
+		elif self.testname == 'anova1':
+			warnings.warn('\nWARNING:  Non-sphericity corrections for one-way ANOVA are currently approximate and have not been verified.\n', UserWarning, stacklevel=2)
+			Y,X,r   = model.Y, model.X, model.eij
+			Q,C     = design.A.get_Q(), design.contrasts.C.T
+			spm.df  = _reml.estimate_df_anova1(Y, X, r, Q, C)
+	
+	def _inference_param(self, alpha, dirn=0, equal_var=False):
+		dfa = self.df
+		# if not equal_var:
+		# 	dfa = self._adjust_df()
 		
-		results  = prob.param(self.STAT, self.z, df, alpha=alpha, dirn=dirn)
+		
+		# ### heteroscedacity correction:
+		# if not equal_var:
+		# 	from .. import _reml
+		# 	yA,yB            = self._args
+		# 	y                = np.hstack([yA,yB]) if (self.dim==0) else np.vstack([yA,yB])
+		# 	JA,JB            = yA.shape[0], yB.shape[0]
+		# 	J                = JA + JB
+		# 	q0,q1            = np.eye(JA), np.eye(JB)
+		# 	Q0,Q1            = np.matrix(np.zeros((J,J))), np.matrix(np.zeros((J,J)))
+		# 	Q0[:JA,:JA]      = q0
+		# 	Q1[JA:,JA:]      = q1
+		# 	Q                = [Q0, Q1]
+		# 	df               = _reml.estimate_df_T(y, self.X, self.residuals, Q)
+		# 	dfa              = (1, df)
+		
+		
+		results  = prob.param(self.STAT, self.z, dfa, alpha=alpha, dirn=dirn)
 		return self._build_spmi(results, alpha, dirn=dirn, df_adjusted=dfa)
 	
 
@@ -102,6 +129,10 @@ class SPM0D(_SPMParent):
 		
 		results = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dirn=dirn)
 		return self._build_spmi(results, alpha, dirn=dirn)
+	
+	
+	def _repr_summ(self):
+		return '{:<5} F = {:<8} df = {}\n'.format(self.effect_label_s,  '%.3f'%self.z, dflist2str(self.df))
 	
 	
 	def inference(self, alpha, method='param', **kwargs):

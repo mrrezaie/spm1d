@@ -3,7 +3,7 @@
 
 from . _spm0d import SPM0D
 from . _spm1d import SPM1D
-
+from . _spmlist import SPMFList
 
 
 

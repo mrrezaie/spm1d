@@ -20,20 +20,29 @@ class SPMFList(list):
 	name          = 'SPM{F} list'
 	design        = ''
 	dim           = 0
-	nEffects      = 1
+	neffects      = 1
 	isparametric  = True
 	effect_labels = None
 	
-	def __init__(self, FF, nFactors=2):
-		super(SPMFList, self).__init__(FF)
-		self.nEffects  = len(self)
-		self.nFactors  = nFactors
-		self.dim       = self[0].dim
-		if self.dim==0:
-			self.name += ' (0D)'
+	def __init__(self, FF, nfactors=2):
+		super().__init__(FF)
+		self.neffects  = len(self)
+		self.nfactors  = nfactors
+		# self.dim       = self[0].dim
+		# if self.dim==0:
+		# 	self.name += ' (0D)'
+
+
+	# def __init__(self, FF, nFactors=2):
+	# 	super(SPMFList, self).__init__(FF)
+	# 	self.nEffects  = len(self)
+	# 	self.nFactors  = nFactors
+	# 	self.dim       = self[0].dim
+	# 	if self.dim==0:
+	# 		self.name += ' (0D)'
 	def __getitem__(self, i):
 		if isinstance(i, int):
-			return super(SPMFList, self).__getitem__(i)
+			return super().__getitem__(i)
 		else:
 			return self[ self.effect_labels.index(i) ]
 	def __repr__(self):
@@ -42,7 +51,7 @@ class SPMFList(list):
 	def _repr_get_header(self):
 		s        = '%s\n'  %self.name
 		s       += '   design    :  %s\n'      %self.design
-		s       += '   nEffects  :  %d\n'      %self.nEffects
+		s       += '   neffects  :  %d\n'      %self.neffects
 		return s
 	def _repr_summ(self):
 		s         = self._repr_get_header()
@@ -68,7 +77,7 @@ class SPMFList(list):
 		FFi               = SPMFiList(  [f.inference(alpha=alpha, **kwargs)   for f in self]  )
 		FFi.set_design_label( self.design )
 		FFi.effect_labels = self.effect_labels
-		FFi.nFactors      = self.nFactors
+		FFi.nfactors      = self.nfactors
 		return FFi
 	def plot(self, plot_threshold_label=True, plot_p_values=True, autoset_ylim=True):
 		_plot_F_list(self, plot_threshold_label, plot_p_values, autoset_ylim)
@@ -80,7 +89,7 @@ class SPMFList(list):
 		self.design  = str(label)
 	def set_effect_labels(self, labels):
 		[F.set_effect_label(label)  for F,label in zip(self, labels)]
-		self.effect_labels   = [F.effect_short   for F in self]
+		self.effect_labels   = [F.effect_label_s   for F in self]
 
 
 

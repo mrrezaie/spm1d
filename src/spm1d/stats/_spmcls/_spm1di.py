@@ -41,7 +41,7 @@ class SPM1Di(_SPMiParent, SPM1D):
 	@property
 	def h0reject(self):
 		zc       = self.zc
-		if (self.dirn is None) or (self.dirn==1):
+		if self.dirn in (None,1):
 			h       = self.z.max() > zc
 		elif self.dirn==0:
 			zc0,zc1 = (-zc,zc) if self.isparametric else zc

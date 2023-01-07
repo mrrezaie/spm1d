@@ -11,11 +11,11 @@ import numpy as np
 from . import designs,models
 from .. import _datachecks, _reml
 # from .. _spmcls import _spm0d, _spm1d, _spmlist
-from .. _spmcls import SPM0D, SPM1D
+from .. _spmcls import SPM0D, SPM1D, SPMFList
 
 
 
-def aov(model, contrasts, f_terms, nFactors=1):
+def aov(model, contrasts, f_terms, nfactors=1):
 	'''
 	This code is modified from statsmodels.stats.anova_lm
 	'''
@@ -37,21 +37,25 @@ def aov(model, contrasts, f_terms, nFactors=1):
 			ms1     = ss1 / df1
 		f           = ms0 / ms1
 		
-	# return f
-	# 	if model.dim == 0:
-	# 		F.append( _spm.SPM0D_F(f, (df0,df1), (ss0,ss1), (ms0,ms1), model.eij, model.QT) )
-	# 	else:
-	# 		if model.roi is not None:
-	# 			f   = np.ma.masked_array(f, np.logical_not(model.roi))
-	# 		F.append( _spm.SPM_F(f, (df0,df1), model.fwhm, model.resels, model.X, model._beta, model.eij, model.QT, roi=model.roi) )
-	# return _spmlist.SPMFList( F, nFactors=nFactors )
+		if model.dim == 0:
+			beta      = np.asarray( model._beta )
+			residuals = np.asarray( model.eij )
+			sigma2    = model._MSE
+			X         = model.X
+			spm       = SPM0D('F', f, (df0,df1), beta=beta, residuals=residuals, sigma2=sigma2, X=X)
+			spm._set_anova_attrs( ss=(ss0,ss1) , ms=(ms0,ms1) )
+			
+			F.append( spm )
+			
+			# F.append( _spm.SPM0D_F(f, (df0,df1), (ss0,ss1), (ms0,ms1), model.eij, model.QT) )
+		else:
+			pass
+			# if model.roi is not None:
+			# 	f   = np.ma.masked_array(f, np.logical_not(model.roi))
+			# F.append( _spm.SPM_F(f, (df0,df1), model.fwhm, model.resels, model.X, model._beta, model.eij, model.QT, roi=model.roi) )
 	
-	beta      = np.asarray( model._beta )
-	residuals = np.asarray( model.eij )
-	sigma2    = None
-	spm       = SPM0D('F', f, (df0,df1), beta=beta, residuals=residuals, sigma2=sigma2)
-	spm._set_anova_attrs( ss=(ss0,ss1) , ms=(ms0,ms1) )
-	return spm
+	return SPMFList( F, nfactors=nfactors )
+	
 
 
 
@@ -90,16 +94,18 @@ def anova1(Y, A=None, equal_var=False, roi=None):
 	design  = designs.ANOVA1(A)
 	model   = models.LinearModel(Y, design.X, roi=roi)
 	model.fit()
-	spm     = aov(model, design.contrasts, design.f_terms, nFactors=1)  #[0]
-	if not equal_var:
-		warnings.warn('\nWARNING:  Non-sphericity corrections for one-way ANOVA are currently approximate and have not been verified.\n', UserWarning, stacklevel=2)
-		Y,X,r   = model.Y, model.X, model.eij
-		Q,C     = design.A.get_Q(), design.contrasts.C.T
-		spm.df  = _reml.estimate_df_anova1(Y, X, r, Q, C)
+	spm     = aov(model, design.contrasts, design.f_terms, nfactors=1)[0]
+	# if not equal_var:
+	# 	warnings.warn('\nWARNING:  Non-sphericity corrections for one-way ANOVA are currently approximate and have not been verified.\n', UserWarning, stacklevel=2)
+	# 	Y,X,r   = model.Y, model.X, model.eij
+	# 	Q,C     = design.A.get_Q(), design.contrasts.C.T
+	# 	spm.df  = _reml.estimate_df_anova1(Y, X, r, Q, C)
 
 	spm._set_testname( 'anova1' )
 	spm._set_data( Y, A )
-	spm._set_effect_label( design.effect_labels[0] )
+	spm.set_effect_label( design.effect_labels[0] )
+	spm._design = design
+	spm._model  = model
 	return spm
 
 
@@ -135,8 +141,17 @@ def anova1rm(Y, A, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 		model.fit( approx_residuals=design.contrasts.C[:3] )
 	else:
 		model.fit( )
-	F       = aov(model, design.contrasts, design.f_terms, nFactors=1)[0]
-	return F
+	# F       = aov(model, design.contrasts, design.f_terms, nFactors=1)[0]
+	# return F
+	
+	spm     = aov(model, design.contrasts, design.f_terms, nfactors=1)[0]
+	spm._set_testname( 'anova1rm' )
+	spm._set_data( Y, A, SUBJ )
+	spm.set_effect_label( design.effect_labels[0] )
+	spm._design = design
+	spm._model  = model
+	
+	return spm
 
 
 
@@ -173,7 +188,7 @@ def anova2(Y, A, B, equal_var=True, roi=None):
 	design  = designs.ANOVA2(A, B)
 	model   = models.LinearModel(Y, design.X, roi=roi)
 	model.fit()
-	F       = aov(model, design.contrasts, design.f_terms, nFactors=2)
+	F       = aov(model, design.contrasts, design.f_terms, nfactors=2)
 	_set_labels( F, design )
 
 	# if not equal_var:
