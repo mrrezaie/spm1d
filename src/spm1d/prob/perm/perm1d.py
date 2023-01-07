@@ -1,7 +1,7 @@
 
 import numpy as np
 from . permuters import get_permuter
-from ... geom import assemble_clusters
+from ... geom import assemble_clusters, ClusterList
 
 
 class PermResults1D(object):
@@ -91,20 +91,37 @@ class ProbabilityCalculator1D(object):
 		return p
 
 
+	def setlevel_inference(self, clusters):
+		'''
+		Set-level inference
+		'''
+		z,dirn = self.z, self.dirn
+		Z2,C2  = self.permuter.Z2, self.permuter.C2
+		c      = len( clusters )
+		k      = min([self.permuter.metric.get_single_cluster_metric( c )  for c in clusters])
+		p      = ((C2>=c) & (Z2>k)).mean()
+		p      = self.clamp_p_cluster(p)
+		return p
+
+
 def inference1d(z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000, circular=False, cluster_metric='MaxClusterExtent'):
 	permuter  = get_permuter(testname, 1)( *args )
 	# build primary PDF:
 	permuter.build_pdf(  nperm  )
 	probcalc = ProbabilityCalculator1D(permuter, z, alpha, dirn)
 	zc       = probcalc.get_z_critical()
-	# build secondary PDF:
-	permuter.set_metric( cluster_metric )
-	permuter.build_secondary_pdf( zc, circular )
-	# cluster-level inference:
-	clusters = assemble_clusters(z, zc, dirn=dirn, circular=circular)
-	clusters = probcalc.cluster_inference( clusters )
-	# set-level inference:
-	p_set    = None   
+	if probcalc.h0rejected:
+		# build secondary PDF:
+		permuter.set_metric( cluster_metric )
+		permuter.build_secondary_pdf( zc, circular )
+		# cluster-level inference:
+		clusters = assemble_clusters(z, zc, dirn=dirn, circular=circular)
+		clusters = probcalc.cluster_inference( clusters )
+		# set-level inference:
+		p_set    = probcalc.setlevel_inference( clusters )
+	else:
+		clusters = ClusterList( [] )
+		p_set    = None
 	# maximum inference:
 	p_max    = probcalc.get_p_max()
 	results  = PermResults1D(zc, clusters, p_max, p_set, permuter, nperm)
