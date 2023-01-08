@@ -149,15 +149,13 @@ class SPMFList(list):
 
 
 		if method in ['param', 'rft']:
-			FFi               = SPMFiList(  [f.inference(alpha=alpha, **kwargs)   for f in self]  )
+			FFi     = SPMFiList(  [f.inference(alpha=alpha, **kwargs)   for f in self]  )
 			
 		elif method=='perm':
 			z       = np.array([f.z for f in self])
 			nperm   = kwargs['nperm']
 			results = prob.perm(self.STAT, z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dim=self.dim)
 			FFi     = SPMFiList(   [f._build_spmi(res, alpha, dirn=1, df_adjusted=dfa)  for f,res in zip(self, results)]   )
-			
-			# FFi     = self._build_spmis_perm(results, alpha, df_adjusted=dfa)
 
 		FFi.set_design_label( self.design )
 		FFi.effect_labels = self.effect_labels

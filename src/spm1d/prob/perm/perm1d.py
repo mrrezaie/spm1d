@@ -2,6 +2,7 @@
 import numpy as np
 from . permuters import get_permuter
 from ... geom import assemble_clusters, ClusterList
+from . probcalc1d import ProbCalc1DSingleStat, ProbCalc1DMultiStat
 
 
 class PermResults1D(object):
@@ -45,7 +46,7 @@ def inference1d(z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000, ci
 
 
 
-def inference1d_multi_f(z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000, circular=False, cluster_metric='MaxClusterExtent'):
+def inference1d_multi(z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000, circular=False, cluster_metric='MaxClusterExtent'):
 	permuter  = get_permuter(testname, 1)( *args )
 	# build primary PDF:
 	permuter.build_pdf(  nperm  )

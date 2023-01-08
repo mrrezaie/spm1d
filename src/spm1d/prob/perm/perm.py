@@ -1,8 +1,8 @@
 
 from math import ceil
 import numpy as np
-from . perm0d import inference0d, inference0d_multi_f
-from . perm1d import inference1d, inference1d_multi_f
+from . perm0d import inference0d, inference0d_multi
+from . perm1d import inference1d, inference1d_multi
 
 
 
@@ -14,16 +14,16 @@ def perm(stat, z, alpha=0.05, testname=None, args=None, nperm=10000, dim=0, **kw
 	
 	if dim==0:
 		if isinstance(z, (int,float)):
-			results = inference0d(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
+			results = inference0d(stat, z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
 		else:
-			results = inference0d_multi_f(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
+			results = inference0d_multi(stat, z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
 	
 	elif dim==1:
 		
 		if z.ndim==1:
-			results = inference1d(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
+			results = inference1d(stat, z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
 		else:
-			results = inference1d_multi_f(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
+			results = inference1d_multi(stat, z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
 
 	return results
 	
