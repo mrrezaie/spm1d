@@ -3,7 +3,8 @@
 
 
 import numpy as np
-from . import _mvbase, _spm
+from . import _mvbase#, _spm
+from . _spmcls import SPM0D, SPM1D
 
 eps        = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero errors
 
@@ -49,7 +50,8 @@ def hotellings(Y, mu=None, roi=None):
 		J,I           = Y.shape
 		m,p           = float(J)-1, float(I)
 		v1,v2         = p, m
-		return _spm.SPM0D_T2(T2, (v1, v2))
+		spm           =  SPM0D('T2', T2, (v1, v2), beta=None, residuals=None, sigma2=None, X=None)
+		# return _spm.SPM0D_T2(T2, (v1, v2))
 	else:
 		if mu is not None:
 			Y         = Y - mu
@@ -62,6 +64,9 @@ def hotellings(Y, mu=None, roi=None):
 		m,p           = float(nResponses)-1, float(nVectDim)
 		v1,v2         = p, m
 		return _spm.SPM_T2(T2, (v1, v2), W, rCounts, None, None, R, roi=roi)
+	spm._set_testname( 'hotellings' )
+	spm._set_data( Y, mu )
+	return spm
 	
 
 
@@ -108,7 +113,8 @@ def hotellings2(YA, YB, equal_var=True, roi=None):
 		JB,IB         = YB.shape
 		# v1,v2         = float(IA), float(JA+JB-IA-1)  ###incorrect;  these are F df, not T2 df
 		v1,v2         = float(IA), float(JA+JB-2)
-		return _spm.SPM0D_T2(T2, (v1, v2))
+		# return _spm.SPM0D_T2(T2, (v1, v2))
+		spm           = SPM0D('T2', T2, (v1, v2), beta=None, residuals=None, sigma2=None, X=None)
 	else:
 		JA,QA,IA      = YA.shape
 		JB,QB,IB      = YB.shape
@@ -120,5 +126,8 @@ def hotellings2(YA, YB, equal_var=True, roi=None):
 		# v1,v2         = float(IA), float(JA+JB-IA-1)  ###incorrect;  these are F df, not T2 df
 		v1,v2         = float(IA), float(JA+JB-2)
 		return _spm.SPM_T2(T2, (v1, v2), W, rCounts, None, None, R, roi=roi)
-
+	spm._set_testname( 'hotellings2' )
+	spm._set_data( YA, YB )
+	return spm
+	
 

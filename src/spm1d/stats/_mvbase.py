@@ -4,7 +4,7 @@
 from math import sqrt,log
 import numpy as np
 from scipy import ndimage
-from . import _spm
+# from . import _spm
 from .. geom import estimate_fwhm, resel_counts
 
 eps        = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero errors

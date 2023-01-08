@@ -32,15 +32,18 @@ def isf_sf_t(z, df, alpha=0.05, dirn=0):
 
 def param(stat, z, df, alpha=0.05, **kwargs):
 	if stat=='T':
-		df   = df[1] if isinstance(df, (list,tuple,np.ndarray)) else df
-		zc,p = isf_sf_t(z, df, alpha, **kwargs)
+		v    = df[1] if isinstance(df, (list,tuple,np.ndarray)) else df
+		zc,p = isf_sf_t(z, v, alpha, **kwargs)
 	elif stat=='F':
 		zc   = rft1d.f.isf0d( alpha, df )
 		p    = rft1d.f.sf0d( z, df )
 	elif stat=='T2':
-		pass
+		zc   = rft1d.T2.isf0d( alpha, df )
+		p    = rft1d.T2.sf0d( z, df )
 	elif stat=='X2':
-		pass
+		v    = df[1] if isinstance(df, (list,tuple,np.ndarray)) else df
+		zc   = rft1d.chi2.isf0d( alpha, v )
+		p    = rft1d.chi2.sf0d( z, v )
 	else:
 		raise ValueError( f'Unknown statistic: {stat}. Must be one of: ["T", "F", "T2", "X2"]' )
 	results = ParamResults( zc, p )

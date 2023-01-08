@@ -23,9 +23,15 @@ def perm(stat, z, alpha=0.05, testname=None, args=None, nperm=10000, **kwargs):
 		else:
 			results = inference1d(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
 	elif stat=='T2':
-		pass
+		if dim==0:
+			results = inference0d(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
+		else:
+			results = inference1d(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
 	elif stat=='X2':
-		pass
+		if dim==0:
+			results = inference0d(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
+		else:
+			results = inference1d(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
 	else:
 		raise ValueError( f'Unknown statistic: {stat}. Must be one of: ["T", "F", "T2", "X2"]' )
 	return results

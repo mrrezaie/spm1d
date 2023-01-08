@@ -10,7 +10,8 @@ MANOVA
 
 from math import sqrt,log
 import numpy as np
-from . import _mvbase, _spm
+from . import _mvbase #, _spm
+from . _spmcls import SPM0D, SPM1D
 
 eps        = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero errors
 
@@ -116,7 +117,8 @@ def manova1(Y, A, equal_var=True, roi=None):
 		nComponents = Y.shape[1]
 		X2          = _manova1_single_node_efficient(Y, A, X, Xi, X0, X0i, nGroups)
 		df          = nComponents*( nGroups-1 )
-		return _spm.SPM0D_X2(X2, (1,df))
+		# return _spm.SPM0D_X2(X2, (1,df))
+		spm         = SPM0D('X2', X2, (1, df), beta=None, residuals=None, sigma2=None, X=None)
 	else:
 		nNodes      = Y.shape[1]
 		nComponents = Y.shape[2]
@@ -127,7 +129,9 @@ def manova1(Y, A, equal_var=True, roi=None):
 		resels      = _mvbase._resel_counts(R, fwhm, roi=roi)
 		df          = nComponents*( nGroups-1 )
 		return _spm.SPM_X2(X2, (1,df), fwhm, resels, None, None, R, roi=roi)
-
+	spm._set_testname( 'manova1' )
+	spm._set_data( Y, A )
+	return spm
 
 
 

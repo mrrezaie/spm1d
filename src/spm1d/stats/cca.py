@@ -7,8 +7,8 @@ CANONICAL CORRELATION ANALYSIS
 
 from math import sqrt,log
 import numpy as np
-from . import _mvbase, _spm
-
+from . import _mvbase #, _spm
+from . _spmcls import SPM0D, SPM1D
 
 
 ##########################################
@@ -120,7 +120,8 @@ def cca(Y, x, roi=None):
 	if Y.ndim==2:
 		X2         = _cca_single_node_efficient(Y, x, Rz, XXXiX)
 		df         = 1, Y.shape[1]
-		return _spm.SPM0D_X2(X2, df)
+		# return _spm.SPM0D_X2(X2, df)
+		spm = SPM0D('X2', X2, df, beta=None, residuals=None, sigma2=None, X=X)
 	else:
 		X2         = np.array([_cca_single_node_efficient(Y[:,q,:], x, Rz, XXXiX)   for q in range(Y.shape[1])])
 		X2         = X2 if roi is None else np.ma.masked_array(X2, np.logical_not(roi))
@@ -129,6 +130,9 @@ def cca(Y, x, roi=None):
 		resels     = _mvbase._resel_counts(R, fwhm, roi=roi)
 		df         = 1, Y.shape[2]
 		return _spm.SPM_X2(X2, df, fwhm, resels, None, None, R, roi=roi)
+	spm._set_testname( 'cca' )
+	spm._set_data( Y, x )
+	return spm
 
 
 
