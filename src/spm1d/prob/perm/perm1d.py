@@ -65,10 +65,11 @@ class ProbabilityCalculator1D(object):
 			p = max(p, self.alpha)
 		return p
 	
-	def cluster_inference(self, clusters):
+	def cluster_inference(self, clusters, Z2=None):
+		Z2    = self.permuter.Z2 if (Z2 is None) else Z2
 		for i,c in enumerate(clusters):
 			x = self.permuter.metric.get_single_cluster_metric( c )
-			p = (self.permuter.Z2 > x).mean()
+			p = (Z2 > x).mean()
 			p = self.clamp_p_cluster(p)
 			clusters[i] = c.as_inference_cluster( x, p )
 		return clusters
@@ -104,13 +105,62 @@ class ProbabilityCalculator1D(object):
 		return p
 
 
+class ProbabilityCalculator1DMultiF(ProbabilityCalculator1D):
+	
+	@property
+	def anyh0rejected(self):
+		for zz,zzc in zip(self.z, self.zc):
+			h = zz.max() > zzc
+			if h:
+				break
+		return h
+
+
+	def thish0rejected(self, i):
+		return self.z[i].max() > self.zc[i]
+
+	def clamp_p_max(self, p, i):
+		'''
+		Clamp field max p-values to the ranges:
+			(minp, alpha) if h0 rejected
+			(alpha, 1) if h0 not rejected
+		where minp is 1/nperm
+		'''
+		if self.thish0rejected(i):
+			p = max(min(p, self.alpha), self.minp)
+		else:
+			p = max(p, self.alpha)
+		return p
+
+	def get_p_max(self, i):
+		'''
+		Probability value associated with field maximum
+		'''
+		z,Z    = self.z[i], self.permuter.Z[:,i]
+		p      = ( Z > z.max() ).mean()
+		p      = self.clamp_p_max(p, i)
+		return p
+	
+	
+	# def cluster_inference(self, Z2, clusters):
+	# 	for i,c in enumerate(clusters):
+	# 		x = self.permuter.metric.get_single_cluster_metric( c )
+	# 		p = (Z2 > x).mean()
+	# 		p = self.clamp_p_cluster(p)
+	# 		clusters[i] = c.as_inference_cluster( x, p )
+	# 	return clusters
+		
+	# def get_z_critical(self):
+	# 	self.zc  =  self.permuter.get_z_critical_list( self.alpha )
+	# 	return self.zc
+
+
 def inference1d(z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000, circular=False, cluster_metric='MaxClusterExtent'):
 	permuter  = get_permuter(testname, 1)( *args )
 	# build primary PDF:
 	permuter.build_pdf(  nperm  )
 	probcalc = ProbabilityCalculator1D(permuter, z, alpha, dirn)
 	zc       = probcalc.get_z_critical()
-	
 	if probcalc.h0rejected:
 		# build secondary PDF:
 		permuter.set_metric( cluster_metric )
@@ -127,6 +177,46 @@ def inference1d(z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000, ci
 	p_max    = probcalc.get_p_max()
 	results  = PermResults1D(zc, clusters, p_max, p_set, permuter, nperm)
 	return results
+
+
+
+
+
+def inference1d_mwayanova(z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000, circular=False, cluster_metric='MaxClusterExtent'):
+	permuter  = get_permuter(testname, 1)( *args )
+	# build primary PDF:
+	permuter.build_pdf(  nperm  )
+	probcalc = ProbabilityCalculator1DMultiF(permuter, z, alpha, dirn)
+	zc       = probcalc.get_z_critical()
+	
+	
+	
+	if probcalc.anyh0rejected:
+		# build secondary PDF:
+		permuter.set_metric( cluster_metric )
+		permuter.build_secondary_pdfs( zc, circular )
+		
+	
+	results = []
+	for i,(zz,zzc) in enumerate( zip(z,zc) ):
+		if zz.max() > zzc:
+			# cluster-level inference:
+			clusters = assemble_clusters(zz, zzc, dirn=1, circular=circular)
+			clusters = probcalc.cluster_inference( clusters, Z2=permuter.Z2[i] )
+			# set-level inference:
+			p_set    = None
+			# p_set    = probcalc.setlevel_inference( clusters )
+		else:
+			clusters = ClusterList( [] )
+			p_set    = None
+		p_max    = probcalc.get_p_max( i )
+		res      = PermResults1D(zzc, clusters, p_max, p_set, permuter, nperm)
+		results.append( res )
+			
+			
+	return results
+
+
 
 
 # def inference1dff(z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000, circular=False, cluster_metric='MaxClusterExtent'):

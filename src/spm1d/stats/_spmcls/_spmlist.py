@@ -31,7 +31,7 @@ class SPMFList(list):
 		super().__init__(FF)
 		self.neffects  = len(self)
 		self.nfactors  = nfactors
-		# self.dim       = self[0].dim
+		self.dim       = self[0].dim
 		# if self.dim==0:
 		# 	self.name += ' (0D)'
 
@@ -100,39 +100,64 @@ class SPMFList(list):
 	
 	# def _build_spmis(self, method, alpha, zc, p, df_adjusted=None):
 	
-	def _build_spmis_perm(self, results, alpha, df_adjusted=None):
-		from copy import deepcopy
-		from . _spm0di import SPM0Di
-		
-		fis = []
-		for i,f in enumerate(self):
-			fi             = deepcopy( f )
-			fi.__class__   = SPM0Di
-			fi.df_adjusted = df_adjusted
-			fi.method      = results.method
-			fi.alpha       = alpha
-			fi.zc          = results.zc[i]
-			fi.p           = results.p[i]
-			fi.nperm       = results.nperm
-			fi.permuter    = results.permuter
-			fis.append( fi )
-		return SPMFiList( fis )
+	# def _build_spmis_perm(self, results, alpha, df_adjusted=None):
+	# 	from copy import deepcopy
+	# 	from . _spm0di import SPM0Di
+	#
+	# 	fis = []
+	# 	for f,res in enumerate( zip(self,results) ):
+	# 		fi             = deepcopy( f )
+	# 		fi.__class__   = SPM0Di
+	# 		fi.df_adjusted = df_adjusted
+	# 		fi.method      = results.method
+	# 		fi.alpha       = alpha
+	# 		fi.zc          = results.zc
+	# 		fi.p           = results.p[i]
+	# 		fi.nperm       = results.nperm
+	# 		fi.permuter    = results.permuter
+	# 		fis.append( fi )
+	# 	return SPMFiList( fis )
+
+		# fis = []
+		# for i,(f) in enumerate(self):
+		# 	fi             = deepcopy( f )
+		# 	fi.__class__   = SPM0Di
+		# 	fi.df_adjusted = df_adjusted
+		# 	fi.method      = results.method
+		# 	fi.alpha       = alpha
+		# 	fi.zc          = results.zc[i]
+		# 	fi.p           = results.p[i]
+		# 	fi.nperm       = results.nperm
+		# 	fi.permuter    = results.permuter
+		# 	fis.append( fi )
+		# return SPMFiList( fis )
 	
 
 	def inference(self, alpha=0.05, method='param', **kwargs):
 		
 		dfa = None
 		
-		if self.dim == 0:
-			if method=='param':
-				FFi               = SPMFiList(  [f.inference(alpha=alpha, **kwargs)   for f in self]  )
-				
-			elif method=='perm':
-				z       = np.array([f.z for f in self])
-				nperm   = kwargs['nperm']
-				results = prob.perm(self.STAT, z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm)
-				FFi     = self._build_spmis_perm(results, alpha, df_adjusted=dfa)
-				
+		# if self.dim == 0:
+		# 	if method=='param':
+		# 		FFi               = SPMFiList(  [f.inference(alpha=alpha, **kwargs)   for f in self]  )
+		#
+		# 	elif method=='perm':
+		# 		z       = np.array([f.z for f in self])
+		# 		nperm   = kwargs['nperm']
+		# 		results = prob.perm(self.STAT, z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dim=0)
+		# 		FFi     = self._build_spmis_perm(results, alpha, df_adjusted=dfa)
+
+
+		if method in ['param', 'rft']:
+			FFi               = SPMFiList(  [f.inference(alpha=alpha, **kwargs)   for f in self]  )
+			
+		elif method=='perm':
+			z       = np.array([f.z for f in self])
+			nperm   = kwargs['nperm']
+			results = prob.perm(self.STAT, z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dim=self.dim)
+			FFi     = SPMFiList(   [f._build_spmi(res, alpha, dirn=1, df_adjusted=dfa)  for f,res in zip(self, results)]   )
+			
+			# FFi     = self._build_spmis_perm(results, alpha, df_adjusted=dfa)
 
 		FFi.set_design_label( self.design )
 		FFi.effect_labels = self.effect_labels

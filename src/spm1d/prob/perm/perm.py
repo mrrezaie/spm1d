@@ -2,7 +2,7 @@
 from math import ceil
 import numpy as np
 from . perm0d import inference0d
-from . perm1d import inference1d
+from . perm1d import inference1d, inference1d_mwayanova
 
 
 
@@ -15,7 +15,10 @@ def perm(stat, z, alpha=0.05, testname=None, args=None, nperm=10000, dim=0, **kw
 	if dim==0:
 		results = inference0d(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
 	else:
-		results = inference1d(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
+		if testname.startswith( ('anova2','anova3') ):
+			results = inference1d_mwayanova(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
+		else:
+			results = inference1d(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
 	return results
 	
 	
