@@ -221,7 +221,7 @@ def ttest_paired(YA, YB, roi=None):
 	# _datachecks.check('ttest_paired', YA, YB)
 	spm      = ttest(_yA-_yB, roi=roi)
 	spm._set_testname( 'ttest_paired' )
-	# spm._set_data( _yA, _yB )
+	# spm._set_data( _yA, _yB )  # don't set the data!!!!  Allow ttest to set the data
 	return spm
 
 

@@ -51,16 +51,21 @@ class SPM1Di(_SPMiParent, SPM1D):
 			h       = self.z.min() < zc0
 		return h
 
-	@property
-	def h0reject(self):
-		z,zc  = self.z, self.zc
-		if self.dirn==0:
-			h = (z.min() < -zc) or (z.max() > zc)
-		elif self.dirn==1:
-			h = z.max() > zc
-		elif self.dirn==-1:
-			h = z.min() < -zc
-		return h
+
+	def _repr_summ(self):
+		return '{:<5} z={:<18} df={:<9} h0reject={}\n'.format(self.effect_label_s,  self._repr_teststat_short(), dflist2str(self.df), self.h0reject)
+
+
+	# @property
+	# def h0reject(self):
+	# 	z,zc  = self.z, self.zc
+	# 	if self.dirn==0:
+	# 		h = (z.min() < -zc) or (z.max() > zc)
+	# 	elif self.dirn==1:
+	# 		h = z.max() > zc
+	# 	elif self.dirn==-1:
+	# 		h = z.min() < -zc
+	# 	return h
 
 	# @property
 	# def h0reject(self):
@@ -94,9 +99,11 @@ class SPM1Di(_SPMiParent, SPM1D):
 		return plot_spmi(self, **kwdargs)
 
 	def plot_p_values(self, **kwdargs):
+		from ... plot import plot_spmi_p_values
 		plot_spmi_p_values(self, **kwdargs)
 	
 	def plot_threshold_label(self, **kwdargs):
+		from ... plot import plot_spmi_threshold_label
 		return plot_spmi_threshold_label(self, **kwdargs)
 
 

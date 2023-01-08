@@ -226,7 +226,7 @@ class SPMiPlotter(SPMPlotter):
 		# 	pyplot.setp(patches, facecolor=facecolor, edgecolor=facecolor)
 
 	def plot_p_values(self, size=8, offsets=None, offset_all_clusters=None):
-		n          = len(self.spm.p)
+		n          = len(self.spm.p_cluster)
 		if offsets is None:
 			if offset_all_clusters is None:
 				offsets = [(0,0)]*n
@@ -236,7 +236,7 @@ class SPMiPlotter(SPMPlotter):
 			print('WARNING:  there are fewer offsets than clusters.  To set offsets for all clusters use the offset_all_clusters keyword.')
 		h          = []
 		for cluster,offset in zip(self.spm.clusters, offsets):
-			x,y    = cluster.xy[0] if cluster.iswrapped else cluster.xy
+			x,y    = cluster.centroid
 			x     += offset[0]
 			y     += offset[1]
 			s      = p2string(cluster.P)
@@ -248,7 +248,7 @@ class SPMiPlotter(SPMPlotter):
 		ax,zs,spmi = self.ax, self.spm.zc, self.spm
 		if spmi.roi is None:
 			h      = []
-			if spmi.dirn in [0,1]:
+			if spmi.dirn in [0,1,None]:
 				h.append( ax.axhline(zs) )
 			if spmi.dirn in [0,-1]:
 				h.append( ax.axhline(-zs) )
@@ -308,13 +308,13 @@ def _legend_manual(ax, colors=None, labels=None, linestyles=None, markerfacecolo
 
 
 def _plot_F_list(FF, plot_threshold_label=True, plot_p_values=True, autoset_ylim=True):
-	m      = FF.nFactors
+	m      = FF.nfactors
 	# mm     = 2 if len(FF)<5 else 3
 	AX     = []
 	for i,F in enumerate(FF):
 		ax = pyplot.subplot(m,m,i+1)
 		F.plot(ax=ax)
-		ax.set_title( F.effect )
+		ax.set_title( F.effect_label )
 		if F.isinference:
 			if plot_threshold_label:
 				F.plot_threshold_label(fontsize=8)

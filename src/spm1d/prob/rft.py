@@ -53,7 +53,7 @@ def _setlevel_inference(calc, zc, clusters):
 
 
 	
-def rft(STAT, z, df, fwhm, resels, alpha=0.05, cluster_size=0, circular=False, withBonf=True, dirn=1):
+def rft(STAT, z, df, fwhm, resels, alpha=0.05, cluster_size=0, circular=False, withBonf=True, dirn=1, equal_var=False):
 	
 	'''
 	COMMENT:  fwhm is needed ONLY for cluster extent (in FWHM units)

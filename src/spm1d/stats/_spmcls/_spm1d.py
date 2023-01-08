@@ -34,7 +34,10 @@ class SPM1D(_SPMParent):
 	def __repr__(self):
 		s        = f'{self._class_str}\n'
 		if self.isanova:
-			s   += '   SPM.effect :  %s\n'             %self.effect
+			s   += '   SPM.effect_label :  %s\n'       %self.effect_label
+			# s   += '   SPM.ms               :  %s\n'        %tuple2str(self.ms, '%.3f')
+			# s   += '   SPM.ss               :  %s\n'        %tuple2str(self.ss, '%.3f')
+			
 		s       += '   SPM.z      :  %s\n'             %self._repr_teststat()
 		if self.isregress:
 			s   += '   SPM.r      :  %s\n'             %self._repr_corrcoeff()
@@ -63,6 +66,8 @@ class SPM1D(_SPMParent):
 		return '(1x%d) test stat field' %self.Q
 	def _repr_teststat_short(self):
 		return '(1x%d) array' %self.Q
+	def _repr_summ(self):  # for F lists
+		return '{:<5} z = {:<18} df = {}\n'.format(self.effect_label_s,  self._repr_teststat_short(), dflist2str(self.df))
 
 
 	def _build_spmi(self, results, alpha, dirn=0, df_adjusted=None):
@@ -96,6 +101,7 @@ class SPM1D(_SPMParent):
 			
 			# spmi = self.inference_rft(alpha, **parser.kwargs)
 		elif method == 'perm':
+			# print( len(self._args) )
 			# nperm = kwargs['nperm']
 			# results = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dirn=dirn)
 			results = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, **kwargs)
@@ -109,7 +115,7 @@ class SPM1D(_SPMParent):
 		# return spmi
 		
 		dfa = self.df
-		dirn = kwargs['dirn']
+		dirn = kwargs['dirn'] if 'dirn' in kwargs else None
 		
 		
 		spmi = self._build_spmi(results, alpha, dirn=dirn, df_adjusted=dfa)

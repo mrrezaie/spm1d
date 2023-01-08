@@ -110,6 +110,7 @@ def inference1d(z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000, ci
 	permuter.build_pdf(  nperm  )
 	probcalc = ProbabilityCalculator1D(permuter, z, alpha, dirn)
 	zc       = probcalc.get_z_critical()
+	
 	if probcalc.h0rejected:
 		# build secondary PDF:
 		permuter.set_metric( cluster_metric )
@@ -127,4 +128,7 @@ def inference1d(z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000, ci
 	results  = PermResults1D(zc, clusters, p_max, p_set, permuter, nperm)
 	return results
 
+
+# def inference1dff(z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000, circular=False, cluster_metric='MaxClusterExtent'):
+# 	pass
 

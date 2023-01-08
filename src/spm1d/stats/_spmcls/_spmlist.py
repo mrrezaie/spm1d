@@ -12,6 +12,8 @@ and inference SPMs (thresholded test statistic).
 # Copyright (C) 2016  Todd Pataky
 
 
+import numpy as np
+from ... import prob
 from ... _plot import _plot_F_list
 
 
@@ -83,12 +85,67 @@ class SPMFList(list):
 		return tuple( [f.effect for f in self] )
 	def get_f_values(self):
 		return tuple( [f.z for f in self] )
-	def inference(self, alpha=0.05, **kwargs):
-		FFi               = SPMFiList(  [f.inference(alpha=alpha, **kwargs)   for f in self]  )
+	
+	
+	# def _inference0d(self, alpha, **kwargs):
+	# 	if method == 'param':
+	# 		results  = prob.param(self.STAT, self.z, dfa, alpha=alpha, dirn=dirn)
+	# 		return self._build_spmi(results, alpha, dirn=dirn, df_adjusted=dfa)
+	#
+	# 		spmi = self._inference_param(alpha, **kwargs)
+	#
+	# 	elif method == 'perm':
+	# 		spmi = self._inference_perm(alpha, **kwargs)
+		
+	
+	# def _build_spmis(self, method, alpha, zc, p, df_adjusted=None):
+	
+	def _build_spmis_perm(self, results, alpha, df_adjusted=None):
+		from copy import deepcopy
+		from . _spm0di import SPM0Di
+		
+		fis = []
+		for i,f in enumerate(self):
+			fi             = deepcopy( f )
+			fi.__class__   = SPM0Di
+			fi.df_adjusted = df_adjusted
+			fi.method      = results.method
+			fi.alpha       = alpha
+			fi.zc          = results.zc[i]
+			fi.p           = results.p[i]
+			fi.nperm       = results.nperm
+			fi.permuter    = results.permuter
+			fis.append( fi )
+		return SPMFiList( fis )
+	
+
+	def inference(self, alpha=0.05, method='param', **kwargs):
+		
+		dfa = None
+		
+		if self.dim == 0:
+			if method=='param':
+				FFi               = SPMFiList(  [f.inference(alpha=alpha, **kwargs)   for f in self]  )
+				
+			elif method=='perm':
+				z       = np.array([f.z for f in self])
+				nperm   = kwargs['nperm']
+				results = prob.perm(self.STAT, z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm)
+				FFi     = self._build_spmis_perm(results, alpha, df_adjusted=dfa)
+				
+
 		FFi.set_design_label( self.design )
 		FFi.effect_labels = self.effect_labels
 		FFi.nfactors      = self.nfactors
+		
 		return FFi
+		
+		
+
+
+		
+		
+		
 	def plot(self, plot_threshold_label=True, plot_p_values=True, autoset_ylim=True):
 		_plot_F_list(self, plot_threshold_label, plot_p_values, autoset_ylim)
 	def print_summary(self):
@@ -101,6 +158,9 @@ class SPMFList(list):
 		[F.set_effect_label(label)  for F,label in zip(self, labels)]
 		self.effect_labels   = [F.effect_label_s   for F in self]
 
+
+class SPMF1DList(list):
+	pass
 
 
 class SPMFiList(SPMFList):

@@ -382,14 +382,15 @@ class _PermuterANOVA(object):
 class _PermuterANOVA0D(_PermuterANOVA, _Permuter0D):
 	pass
 class _PermuterANOVA1D(_PermuterANOVA, _Permuter1D):
-	def __init__(self, y, roi=None, *args):
-		super(_PermuterANOVA1D, self).__init__(y, *args)
+	# def __init__(self, y, roi=None, *args):
+	def __init__(self, y,  *args, roi=None):
+		super().__init__(y, *args)
 		self.ZZ         = None                      #all permuted test statistic fields
 		self.Z2         = None                      #secondary PDF:  cluster metric distribution
 		self._set_roi(roi)
 
 	def get_test_stat(self, ind):
-		z               = super(_PermuterANOVA1D, self).get_test_stat(ind)
+		z               = super().get_test_stat(ind)
 		if self.hasroi:
 			z[ self._roin ] = 0
 		return z

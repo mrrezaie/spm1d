@@ -38,6 +38,9 @@ class _SPMParent(object):
 	def isanova(self):
 		return self.STAT == 'F'
 	@property
+	def isparametric(self):  # overloaded by inference object (set to False for perm and other nonparametric methods)
+		return True
+	@property
 	def isregress(self):
 		return self.testname == 'regress'
 	@property

@@ -45,11 +45,22 @@ def aov(model, contrasts, f_terms, nfactors=1):
 			spm       = SPM0D('F', f, (df0,df1), beta=beta, residuals=residuals, sigma2=sigma2, X=X)
 			spm._set_anova_attrs( ss=(ss0,ss1) , ms=(ms0,ms1) )
 			
-			F.append( spm )
+			
 			
 			# F.append( _spm.SPM0D_F(f, (df0,df1), (ss0,ss1), (ms0,ms1), model.eij, model.QT) )
 		else:
-			pass
+			beta      = np.asarray( model._beta )
+			residuals = np.asarray( model.eij )
+			sigma2    = model._MSE
+			X         = model.X
+			fwhm      = model.fwhm
+			resels    = model.resels
+			roi       = model.roi
+			spm       = SPM1D('F', f, (df0,df1), beta=beta, residuals=residuals, sigma2=sigma2, X=X, fwhm=fwhm, resels=resels, roi=roi)
+			spm._set_anova_attrs( ss=(ss0,ss1) , ms=(ms0,ms1) )
+			
+		F.append( spm )
+		
 			# if model.roi is not None:
 			# 	f   = np.ma.masked_array(f, np.logical_not(model.roi))
 			# F.append( _spm.SPM_F(f, (df0,df1), model.fwhm, model.resels, model.X, model._beta, model.eij, model.QT, roi=model.roi) )
