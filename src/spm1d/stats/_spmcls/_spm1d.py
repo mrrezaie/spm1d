@@ -104,7 +104,7 @@ class SPM1D(_SPMParent):
 			# print( len(self._args) )
 			# nperm = kwargs['nperm']
 			# results = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dirn=dirn)
-			results = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, **kwargs)
+			results = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, dim=1, **kwargs)
 			
 			# return self._build_spmi(results, alpha, dirn=dirn)
 			#
