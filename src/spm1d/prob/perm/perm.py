@@ -18,7 +18,10 @@ def perm(stat, z, alpha=0.05, testname=None, args=None, nperm=10000, **kwargs):
 		else:
 			results = inference1d(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
 	elif stat=='F':
-		pass
+		if dim==0:
+			results = inference0d(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
+		else:
+			results = inference1d(z, alpha=alpha, testname=testname, args=args, nperm=nperm, **kwargs)
 	elif stat=='T2':
 		pass
 	elif stat=='X2':

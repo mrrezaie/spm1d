@@ -18,6 +18,7 @@ from ... _plot import _plot_F_list
 class SPMFList(list):
 	STAT          = 'F'
 	name          = 'SPM{F} list'
+	testname      = None
 	design        = ''
 	dim           = 0
 	neffects      = 1
@@ -66,6 +67,15 @@ class SPMFList(list):
 			s   += f.__repr__()
 			s   += '\n'
 		return s
+
+	def _set_data(self, *args):
+		self._args = args
+		for f in self:
+			f._set_data( *args )
+	def _set_testname(self, name):
+		self.testname = str( name )
+		for f in self:
+			f._set_testname( name )
 	
 	def get_df_values(self):
 		return [f.df for f in self]

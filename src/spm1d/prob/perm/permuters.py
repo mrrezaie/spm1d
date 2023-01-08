@@ -528,6 +528,17 @@ permuter_class_dict = {
 	'ttest2'       : [PermuterTtest20D, PermuterTtest21D],
 	'ttest_paired' : [PermuterTtest0D, PermuterTtest1D],
 	'regress'      : [PermuterRegress0D, PermuterRegress1D],
+	'anova1'       : [PermuterANOVA10D, PermuterANOVA11D],
+	'anova1rm'     : [PermuterANOVA1rm0D, PermuterANOVA1rm1D],
+	'anova2'       : [PermuterANOVA20D, PermuterANOVA21D],
+	'anova2nested' : [PermuterANOVA2nested0D, PermuterANOVA2nested1D],
+	'anova2onerm'  : [PermuterANOVA2onerm0D, PermuterANOVA2onerm1D],
+	'anova2rm'     : [PermuterANOVA2rm0D, PermuterANOVA2rm1D],
+	'anova3'       : [PermuterANOVA30D, PermuterANOVA31D],
+	'anova3nested' : [PermuterANOVA3nested0D, PermuterANOVA3nested1D],
+	'anova3onerm'  : [PermuterANOVA3onerm0D, PermuterANOVA3onerm1D],
+	'anova3rm'     : [PermuterANOVA3rm0D, PermuterANOVA3rm1D],
+	'anova3tworm'  : [PermuterANOVA3tworm0D, PermuterANOVA3tworm1D],
 }
 #
 

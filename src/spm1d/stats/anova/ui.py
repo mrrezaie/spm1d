@@ -188,17 +188,25 @@ def anova2(Y, A, B, equal_var=True, roi=None):
 	design  = designs.ANOVA2(A, B)
 	model   = models.LinearModel(Y, design.X, roi=roi)
 	model.fit()
-	F       = aov(model, design.contrasts, design.f_terms, nfactors=2)
-	_set_labels( F, design )
-
-	# if not equal_var:
-		# Y,X,r   = model.Y, model.X, model.eij
-		# QA,QB,C = design.A.get_Q(), design.B.get_Q(), design.contrasts.C.T
-		# Q       = QA + QB
-		# u1,u2   = _reml.estimate_df_anova2(Y, X, r, Q, C)
-		# for ff,u in zip(f,u1):
-		# 	ff.df = u,u2
-	return F
+	spm     = aov(model, design.contrasts, design.f_terms, nfactors=2)
+	spm._set_testname( 'anova2' )
+	spm._set_data( Y, A, B )
+	_set_labels( spm, design )
+	spm._design = design
+	spm._model  = model
+	return spm
+	
+	# F       = aov(model, design.contrasts, design.f_terms, nfactors=2)
+	# _set_labels( F, design )
+	#
+	# # if not equal_var:
+	# 	# Y,X,r   = model.Y, model.X, model.eij
+	# 	# QA,QB,C = design.A.get_Q(), design.B.get_Q(), design.contrasts.C.T
+	# 	# Q       = QA + QB
+	# 	# u1,u2   = _reml.estimate_df_anova2(Y, X, r, Q, C)
+	# 	# for ff,u in zip(f,u1):
+	# 	# 	ff.df = u,u2
+	# return F
 
 
 def anova2nested(Y, A, B, equal_var=True, roi=None):
@@ -224,9 +232,16 @@ def anova2nested(Y, A, B, equal_var=True, roi=None):
 	design  = designs.ANOVA2nested(A, B)
 	model   = models.LinearModel(Y, design.X, roi=roi)
 	model.fit()
-	F       = aov(model, design.contrasts, design.f_terms, nFactors=2)
-	_set_labels( F, design )
-	return F
+	spm     = aov(model, design.contrasts, design.f_terms, nfactors=2)
+	spm._set_testname( 'anova2nested' )
+	spm._set_data( Y, A, B )
+	_set_labels( spm, design )
+	spm._design = design
+	spm._model  = model
+	return spm
+	# F       = aov(model, design.contrasts, design.f_terms, nfactors=2)
+	# _set_labels( F, design )
+	# return F
 
 
 
@@ -258,16 +273,23 @@ def anova2rm(Y, A, B, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 		model.fit( approx_residuals=design.contrasts.C[:5] )
 	else:
 		model.fit( )
-	F       = aov(model, design.contrasts, design.f_terms, nFactors=2)
-	_set_labels( F, design )
-	# if not equal_var:
-	# 	Y,X,r   = solver.Y, solver.X, solver.eij
-	# 	QA,QB,C = design.A.get_Q(), design.B.get_Q(), [c.C.T for c in design.contrasts]
-	# 	Q       = QA + QB
-	# 	u1,u2   = _reml.estimate_df_anova2(Y, X, r, Q, C)
-	# 	for ff,u in zip(f,u1):
-	# 		ff.df = u,u2
-	return F
+	spm     = aov(model, design.contrasts, design.f_terms, nfactors=2)
+	spm._set_testname( 'anova2rm' )
+	spm._set_data( Y, A, B, SUBJ )
+	_set_labels( spm, design )
+	spm._design = design
+	spm._model  = model
+	return spm
+	# F       = aov(model, design.contrasts, design.f_terms, nfactors=2)
+	# _set_labels( F, design )
+	# # if not equal_var:
+	# # 	Y,X,r   = solver.Y, solver.X, solver.eij
+	# # 	QA,QB,C = design.A.get_Q(), design.B.get_Q(), [c.C.T for c in design.contrasts]
+	# # 	Q       = QA + QB
+	# # 	u1,u2   = _reml.estimate_df_anova2(Y, X, r, Q, C)
+	# # 	for ff,u in zip(f,u1):
+	# # 		ff.df = u,u2
+	# return F
 
 
 def anova2onerm(Y, A, B, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
@@ -298,9 +320,16 @@ def anova2onerm(Y, A, B, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 		model.fit( approx_residuals=design.contrasts.C[:5] )
 	else:
 		model.fit( )
-	F       = aov(model, design.contrasts, design.f_terms, nFactors=2)
-	_set_labels( F, design )
-	return F
+	spm     = aov(model, design.contrasts, design.f_terms, nfactors=2)
+	spm._set_testname( 'anova2onerm' )
+	spm._set_data( Y, A, B, SUBJ )
+	_set_labels( spm, design )
+	spm._design = design
+	spm._model  = model
+	return spm
+	# F       = aov(model, design.contrasts, design.f_terms, nfactors=2)
+	# _set_labels( F, design )
+	# return F
 
 
 
@@ -334,9 +363,16 @@ def anova3(Y, A, B, C, equal_var=True, roi=None):
 	design  = designs.ANOVA3(A, B, C)
 	model   = models.LinearModel(Y, design.X, roi=roi)
 	model.fit()
-	F       = aov(model, design.contrasts, design.f_terms, nFactors=3)
-	_set_labels( F, design )
-	return F
+	spm     = aov(model, design.contrasts, design.f_terms, nfactors=3)
+	spm._set_testname( 'anova3' )
+	spm._set_data( Y, A, B, C )
+	_set_labels( spm, design )
+	spm._design = design
+	spm._model  = model
+	return spm
+	# F       = aov(model, design.contrasts, design.f_terms, nfactors=3)
+	# _set_labels( F, design )
+	# return F
 	# if not equal_var:
 	# 	Y,X,r   = solver.Y, solver.X, solver.eij
 	# 	QA,QB,QC,C = design.A.get_Q(), design.B.get_Q(), design.C.get_Q(), [c.C.T for c in design.contrasts]
@@ -371,9 +407,16 @@ def anova3nested(Y, A, B, C, equal_var=True, roi=None):
 	design  = designs.ANOVA3nested(A, B, C)
 	model   = models.LinearModel(Y, design.X, roi=roi)
 	model.fit()
-	F       = aov(model, design.contrasts, design.f_terms, nFactors=3)
-	_set_labels( F, design )
-	return F
+	spm     = aov(model, design.contrasts, design.f_terms, nfactors=3)
+	spm._set_testname( 'anova3nested' )
+	spm._set_data( Y, A, B, C )
+	_set_labels( spm, design )
+	spm._design = design
+	spm._model  = model
+	return spm
+	# F       = aov(model, design.contrasts, design.f_terms, nfactors=3)
+	# _set_labels( F, design )
+	# return F
 
 
 def anova3rm(Y, A, B, C, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
@@ -405,9 +448,16 @@ def anova3rm(Y, A, B, C, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 		model.fit( approx_residuals=design.contrasts.C[:8] )
 	else:
 		model.fit( )
-	F       = aov(model, design.contrasts, design.f_terms, nFactors=3)
-	_set_labels( F, design )
-	return F
+	spm     = aov(model, design.contrasts, design.f_terms, nfactors=3)
+	spm._set_testname( 'anova3rm' )
+	spm._set_data( Y, A, B, C, SUBJ )
+	_set_labels( spm, design )
+	spm._design = design
+	spm._model  = model
+	return spm
+	# F       = aov(model, design.contrasts, design.f_terms, nfactors=3)
+	# _set_labels( F, design )
+	# return F
 	
 
 
@@ -444,9 +494,16 @@ def anova3onerm(Y, A, B, C, SUBJ, equal_var=True, roi=None, _force_approx0D=Fals
 		model.fit( approx_residuals=design.contrasts.C[:8] )
 	else:
 		model.fit( )
-	F       = aov(model, design.contrasts, design.f_terms, nFactors=3)
-	_set_labels( F, design  )
-	return F
+	spm     = aov(model, design.contrasts, design.f_terms, nfactors=3)
+	spm._set_testname( 'anova3onerm' )
+	spm._set_data( Y, A, B, C, SUBJ )
+	_set_labels( spm, design )
+	spm._design = design
+	spm._model  = model
+	return spm
+	# F       = aov(model, design.contrasts, design.f_terms, nfactors=3)
+	# _set_labels( F, design  )
+	# return F
 
 
 
@@ -483,8 +540,15 @@ def anova3tworm(Y, A, B, C, SUBJ, equal_var=True, roi=None, _force_approx0D=Fals
 		model.fit( approx_residuals=design.contrasts.C[:8] )
 	else:
 		model.fit( )
-	F       = aov(model, design.contrasts, design.f_terms, nFactors=3)
-	_set_labels( F, design )
-	return F
+	spm     = aov(model, design.contrasts, design.f_terms, nfactors=3)
+	spm._set_testname( 'anova3tworm' )
+	spm._set_data( Y, A, B, C, SUBJ )
+	_set_labels( spm, design )
+	spm._design = design
+	spm._model  = model
+	return spm
+	# F       = aov(model, design.contrasts, design.f_terms, nfactors=3)
+	# _set_labels( F, design )
+	# return F
 
 

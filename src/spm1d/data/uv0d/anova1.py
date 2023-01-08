@@ -40,12 +40,12 @@ class Cars(_base.DatasetANOVA1):
 class ConstructionUnequalSampleSizes(_base.DatasetANOVA1):
 	def _set_values(self):
 		self.www     = 'http://stackoverflow.com/questions/8320603/how-to-do-one-way-anova-in-r-with-unequal-sample-sizes'
-		Y  = np.array([
+		Y  = [
 			[34,25,27,31,26,34,21],
 			[33,35,31,31,42,33],
 			[17,30,30,26,32,28,26,29],
 			[28,33,31,27,32,33,40],
-		])
+		]
 		self.Y     = np.hstack(Y)
 		self.A     = np.hstack([[i]*len(yy) for i,yy in enumerate(Y)])
 		self.z     = 3.4971
@@ -57,12 +57,12 @@ class ConstructionUnequalSampleSizes(_base.DatasetANOVA1):
 class RSUnequalSampleSizes(_base.DatasetANOVA1):
 	def _set_values(self):
 		self.www     = 'http://www.real-statistics.com/one-way-analysis-of-variance-anova/unplanned-comparisons/anova-unequal-sample-sizes/'
-		Y  = np.array([
+		Y  = [
 			[3, 5, 6, 1, 5, 6, 4, 3, 7, 4, 5],
 			[2, 4, 3, 5, 1, 5, 2, 3, 6, 2, 4, 1],
 			[5, 8, 6, 4, 7, 8, 5, 6, 6],
 			[4, 5, 3, 7, 6, 3, 2, 2, 4, 5],
-		])
+		]
 		self.Y     = np.hstack(Y)
 		self.A     = np.hstack([[i]*len(yy) for i,yy in enumerate(Y)])
 		self.z     = 5.864845

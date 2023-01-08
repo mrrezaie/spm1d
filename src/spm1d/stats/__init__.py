@@ -32,9 +32,9 @@ from . anova import anova1,anova1rm
 from . anova import anova2,anova2nested,anova2rm,anova2onerm
 from . anova import anova3,anova3nested,anova3rm,anova3tworm,anova3onerm
 
-# from . hotellings import hotellings, hotellings_paired, hotellings2
-# from . cca import cca
-# from . manova import manova1
+from . hotellings import hotellings, hotellings_paired, hotellings2
+from . cca import cca
+from . manova import manova1
 # from . var import eqvartest
 #
 # from . import nonparam
