@@ -412,13 +412,34 @@ class _PermuterANOVA0DmultiF(_PermuterANOVA0D):
 		return self.get_z_critical(alpha)
 
 class _PermuterANOVA1DmultiF(_PermuterANOVA1D):
+
+	# def build_secondary_pdf(self, zstar, circular=False):
+	# 	Z2,C2 = [],[]
+	# 	for z in self.ZZ:
+	# 		x  = self.metric.get_all_cluster_metrics(z, zstar, circular)
+	# 		n  = len(x)
+	# 		mx = 0 if (n==0) else min(x)
+	# 		C2.append( n )
+	# 		Z2.append( mx )
+	# 	self.Z2  = np.asarray( Z2 )
+	# 	self.C2  = np.asarray( C2 )
+
+
 	def build_secondary_pdfs(self, zstarlist, circular=False):
-		Z2   = []
+		Z2,C2    = [], []
 		for i,zstar in enumerate(zstarlist):
-			Z    = self.ZZ[:,i,:]   #all test statistic fields for one ANOVA term
-			z2   = [self.metric.get_max_metric(z, zstar, circular)  for z in Z]
+			Z      = self.ZZ[:,i,:]   #all test statistic fields for one ANOVA term
+			z2,c2  = [], [] 
+			for z in Z:
+				x  = self.metric.get_all_cluster_metrics(z, zstar, circular)
+				n  = len(x)
+				x  = 0 if (n==0) else min(x)
+				z2.append(x)
+				c2.append(n)
 			Z2.append(z2)
+			C2.append(c2)
 		self.Z2  = np.array(Z2)
+		self.C2  = np.array(C2)
 
 	def get_test_stat(self, ind):
 		zz       = self.calc.get_test_stat( self.Y[ list(ind) ] )

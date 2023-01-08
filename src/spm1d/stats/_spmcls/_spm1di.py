@@ -38,20 +38,30 @@ class SPM1Di(_SPMiParent, SPM1D):
 		s       += '   SPM.clusters        :  %s\n'       %self.clusters.asshortstr()
 		return s
 	
+	# @property
+	# def h0reject(self):
+	# 	zc       = self.zc
+	# 	if self.dirn in (None,1):
+	# 		h       = self.z.max() > zc
+	# 	elif self.dirn==0:
+	# 		zc0,zc1 = (-zc,zc) if self.isparametric else zc
+	# 		h       = (self.z.min() < zc0) or (self.z.max() > zc1)
+	# 	elif self.dirn==-1:
+	# 		zc0     = -zc if self.isparametric else zc[0]
+	# 		h       = self.z.min() < zc0
+	# 	return h
+
 	@property
 	def h0reject(self):
 		zc       = self.zc
 		if self.dirn in (None,1):
 			h       = self.z.max() > zc
 		elif self.dirn==0:
-			zc0,zc1 = (-zc,zc) if self.isparametric else zc
-			h       = (self.z.min() < zc0) or (self.z.max() > zc1)
+			h       = (self.z.min() < -zc) or (self.z.max() > zc)
 		elif self.dirn==-1:
-			zc0     = -zc if self.isparametric else zc[0]
-			h       = self.z.min() < zc0
+			h       = self.z.min() < -zc
 		return h
-
-
+		
 	def _repr_summ(self):
 		return '{:<5} z={:<18} df={:<9} h0reject={}\n'.format(self.effect_label_s,  self._repr_teststat_short(), dflist2str(self.df), self.h0reject)
 
