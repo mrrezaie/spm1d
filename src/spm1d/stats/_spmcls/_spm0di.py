@@ -12,37 +12,113 @@ This module contains class definitions for inference SPMs.
 
 import warnings
 from . _base import _SPMiParent #, _SPMF
-from . _spm0d import SPM0D
-from ... util import dflist2str, p2string
+# from . _spm0d import SPM0D
+from ... util import tuple2str, dflist2str, p2string, DisplayParams
 
 
 
-class SPM0Di(_SPMiParent, SPM0D):
+
+
+class SPM0Di(_SPMiParent):
 	
 	isinference   = True
 	
+	def __init__(self, spm, results, df_adjusted):
+		self.STAT           = spm.STAT
+		self.testname       = spm.testname
+		self.X              = spm.X
+		self.beta           = spm.beta             # fitted parameters
+		self.residuals      = spm.residuals        # model residuals
+		self.sigma2         = spm.sigma2           # variance
+		self.z              = spm.z                # test statistic value
+		self.df             = spm.df               # degrees of freedom
+		if self.isregress:
+			self.r          = spm.r
+		if self.isanova:
+			self.ss         = spm.ss
+			self.ms         = spm.ms
+		# inference results:
+		self.method         = results.method
+		self.alpha          = results.alpha
+		self.zc             = results.zc
+		self.p              = results.p
+		self.dirn           = results.dirn
+		self._add_extras( results.extras )
+		self.extras         = results.extras
+		# adjusted df:
+		self.df_adjusted    = df_adjusted
+		
+		# if self.STAT=='T':
+		# 	self.dirn     = dirn
+		# 	# spmi.dirn   = parser.kwargs['dirn']
+	
+	
+	# def __repr__(self):
+	# 	s        = f'{self._class_str}\n'
+	# 	s       += '   SPM.testname         :  %s\n'        %self.testname
+	# 	if self.isanova:
+	# 		s   += '   SPM.effect_label     :  %s\n'        %self.effect_label
+	# 		s   += '   SPM.ms               :  %s\n'        %tuple2str(self.ms, '%.3f')
+	# 		s   += '   SPM.ss               :  %s\n'        %tuple2str(self.ss, '%.3f')
+	# 	s       += '   SPM.z                :  %.5f\n'      %self.z
+	# 	s       += '   SPM.df               :  %s\n'        %dflist2str(self.df)
+	# 	if self.isregress:
+	# 		s   += '   SPM.r                :  %.5f\n'      %self.r
+	# 	s         += 'Inference:\n'
+	# 	s         += '   SPM.method            :  %s\n'      %self.method
+	# 	s         += '   SPM.isparametric      :  %s\n'      %self.isparametric
+	# 	if self.ismultigroup:
+	# 		a    = self.eqvar_assumed
+	# 		s     += '   SPM.eqvar_assumed     :  %s\n'      %a
+	# 		if not a:
+	# 			s += '   SPM.df_adjusted       :  %s\n'      %dflist2str(self.df_adjusted)
+	#
+	# 	# if not self.isparametric:
+	# 	# 	s     += '   SPM.nperm_possible    :  %d\n'      %self.nperm_possible
+	# 	# 	s     += '   SPM.nperm_actual      :  %d\n'      %self.nperm_actual
+	# 	for k,v in self.extras.items():
+	# 		s    += f'   SPM.{k}    :  {v}\n'
+	#
+	# 	s         += '   SPM.alpha             :  %.3f\n'    %self.alpha
+	# 	if self.STAT == 'T':
+	# 		s     += '   SPM.dirn              :  %s\n'      %self._dirn_str
+	# 	s         += '   SPM.zc                :  %s\n'      %self._zcstr
+	# 	s         += '   SPM.h0reject          :  %s\n'      %self.h0reject
+	# 	s         += '   SPM.p                 :  %.5f\n'    %self.p
+	# 	s         += '\n'
+	# 	return s
+
 	def __repr__(self):
-		s          = super().__repr__()
-		s         += 'Inference:\n'
-		s         += '   SPM.method            :  %s\n'      %self.method
-		s         += '   SPM.isparametric      :  %s\n'      %self.isparametric
-		if self.ismultigroup:
-			a    = self.eqvar_assumed
-			s     += '   SPM.eqvar_assumed     :  %s\n'      %a
-			if not a:
-				s += '   SPM.df_adjusted       :  %s\n'      %dflist2str(self.df_adjusted)
-			
-		if not self.isparametric:
-			s     += '   SPM.nperm_possible    :  %d\n'      %self.nperm_possible
-			s     += '   SPM.nperm_actual      :  %d\n'      %self.nperm_actual
-		s         += '   SPM.alpha             :  %.3f\n'    %self.alpha
-		if self.STAT == 'T':
-			s     += '   SPM.dirn              :  %s\n'      %self._dirn_str
-		s         += '   SPM.zc                :  %s\n'      %self._zcstr
-		s         += '   SPM.h0reject          :  %s\n'      %self.h0reject
-		s         += '   SPM.p                 :  %.5f\n'    %self.p
-		s         += '\n'
-		return s
+		dp      = DisplayParams( self )
+		dp.add_header( self._class_str )
+		dp.add( 'testname' )
+		dp.add( 'STAT' )
+		if self.isanova:
+			dp.add( 'effect_label' )
+			dp.add( 'ss' , tuple2str )
+			dp.add( 'ms' , tuple2str )
+		dp.add( 'z', fmt='%.5f' )
+		if self.isregress:
+			dp.add('r', fmt='%.5f')
+		dp.add( 'df', fmt=dflist2str )
+		dp.add_header( 'Inference:' )
+		dp.add( 'method' )
+		dp.add( 'isparametric' )
+		dp.add( 'alpha' )
+		dp.add( 'dirn' )
+		dp.add( 'zc', fmt='%.5f' )
+		dp.add( 'h0reject' )
+		dp.add( 'p', fmt='%.5f' )
+		if len( self.extras ) > 0:
+			dp.add_header( 'extras:' )
+			for k,v in self.extras.items():
+				dp.add(k)
+		return dp.asstr()
+
+
+	def _add_extras(self, extras):
+		for k,v in extras.items():
+			setattr(self, k, v)
 	
 	@property
 	def h0reject(self):
@@ -59,21 +135,6 @@ class SPM0Di(_SPMiParent, SPM0D):
 		return '{:<5} F = {:<8} df = {:<9} p = {}\n'.format(self.effect_label_s,  '%.3f'%self.z, dflist2str(self.df), p2string(self.p,fmt='%.5f'))
 	
 
-	# @property
-	# def h0reject(self):
-	# 	z,zc  = self.z, self.zc
-	# 	if self.dirn in is None:
-	# 		h       = z > zc
-	# 	# elif self.dirn==0:
-	# 	# 	zc0,zc1 = (-zc,zc) if self.isparametric else zc
-	# 	# 	h       = (z < zc0) or (z > zc1)
-	# 	elif self.dirn==0:
-	# 		h       = (z < -zc) or (z > zc)
-	# 	elif self.dirn==1:
-	# 		h       = z > zc
-	# 	elif self.dirn==-1:
-	# 		h       = z < -zc
-	# 	return h
 
 	# @property
 	# def eqvar_assumed(self):

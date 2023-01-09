@@ -3,15 +3,24 @@ import numpy as np
 from . permuters import get_permuter
 from . probcalc0d import ProbCalc0DSingleStat, ProbCalc0DMultiStat
 
-
+# class ParamResults(object):
+# 	def __init__(self, alpha, dirn, zc, p):
+# 		self.method   = 'param'
+# 		self.alpha    = alpha
+# 		self.dirn     = dirn
+# 		self.zc       = zc
+# 		self.p        = p
 
 class PermResults0D(object):
-	def __init__(self, zc, p, permuter, nperm):
+	def __init__(self, alpha, dirn, zc, p, permuter, nperm):
 		self.method   = 'perm'
+		self.alpha    = alpha
+		self.dirn     = dirn
 		self.zc       = zc
 		self.p        = p
-		self.permuter = permuter
-		self.nperm    = nperm
+		self.extras   = dict(permuter=permuter, nperm_possible=permuter.nPermTotal, nperm_actual=nperm)
+		# self.permuter = permuter
+		# self.nperm    = nperm
 		
 	def __repr__(self):
 		s  = 'PermResults0D\n'
@@ -28,7 +37,7 @@ def inference0d(stat, z, alpha=0.05, dirn=0, testname=None, args=None, nperm=100
 	probcalc = ProbCalc0DSingleStat(stat, permuter, alpha, dirn)
 	zc       = probcalc.get_z_critical()
 	p        = probcalc.get_p_value(z)
-	return PermResults0D(zc, p, permuter, nperm)
+	return PermResults0D(alpha, dirn, zc, p, permuter, nperm)
 	
 
 def inference0d_multi(stat, z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000):

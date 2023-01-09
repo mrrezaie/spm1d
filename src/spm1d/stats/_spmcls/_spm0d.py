@@ -17,7 +17,7 @@ import numpy as np
 from scipy import stats
 from . _base import _SPMParent
 from ... import prob
-from ... util import dflist2str, tuple2str
+from ... util import dflist2str, tuple2str, DisplayParams
 
 
 
@@ -40,38 +40,63 @@ class SPM0D(_SPMParent):
 			self.effect_label_s     = 'A'
 
 
+	# def __repr__(self):
+	# 	s        = f'{self._class_str}\n'
+	# 	s       += '   SPM.testname         :  %s\n'        %self.testname
+	# 	if self.isanova:
+	# 		s   += '   SPM.effect_label     :  %s\n'        %self.effect_label
+	# 		s   += '   SPM.ms               :  %s\n'        %tuple2str(self.ms, '%.3f')
+	# 		s   += '   SPM.ss               :  %s\n'        %tuple2str(self.ss, '%.3f')
+	# 	s       += '   SPM.z                :  %.5f\n'      %self.z
+	# 	s       += '   SPM.df               :  %s\n'        %dflist2str(self.df)
+	# 	if self.isregress:
+	# 		s   += '   SPM.r                :  %.5f\n'      %self.r
+	# 	# s       += '\n'
+	# 	return s
+
+
 	def __repr__(self):
-		s        = f'{self._class_str}\n'
-		s       += '   SPM.testname         :  %s\n'        %self.testname
+		dp      = DisplayParams( self )
+		dp.add_header( self._class_str )
+		dp.add( 'testname' )
+		dp.add( 'STAT' )
 		if self.isanova:
-			s   += '   SPM.effect_label     :  %s\n'        %self.effect_label
-			s   += '   SPM.ms               :  %s\n'        %tuple2str(self.ms, '%.3f')
-			s   += '   SPM.ss               :  %s\n'        %tuple2str(self.ss, '%.3f')
-		s       += '   SPM.z                :  %.5f\n'      %self.z
-		s       += '   SPM.df               :  %s\n'        %dflist2str(self.df)
+			dp.add( 'effect_label' )
+			dp.add( 'ss' , tuple2str )
+			dp.add( 'ms' , tuple2str )
+		dp.add( 'z', fmt='%.5f' )
 		if self.isregress:
-			s   += '   SPM.r                :  %.5f\n'      %self.r
-		# s       += '\n'
-		return s
-
-
-	def _build_spmi(self, results, alpha, dirn=0, df_adjusted=None):
-		from . _spm0di import SPM0Di
-		spmi             = deepcopy( self )
-		spmi.__class__   = SPM0Di
-		spmi.df_adjusted = df_adjusted
-		spmi.method      = results.method
-		spmi.alpha       = alpha
-		spmi.zc          = results.zc
-		spmi.p           = results.p
-		if self.STAT=='T':
-			spmi.dirn     = dirn
-			# spmi.dirn   = parser.kwargs['dirn']
-		if results.method=='perm':
-			spmi.nperm    = results.nperm
-			spmi.permuter = results.permuter
-		return spmi
+			dp.add('r', fmt='%.5f')
+		dp.add( 'df', fmt=dflist2str )
+		return dp.asstr()
 		
+	# def _build_spmi(self, results, alpha, dirn=0, df_adjusted=None):
+	# 	from . _spm0di import SPM0Di
+	# 	spmi             = deepcopy( self )
+	# 	spmi.__class__   = SPM0Di
+	# 	spmi.df_adjusted = df_adjusted
+	# 	spmi.method      = results.method
+	# 	spmi.alpha       = alpha
+	# 	spmi.zc          = results.zc
+	# 	spmi.p           = results.p
+	# 	if self.STAT=='T':
+	# 		spmi.dirn     = dirn
+	# 		# spmi.dirn   = parser.kwargs['dirn']
+	# 	if results.method=='perm':
+	# 		spmi.nperm    = results.nperm
+	# 		spmi.permuter = results.permuter
+	# 	return spmi
+		
+	
+	def _build_spmi(self, results, df_adjusted=None):
+		from . _spm0di import SPM0Di
+		# spmi             = deepcopy( self )
+		# spmi.__class__   = SPM0Di
+		spmi             = SPM0Di(self, results, df_adjusted)
+		# if results.method=='perm':
+		# 	spmi.nperm    = results.nperm
+		# 	spmi.permuter = results.permuter
+		return spmi
 
 	def _adjust_df(self):
 		
@@ -100,26 +125,11 @@ class SPM0D(_SPMParent):
 		dfa = self.df
 		# if not equal_var:
 		# 	dfa = self._adjust_df()
-		
-		
-		# ### heteroscedacity correction:
-		# if not equal_var:
-		# 	from .. import _reml
-		# 	yA,yB            = self._args
-		# 	y                = np.hstack([yA,yB]) if (self.dim==0) else np.vstack([yA,yB])
-		# 	JA,JB            = yA.shape[0], yB.shape[0]
-		# 	J                = JA + JB
-		# 	q0,q1            = np.eye(JA), np.eye(JB)
-		# 	Q0,Q1            = np.matrix(np.zeros((J,J))), np.matrix(np.zeros((J,J)))
-		# 	Q0[:JA,:JA]      = q0
-		# 	Q1[JA:,JA:]      = q1
-		# 	Q                = [Q0, Q1]
-		# 	df               = _reml.estimate_df_T(y, self.X, self.residuals, Q)
-		# 	dfa              = (1, df)
+
 		
 		
 		results  = prob.param(self.STAT, self.z, dfa, alpha=alpha, dirn=dirn)
-		return self._build_spmi(results, alpha, dirn=dirn, df_adjusted=dfa)
+		return self._build_spmi(results, df_adjusted=dfa)
 	
 
 	def _inference_perm(self, alpha, nperm=10000, dirn=0):
@@ -128,7 +138,7 @@ class SPM0D(_SPMParent):
 		
 		
 		results = prob.perm(self.STAT, self.z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dirn=dirn)
-		return self._build_spmi(results, alpha, dirn=dirn)
+		return self._build_spmi(results)
 	
 	
 	def _repr_summ(self):

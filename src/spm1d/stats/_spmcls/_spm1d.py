@@ -70,6 +70,27 @@ class SPM1D(_SPMParent):
 		return '{:<5} z = {:<18} df = {}\n'.format(self.effect_label_s,  self._repr_teststat_short(), dflist2str(self.df))
 
 
+	# def _build_spmi(self, results, alpha, dirn=0, df_adjusted=None):
+	# 	from . _spm1di import SPM1Di
+	# 	spmi             = SPM1Di( self, results.method, alpha, results.zc, results.p, df_adjusted, dirn )
+	#
+	# 	spmi             = deepcopy( self )
+	# 	spmi.__class__   = SPM1Di
+	# 	spmi.df_adjusted = df_adjusted
+	# 	spmi.method      = results.method
+	# 	spmi.alpha       = alpha
+	# 	spmi.zc          = results.zc
+	# 	spmi.p_set       = results.p_set
+	# 	spmi.p_max       = results.p_max
+	# 	spmi.clusters    = results.clusters
+	# 	if self.STAT=='T':
+	# 		spmi.dirn     = dirn
+	# 		# spmi.dirn   = parser.kwargs['dirn']
+	# 	if results.method=='perm':
+	# 		spmi.nperm    = results.nperm
+	# 		spmi.permuter = results.permuter
+	# 	return spmi
+
 	def _build_spmi(self, results, alpha, dirn=0, df_adjusted=None):
 		from . _spm1di import SPM1Di
 		spmi             = deepcopy( self )

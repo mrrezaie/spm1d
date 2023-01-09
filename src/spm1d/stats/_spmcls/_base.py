@@ -16,8 +16,7 @@ import numpy as np
 from ... cfg import SPM1DDeprecationWarning
 
 
-class _SPMParent(object):
-	'''Parent class SPM classes.'''
+class _SPM(object):
 	dim            = 0
 	isinference    = False
 	isinlist       = False
@@ -25,7 +24,7 @@ class _SPMParent(object):
 	testname       = None
 	effect_label   = None    # only for ANOVA-like designs
 	effect_label_s = None    # only for ANOVA-like designs
-	
+
 	@property
 	def _class_str(self):
 		ss     = 'n' if (self.isinference and not self.isparametric) else ''
@@ -45,12 +44,19 @@ class _SPMParent(object):
 		return self.testname == 'regress'
 	@property
 	def ismultigroup(self):
-		return self.testname in ['ttest2', 'anova1']
+		h = self.testname in ['ttest2', 'anova1']
+		if not h:
+			h = self.testname.startswith( ('anova2', 'anova3') )
+		return h
+
+
+
+class _SPMParent(_SPM):
+	'''Parent class SPM classes.'''
 	
 	def _set_anova_attrs(self, ss=None, ms=None):
 		self.ss   = tuple( np.asarray(ss, dtype=float) )
 		self.ms   = tuple( np.asarray(ms, dtype=float) )
-	
 	
 	def _set_data(self, *args):
 		self._args = args
@@ -77,8 +83,8 @@ class _SPMParent(object):
 
 
 
-class _SPMiParent(object):
-	'''Additional properties for inference SPM classes.'''
+class _SPMiParent(_SPM):
+	'''Properties for inference SPM classes.'''
 	
 	isinference = True
 	method      = None         # inference method
@@ -92,14 +98,14 @@ class _SPMiParent(object):
 		s     = '0 (two-tailed)' if self.dirn==0 else f'{self.dirn} (one-tailed)'
 		return s
 		
-	@property
-	def _zcstr(self):
-		if isinstance(self.zc, float):
-			s  = f'{self.zc:.3f}'
-		else:
-			z0,z1 = self.zc
-			s  = f'{z0:.3f}, {z1:.3f}'
-		return s
+	# @property
+	# def _zcstr(self):
+	# 	if isinstance(self.zc, float):
+	# 		s  = f'{self.zc:.3f}'
+	# 	else:
+	# 		z0,z1 = self.zc
+	# 		s  = f'{z0:.3f}, {z1:.3f}'
+	# 	return s
 
 	@property
 	def isparametric(self):
@@ -109,13 +115,13 @@ class _SPMiParent(object):
 	def eqvar_assumed(self):
 		return self.df_adjusted is None
 
-	@property
-	def nperm_actual(self):
-		return self.nperm
-
-	@property
-	def nperm_possible(self):
-		return self.permuter.nPermTotal
+	# @property
+	# def nperm_actual(self):
+	# 	return self.nperm
+	#
+	# @property
+	# def nperm_possible(self):
+	# 	return self.permuter.nPermTotal
 	
 	@property
 	def two_tailed(self):

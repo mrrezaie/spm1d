@@ -8,10 +8,14 @@ import rft1d
 
 
 class ParamResults(object):
-	def __init__(self, zc, p):
+	def __init__(self, alpha, dirn, zc, p):
 		self.method   = 'param'
-		self.zc = zc
-		self.p  = p
+		self.alpha    = alpha
+		self.dirn     = dirn
+		self.zc       = zc
+		self.p        = p
+		self.extras   = {}
+		
 
 def isf_sf_t(z, df, alpha=0.05, dirn=0):
 	# critical value:
@@ -30,10 +34,10 @@ def isf_sf_t(z, df, alpha=0.05, dirn=0):
 # 	return zc,p
 
 
-def param(stat, z, df, alpha=0.05, **kwargs):
+def param(stat, z, df, alpha=0.05, dirn=None):
 	if stat=='T':
 		v    = df[1] if isinstance(df, (list,tuple,np.ndarray)) else df
-		zc,p = isf_sf_t(z, v, alpha, **kwargs)
+		zc,p = isf_sf_t(z, v, alpha, dirn=dirn)
 	elif stat=='F':
 		zc   = rft1d.f.isf0d( alpha, df )
 		p    = rft1d.f.sf0d( z, df )
@@ -46,7 +50,7 @@ def param(stat, z, df, alpha=0.05, **kwargs):
 		p    = rft1d.chi2.sf0d( z, v )
 	else:
 		raise ValueError( f'Unknown statistic: {stat}. Must be one of: ["T", "F", "T2", "X2"]' )
-	results = ParamResults( zc, p )
+	results = ParamResults( alpha, dirn, zc, p )
 	return results
 
 

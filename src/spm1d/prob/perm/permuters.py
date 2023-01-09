@@ -19,6 +19,9 @@ class _Permuter(object):
 	alpha            = None
 	dirn             = None
 	
+	def __repr__(self):
+		return self.__class__.__name__
+	
 	@property
 	def nperm_actual(self):
 		return self.Z.size
