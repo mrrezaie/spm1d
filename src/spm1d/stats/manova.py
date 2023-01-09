@@ -128,7 +128,8 @@ def manova1(Y, A, equal_var=True, roi=None):
 		fwhm        = _mvbase._fwhm(R)
 		resels      = _mvbase._resel_counts(R, fwhm, roi=roi)
 		df          = nComponents*( nGroups-1 )
-		return _spm.SPM_X2(X2, (1,df), fwhm, resels, None, None, R, roi=roi)
+		spm    = SPM1D('X2', X2, (1,df), beta=None, residuals=R, sigma2=None, X=X, fwhm=fwhm, resels=resels, roi=roi)
+		# return _spm.SPM_X2(X2, (1,df), fwhm, resels, None, None, R, roi=roi)
 	spm._set_testname( 'manova1' )
 	spm._set_data( Y, A )
 	return spm

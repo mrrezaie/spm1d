@@ -123,13 +123,14 @@ def cca(Y, x, roi=None):
 		# return _spm.SPM0D_X2(X2, df)
 		spm = SPM0D('X2', X2, df, beta=None, residuals=None, sigma2=None, X=X)
 	else:
-		X2         = np.array([_cca_single_node_efficient(Y[:,q,:], x, Rz, XXXiX)   for q in range(Y.shape[1])])
-		X2         = X2 if roi is None else np.ma.masked_array(X2, np.logical_not(roi))
-		R          = _mvbase._get_residuals_regression(Y, x)
-		fwhm       = _mvbase._fwhm(R)
-		resels     = _mvbase._resel_counts(R, fwhm, roi=roi)
-		df         = 1, Y.shape[2]
-		return _spm.SPM_X2(X2, df, fwhm, resels, None, None, R, roi=roi)
+		X2     = np.array([_cca_single_node_efficient(Y[:,q,:], x, Rz, XXXiX)   for q in range(Y.shape[1])])
+		X2     = X2 if roi is None else np.ma.masked_array(X2, np.logical_not(roi))
+		R      = _mvbase._get_residuals_regression(Y, x)
+		fwhm   = _mvbase._fwhm(R)
+		resels = _mvbase._resel_counts(R, fwhm, roi=roi)
+		df     = 1, Y.shape[2]
+		spm    = SPM1D('X2', X2, df, beta=None, residuals=R, sigma2=None, X=X, fwhm=fwhm, resels=resels, roi=roi)
+		# return _spm.SPM_X2(X2, df, fwhm, resels, None, None, R, roi=roi)
 	spm._set_testname( 'cca' )
 	spm._set_data( Y, x )
 	return spm

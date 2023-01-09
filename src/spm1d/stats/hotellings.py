@@ -59,11 +59,12 @@ def hotellings(Y, mu=None, roi=None):
 		T2            = np.array([_T2_onesample_singlenode(Y[:,i,:])   for i in range(nNodes)])
 		T2            = T2 if roi is None else np.ma.masked_array(T2, np.logical_not(roi))
 		R             = _mvbase._get_residuals_onesample(Y)
-		W             = _mvbase._fwhm(R)
-		rCounts       = _mvbase._resel_counts(R, W, roi=roi)
+		fwhm          = _mvbase._fwhm(R)
+		resels        = _mvbase._resel_counts(R, fwhm, roi=roi)
 		m,p           = float(nResponses)-1, float(nVectDim)
 		v1,v2         = p, m
-		return _spm.SPM_T2(T2, (v1, v2), W, rCounts, None, None, R, roi=roi)
+		spm    = SPM1D('T2', T2, (v1,v2), beta=None, residuals=R, sigma2=None, X=None, fwhm=fwhm, resels=resels, roi=roi)
+		# return _spm.SPM_T2(T2, (v1, v2), W, rCounts, None, None, R, roi=roi)
 	spm._set_testname( 'hotellings' )
 	spm._set_data( Y, mu )
 	return spm
@@ -121,11 +122,12 @@ def hotellings2(YA, YB, equal_var=True, roi=None):
 		T2            = np.array([_T2_twosample_singlenode(YA[:,i,:], YB[:,i,:])   for i in range(QA)])
 		T2            = T2 if roi is None else np.ma.masked_array(T2, np.logical_not(roi))
 		R             = _mvbase._get_residuals_twosample(YA, YB)
-		W             = _mvbase._fwhm(R)
-		rCounts       = _mvbase._resel_counts(R, W, roi=roi)
+		fwhm          = _mvbase._fwhm(R)
+		resels        = _mvbase._resel_counts(R, fwhm, roi=roi)
 		# v1,v2         = float(IA), float(JA+JB-IA-1)  ###incorrect;  these are F df, not T2 df
 		v1,v2         = float(IA), float(JA+JB-2)
-		return _spm.SPM_T2(T2, (v1, v2), W, rCounts, None, None, R, roi=roi)
+		spm    = SPM1D('T2', T2, (v1,v2), beta=None, residuals=R, sigma2=None, X=None, fwhm=fwhm, resels=resels, roi=roi)
+		# return _spm.SPM_T2(T2, (v1, v2), W, rCounts, None, None, R, roi=roi)
 	spm._set_testname( 'hotellings2' )
 	spm._set_data( YA, YB )
 	return spm
