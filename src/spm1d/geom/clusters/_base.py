@@ -9,7 +9,7 @@ Clusters base class module
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 from copy import deepcopy
-from ... util import tuple2str, p2string
+from ... util import tuple2str, p2string, float2string
 
 
 class _Cluster(metaclass=ABCMeta):
@@ -109,8 +109,8 @@ class _WithInference(object):
 	def __repr__(self):
 		s   = super().__repr__()
 		s  += 'Inference:\n'
-		s  += '   metric              :  %.5f\n' %self.metric
-		s  += '   p                   :  %s\n'   %p2string(self.p)
+		s  += '   metric              :  %s\n'   %float2string(self.metric, allow_none=True, fmt='%.5f')
+		s  += '   p                   :  %s\n'   %p2string(self.p, allow_none=True, fmt='%.5f')
 		return s
 	
 	# def set_inference_params(self, extent_resels, p, **kwargs):

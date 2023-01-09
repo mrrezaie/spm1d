@@ -16,7 +16,8 @@ from . _spm1d import SPM1D
 from ... util import array2shortstr, arraytuple2str, dflist2str, largeint2str, resels2str, p2string, plist2string, DisplayParams
 from ... cfg import SPM1DDeprecationWarning
 
-p2string_none  = lambda x: p2string(x, allow_none=True, fmt='%.3f')
+p2string_none     = lambda x: p2string(x, allow_none=True, fmt='%.3f')
+plist2string_none = lambda x: plist2string(x, allow_none=True, fmt='%.3f')
 
 
 class SPM1Di(_SPMiParent, SPM1D):
@@ -96,9 +97,9 @@ class SPM1Di(_SPMiParent, SPM1D):
 		dp.add( 'dirn' )
 		dp.add( 'zc', fmt='%.5f' )
 		dp.add( 'h0reject' )
-		dp.add( 'p_max', p2string )
+		dp.add( 'p_max', p2string_none )
 		dp.add( 'p_set', p2string_none )
-		dp.add( 'p_cluster', plist2string )
+		dp.add( 'p_cluster', plist2string_none )
 		if len( self.extras ) > 0:
 			dp.add_header( 'extras:' )
 			for k,v in self.extras.items():

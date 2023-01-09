@@ -27,6 +27,10 @@ def largeint2str(x, mx=1e9):
 	
 
 
+def float2string(x, allow_none=False, fmt='%.3f'):
+	return 'None' if (allow_none and (x is None)) else fmt%x
+
+
 def p2string(p, allow_none=False, fmt='%.3f'):
 	if allow_none and (p is None):
 		s = 'None'
@@ -35,8 +39,8 @@ def p2string(p, allow_none=False, fmt='%.3f'):
 	return s
 
 
-def plist2string(plist):
-	return '[' + ', '.join( [p2string(p) for p in plist] ) + ']'
+def plist2string(plist, allow_none=False, fmt='%.3f'):
+	return '[' + ', '.join( [p2string(p, allow_none=allow_none, fmt=fmt) for p in plist] ) + ']'
 
 
 def plist2stringlist(plist):

@@ -145,6 +145,8 @@ class SPM1D(_SPMParent):
 			#
 			# spmi = self.inference_perm(alpha, **parser.kwargs)
 		
+		elif method == 'fdr':
+			results = prob.fdr(self.STAT, self.z, self.df, alpha=alpha, **kwargs)
 		
 		# spmi       = self._build_spmi(alpha, zstar, clusters, p_set, two_tailed)    #assemble SPMi object
 		# return spmi
