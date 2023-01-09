@@ -13,12 +13,12 @@ This module contains class definitions for inference SPMs.
 import warnings
 from . _base import _SPMiParent
 from . _spm1d import SPM1D
-from ... util import array2shortstr, arraytuple2str, dflist2str, largeint2str, resels2str, p2string, plist2string, DisplayParams
+from ... util import array2shortstr, arraytuple2str, dflist2str, float2string, largeint2str, resels2str, p2string, plist2string, DisplayParams
 from ... cfg import SPM1DDeprecationWarning
 
 p2string_none     = lambda x: p2string(x, allow_none=True, fmt='%.3f')
 plist2string_none = lambda x: plist2string(x, allow_none=True, fmt='%.3f')
-
+float2string_none = lambda x: float2string(x, allow_none=True, fmt='%.5f')
 
 class SPM1Di(_SPMiParent, SPM1D):
 	
@@ -95,7 +95,7 @@ class SPM1Di(_SPMiParent, SPM1D):
 		dp.add( 'isparametric' )
 		dp.add( 'alpha' )
 		dp.add( 'dirn' )
-		dp.add( 'zc', fmt='%.5f' )
+		dp.add( 'zc', float2string_none )
 		dp.add( 'h0reject' )
 		dp.add( 'p_max', p2string_none )
 		dp.add( 'p_set', p2string_none )
@@ -125,6 +125,8 @@ class SPM1Di(_SPMiParent, SPM1D):
 	@property
 	def h0reject(self):
 		zc       = self.zc
+		if zc is None:
+			return False
 		if self.dirn in (None,1):
 			h       = self.z.max() > zc
 		elif self.dirn==0:

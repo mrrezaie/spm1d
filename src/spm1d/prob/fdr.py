@@ -6,7 +6,7 @@ False discover rate (FDR) probabilities
 from copy import deepcopy
 import numpy as np
 import rft1d
-from .. geom import assemble_clusters
+from .. geom import assemble_clusters, ClusterList
 eps    = np.finfo(float).eps  #smallest floating number greater than zero
 
 
@@ -35,48 +35,50 @@ class FDRResults(object):
 
 
 
+def p_uncorrected(STAT, z, df):
+	if STAT=='T':
+		p     = rft1d.t.sf0d(z, df[1])
+	elif STAT=='F':
+		p     = rft1d.f.sf0d(z, df)
+	elif STAT=='T2':
+		p     = rft1d.T2.sf0d(z, df)
+	elif STAT=='X2':
+		p     = rft1d.chi2.sf0d(z, df[1])
+	return p
 
 
-def fdr(STAT, z, df, alpha=0.05, dirn=1, circular=False, method='indep'):
+
+def fdr(STAT, z, df, alpha=0.05, dirn=1, circular=False, approach='bh'):
 	'''
 	Assumes that z-values and p-values are NOT sorted
 	
 	Modified from fdr1d.py:
 	https://github.com/0todd0000/fdr1d
 	
-	Corrected p-values are calculated following statsmodels.stats.multitest.fdrcorrection
-	The "method" and "pc" parts of the code below are the only parts modifed from 
+	Corrected p-values follow statsmodels.stats.multitest.fdrcorrection
+	The "method" and "pc" parts of the code below are modifed from 
 	statsmodels. The statsmodels source code is copied below under "statsmodels_fdrcorrection"
 	'''
 	if (STAT=='T') and (dirn==0):
-		_z,a  = np.abs(z), a
+		_z,a  = np.abs(z), 0.5 * alpha
 	else:
 		_z,a  = z, alpha
 	
 	Q         = z.size
-	# za        = np.abs(z)
 	
-	# uncorrected p values:
-	if STAT=='T':
-		p     = rft1d.t.sf0d(_z, df[1])
-	elif STAT=='F':
-		p     = rft1d.f.sf0d(_z, df)
-	elif STAT=='T2':
-		p     = rft1d.T2.sf0d(_z, df)
-	elif STAT=='X2':
-		p     = rft1d.chi2.sf0d(_z, df[1])
 		
 	# sort p values:
-	pu_       = p   # uncorrected p-values
-	i         = np.argsort(p)
-	psorted   = p[i]
+	pu        = p_uncorrected(STAT, _z, df)   # uncorrected p-values
+	pu        = (1-pu) if (dirn==-1) else pu
+	ind       = np.argsort(pu)
+	psorted   = pu[ind]
 	
 	# empirical CDF
 	ec        = (np.arange(Q) + 1) / float(Q)
-	if method=='indep':  # Benjamini/Hochberg for independent or positively correlated tests
+	if approach=='bh':  # Benjamini/Hochberg for independent or positively correlated tests
 		pass
-	elif method=='negcorr':  # Benjamini/Yekutieli for general or negatively correlated tests;  modified from statsmodels.stats.multitest.fdrcorrection
-		cm    = np.sum( 1. / np.arange(1, n+1) )
+	elif approach=='by':  # Benjamini/Yekutieli for general or negatively correlated tests;  modified from statsmodels.stats.multitest.fdrcorrection
+		cm    = np.sum( 1. / np.arange(1, Q+1) )
 		ec    = ec / cm
 	
 	# test statistic threshold
@@ -84,7 +86,7 @@ def fdr(STAT, z, df, alpha=0.05, dirn=1, circular=False, method='indep'):
 	b         = psorted < psortedth
 	if np.any(b):
 		ii    = np.argwhere(b).ravel()[-1]
-		zc    = _z[i][ii] + eps
+		zc    = _z[ind][ii] + eps
 	else:
 		zc    = None
 
@@ -93,16 +95,17 @@ def fdr(STAT, z, df, alpha=0.05, dirn=1, circular=False, method='indep'):
 	pc        = np.minimum.accumulate(  pc[::-1]  )[::-1]
 	pc[pc>1]  = 1
 	pc_       = np.empty_like(pc)
-	pc_[i]    = pc
-	
+	pc_[ind]  = pc
 	
 	# assemble clusters:
-	clusters  = assemble_clusters(z, zc, dirn=dirn, circular=circular)
-	for i,c in enumerate( clusters ):
-		clusters[i] = c.as_inference_cluster(None, None)
+	if zc is None:
+		clusters = ClusterList([])
+	else:
+		clusters  = assemble_clusters(z, zc, dirn=dirn, circular=circular)
+		for i,c in enumerate( clusters ):
+			clusters[i] = c.as_inference_cluster(None, None)
 
-
-	results   = FDRResults( alpha, dirn, zc, clusters, pu_, pc_ )
+	results   = FDRResults( alpha, dirn, zc, clusters, pu, pc_ )
 	return results
 
 
