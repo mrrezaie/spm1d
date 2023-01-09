@@ -8,7 +8,7 @@ Utility functions
 
 from . prob import p_corrected_bonf, p_critical_bonf
 from . proc import interp, smooth
-from . str import df2str, dflist2str, p2string, plist2string, plist2stringlist, tuple2str
+from . str import *
 from . rpr import DisplayParams
 
 

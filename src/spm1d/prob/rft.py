@@ -11,12 +11,15 @@ from .. geom import assemble_clusters
 
 
 class RFTResults(object):
-	def __init__(self, zc, clusters, p_set, p_max):
+	def __init__(self, alpha, dirn, zc, clusters, p_set, p_max):
 		self.method   = 'rft'
+		self.alpha    = alpha
+		self.dirn     = dirn
 		self.zc       = zc
 		self.clusters = clusters
 		self.p_set    = p_set
 		self.p_max    = p_max
+		self.extras   = {}
 
 
 def _clusterlevel_inference(calc, z, zc, fwhm, dirn=1, circular=False):
@@ -74,7 +77,7 @@ def rft(STAT, z, df, fwhm, resels, alpha=0.05, cluster_size=0, circular=False, w
 	clusters = _clusterlevel_inference(calc, z, zc, fwhm, dirn=dirn, circular=circular)
 	p_set    = _setlevel_inference(calc, zc, clusters)
 	p_max    = _pmax(calc, z, dirn)
-	results  = RFTResults( zc, clusters, p_set, p_max )
+	results  = RFTResults( alpha, dirn, zc, clusters, p_set, p_max )
 	return results
 	
 

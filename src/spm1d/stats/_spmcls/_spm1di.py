@@ -13,31 +13,101 @@ This module contains class definitions for inference SPMs.
 import warnings
 from . _base import _SPMiParent
 from . _spm1d import SPM1D
-from ... util import dflist2str, p2string, plist2string
+from ... util import array2shortstr, arraytuple2str, dflist2str, largeint2str, resels2str, p2string, plist2string, DisplayParams
 from ... cfg import SPM1DDeprecationWarning
+
+p2string_none  = lambda x: p2string(x, allow_none=True, fmt='%.3f')
 
 
 class SPM1Di(_SPMiParent, SPM1D):
 	
 	isinference = True
 
-	def __repr__(self):
-		s        = super().__repr__()
-		s       += 'Inference:\n'
-		s       += '   SPM.method          :  %s\n'       %self.method
-		s       += '   SPM.isparametric    :  %s\n'       %self.isparametric
-		if not self.isparametric:
-			s   += '   SPM.nperm_possible  :  %d\n'       %self.nperm_possible
-			s   += '   SPM.nperm_actual    :  %d\n'       %self.nperm_actual
-		s       += '   SPM.alpha           :  %.3f\n'     %self.alpha
-		s       += '   SPM.zc              :  %s\n'       %self._zcstr
-		s       += '   SPM.h0reject        :  %s\n'       %self.h0reject
-		s       += '   SPM.p_max           :  %s\n'       %p2string(self.p_max)
-		s       += '   SPM.p_set           :  %s\n'       %p2string(self.p_set, allow_none=True)
-		s       += '   SPM.p_cluster       :  (%s)\n'     %plist2string(self.p_cluster)
-		s       += '   SPM.clusters        :  %s\n'       %self.clusters.asshortstr()
-		return s
+
+	def __init__(self, spm, results, df_adjusted):
+		self.STAT            = spm.STAT
+		self.testname        = spm.testname
+		self.X               = spm.X
+		self.beta            = spm.beta             # fitted parameters
+		self.residuals       = spm.residuals        # model residuals
+		self.sigma2          = spm.sigma2           # variance
+		self.z               = spm.z                # test statistic value
+		self.df              = spm.df               # degrees of freedom
+		self.fwhm            = spm.fwhm
+		self.resels          = spm.resels
+		self.roi             = spm.roi
+		if self.isregress:
+			self.r              = spm.r
+		if self.isanova:
+			self.effect_label   = spm.effect_label
+			self.effect_label_s = spm.effect_label_s
+			self.ss             = spm.ss
+			self.ms             = spm.ms
+		# inference results:
+		self.method          = results.method
+		self.alpha           = results.alpha
+		self.zc              = results.zc
+		self.p_max           = results.p_max
+		self.p_set           = results.p_set
+		self.clusters        = results.clusters
+		self.dirn            = results.dirn
+		self._add_extras( results.extras )
+		self.df_adjusted     = df_adjusted
+
+		
+	# def __repr__(self):
+	# 	s        = super().__repr__()
+	# 	s       += 'Inference:\n'
+	# 	s       += '   SPM.method          :  %s\n'       %self.method
+	# 	s       += '   SPM.isparametric    :  %s\n'       %self.isparametric
+	# 	if not self.isparametric:
+	# 		s   += '   SPM.nperm_possible  :  %d\n'       %self.nperm_possible
+	# 		s   += '   SPM.nperm_actual    :  %d\n'       %self.nperm_actual
+	# 	s       += '   SPM.alpha           :  %.3f\n'     %self.alpha
+	# 	s       += '   SPM.zc              :  %s\n'       %self._zcstr
+	# 	s       += '   SPM.h0reject        :  %s\n'       %self.h0reject
+	# 	s       += '   SPM.p_max           :  %s\n'       %p2string(self.p_max)
+	# 	s       += '   SPM.p_set           :  %s\n'       %p2string(self.p_set, allow_none=True)
+	# 	s       += '   SPM.p_cluster       :  (%s)\n'     %plist2string(self.p_cluster)
+	# 	s       += '   SPM.clusters        :  %s\n'       %self.clusters.asshortstr()
+	# 	return s
 	
+	
+	def __repr__(self):
+		dp      = DisplayParams( self )
+		dp.add_header( self._class_str )
+		dp.add( 'testname' )
+		dp.add( 'STAT' )
+		if self.isanova:
+			dp.add( 'effect_label' )
+			dp.add( 'ss' , arraytuple2str )
+			dp.add( 'ms' , arraytuple2str )
+		dp.add( 'z', fmt=array2shortstr )
+		if self.isregress:
+			dp.add('r', fmt=array2shortstr )
+		dp.add( 'df', fmt=dflist2str )
+		dp.add( 'fwhm', fmt='%.3f' )
+		dp.add( 'resels', fmt=resels2str )
+		
+		dp.add_header( 'Inference:' )
+		dp.add( 'method' )
+		dp.add( 'isparametric' )
+		dp.add( 'alpha' )
+		dp.add( 'dirn' )
+		dp.add( 'zc', fmt='%.5f' )
+		dp.add( 'h0reject' )
+		dp.add( 'p_max', p2string )
+		dp.add( 'p_set', p2string_none )
+		dp.add( 'p_cluster', plist2string )
+		if len( self.extras ) > 0:
+			dp.add_header( 'extras:' )
+			for k,v in self.extras.items():
+				if k=='nperm_possible':
+					dp.add(k, largeint2str)
+				else:
+					dp.add(k)
+		return dp.asstr()
+		
 	# @property
 	# def h0reject(self):
 	# 	zc       = self.zc

@@ -6,14 +6,15 @@ from . probcalc1d import ProbCalc1DSingleStat, ProbCalc1DMultiStat
 
 
 class PermResults1D(object):
-	def __init__(self, zc, clusters, p_max, p_set, permuter, nperm):
+	def __init__(self, alpha, dirn, zc, clusters, p_max, p_set, permuter, nperm):
 		self.method   = 'perm'
+		self.alpha    = alpha
+		self.dirn     = dirn
 		self.zc       = zc
-		self.clusters = clusters
-		self.p_set    = p_set
 		self.p_max    = p_max
-		self.permuter = permuter
-		self.nperm    = nperm
+		self.p_set    = p_set
+		self.clusters = clusters
+		self.extras   = dict(permuter=permuter, nperm_possible=permuter.nPermTotal, nperm_actual=nperm)
 
 	def __repr__(self):
 		s  = 'PermResults1D\n'
@@ -51,7 +52,7 @@ def inference1d(stat, z, alpha=0.05, dirn=0, testname=None, args=None, nperm=100
 	p_max    = probcalc.get_p_max()
 	
 	
-	results  = PermResults1D(zc, clusters, p_max, p_set, permuter, nperm)
+	results  = PermResults1D(alpha, dirn, zc, clusters, p_max, p_set, permuter, nperm)
 	return results
 
 
@@ -65,7 +66,7 @@ def inference1d_multi(stat, z, alpha=0.05, dirn=0, testname=None, args=None, npe
 	probcalc = ProbCalc1DMultiStat(stat, permuter, z, alpha, dirn)
 	zc       = probcalc.get_z_critical()
 
-
+	dirn     = None
 
 	if probcalc.anyh0rejected:
 		permuter.set_metric( cluster_metric )
@@ -85,7 +86,7 @@ def inference1d_multi(stat, z, alpha=0.05, dirn=0, testname=None, args=None, npe
 			p_set    = None
 		
 		p_max    = probcalc.get_p_max( i )
-		res      = PermResults1D(zzc, clusters, p_max, p_set, permuter, nperm)
+		res      = PermResults1D(alpha, dirn, zzc, clusters, p_max, p_set, permuter, nperm)
 		results.append( res )
 
 

@@ -11,7 +11,7 @@ from . _base import _SPMParent
 from ... import prob
 from ... plot import plot_spm, plot_spm_design
 from ... plot import plot_spmi, plot_spmi_p_values, plot_spmi_threshold_label
-from ... util import dflist2str
+from ... util import array2shortstr, arraytuple2str, dflist2str, resels2str, DisplayParams
 
 
 
@@ -32,19 +32,22 @@ class SPM1D(_SPMParent):
 		self.roi            = roi              # region of interest
 
 	def __repr__(self):
-		s        = f'{self._class_str}\n'
+		dp      = DisplayParams( self )
+		dp.add_header( self._class_str )
+		dp.add( 'testname' )
+		dp.add( 'STAT' )
 		if self.isanova:
-			s   += '   SPM.effect_label :  %s\n'       %self.effect_label
-			# s   += '   SPM.ms               :  %s\n'        %tuple2str(self.ms, '%.3f')
-			# s   += '   SPM.ss               :  %s\n'        %tuple2str(self.ss, '%.3f')
-			
-		s       += '   SPM.z      :  %s\n'             %self._repr_teststat()
+			dp.add( 'effect_label' )
+			dp.add( 'ss' , arraytuple2str )
+			dp.add( 'ms' , arraytuple2str )
+		dp.add( 'z', fmt=array2shortstr )
 		if self.isregress:
-			s   += '   SPM.r      :  %s\n'             %self._repr_corrcoeff()
-		s       += '   SPM.df     :  %s\n'             %dflist2str(self.df)
-		s       += '   SPM.fwhm   :  %.5f\n'           %self.fwhm
-		s       += '   SPM.resels :  (%d, %.5f)\n'     %tuple(self.resels)
-		return s
+			dp.add('r', fmt=array2shortstr )
+		dp.add( 'df', fmt=dflist2str )
+		dp.add( 'fwhm', fmt='%.3f' )
+		dp.add( 'resels', fmt=resels2str )
+		return dp.asstr()
+
 	
 	@property
 	def R(self):
@@ -91,24 +94,35 @@ class SPM1D(_SPMParent):
 	# 		spmi.permuter = results.permuter
 	# 	return spmi
 
-	def _build_spmi(self, results, alpha, dirn=0, df_adjusted=None):
+
+	def _build_spmi(self, results, df_adjusted=None):
 		from . _spm1di import SPM1Di
-		spmi             = deepcopy( self )
-		spmi.__class__   = SPM1Di
-		spmi.df_adjusted = df_adjusted
-		spmi.method      = results.method
-		spmi.alpha       = alpha
-		spmi.zc          = results.zc
-		spmi.p_set       = results.p_set
-		spmi.p_max       = results.p_max
-		spmi.clusters    = results.clusters
-		if self.STAT=='T':
-			spmi.dirn     = dirn
-			# spmi.dirn   = parser.kwargs['dirn']
-		if results.method=='perm':
-			spmi.nperm    = results.nperm
-			spmi.permuter = results.permuter
+		# spmi             = deepcopy( self )
+		# spmi.__class__   = SPM0Di
+		spmi             = SPM1Di(self, results, df_adjusted)
+		# if results.method=='perm':
+		# 	spmi.nperm    = results.nperm
+		# 	spmi.permuter = results.permuter
 		return spmi
+
+	# def _build_spmi(self, results, alpha, dirn=0, df_adjusted=None):
+	# 	from . _spm1di import SPM1Di
+	# 	spmi             = deepcopy( self )
+	# 	spmi.__class__   = SPM1Di
+	# 	spmi.df_adjusted = df_adjusted
+	# 	spmi.method      = results.method
+	# 	spmi.alpha       = alpha
+	# 	spmi.zc          = results.zc
+	# 	spmi.p_set       = results.p_set
+	# 	spmi.p_max       = results.p_max
+	# 	spmi.clusters    = results.clusters
+	# 	if self.STAT=='T':
+	# 		spmi.dirn     = dirn
+	# 		# spmi.dirn   = parser.kwargs['dirn']
+	# 	if results.method=='perm':
+	# 		spmi.nperm    = results.nperm
+	# 		spmi.permuter = results.permuter
+	# 	return spmi
 
 
 	def inference(self, alpha, method='rft', **kwargs):
@@ -136,10 +150,10 @@ class SPM1D(_SPMParent):
 		# return spmi
 		
 		dfa = self.df
-		dirn = kwargs['dirn'] if 'dirn' in kwargs else None
+		# dirn = kwargs['dirn'] if 'dirn' in kwargs else None
 		
 		
-		spmi = self._build_spmi(results, alpha, dirn=dirn, df_adjusted=dfa)
+		spmi = self._build_spmi(results, df_adjusted=dfa)
 		return( spmi )
 		
 		

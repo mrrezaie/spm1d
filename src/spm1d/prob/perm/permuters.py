@@ -157,8 +157,8 @@ class _PermuterOneSample1D(_PermuterOneSample, _Permuter1D):
 		self.Z2         = None                      #secondary PDF:  cluster metric distribution
 		self.mu         = 0 if mu is None else mu   #datum
 		self.roi        = None                      #region(s) of interest
-		self.labels0    = np.array( [0]*self.N )    #original labels
-		self.nPermTotal = 2**self.N                 #total possible permutations
+		self.labels0    = np.array( [0]*self.J )    #original labels
+		self.nPermTotal = 2**self.J                 #total possible permutations
 		self.calc       = None                      #test statistic calculator (set by subclasses)
 		self._set_stat_calculator()
 		self._set_roi(roi)

@@ -133,7 +133,13 @@ class _SPMiParent(_SPM):
 		warnings.warn( msg , SPM1DDeprecationWarning , stacklevel=2 )
 		return self.zc
 
-		
+	
+	def _add_extras(self, extras):
+		self.extras = extras
+		for k,v in extras.items():
+			setattr(self, k, v)
+	
+	
 	# def _repr_summ(self):  # abstract method to be implemented by all subclasses
 	# 	pass
 

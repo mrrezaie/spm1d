@@ -13,7 +13,7 @@ This module contains class definitions for inference SPMs.
 import warnings
 from . _base import _SPMiParent #, _SPMF
 # from . _spm0d import SPM0D
-from ... util import tuple2str, dflist2str, p2string, DisplayParams
+from ... util import tuple2str, dflist2str, largeint2str, p2string, DisplayParams
 
 
 
@@ -24,29 +24,29 @@ class SPM0Di(_SPMiParent):
 	isinference   = True
 	
 	def __init__(self, spm, results, df_adjusted):
-		self.STAT           = spm.STAT
-		self.testname       = spm.testname
-		self.X              = spm.X
-		self.beta           = spm.beta             # fitted parameters
-		self.residuals      = spm.residuals        # model residuals
-		self.sigma2         = spm.sigma2           # variance
-		self.z              = spm.z                # test statistic value
-		self.df             = spm.df               # degrees of freedom
+		self.STAT            = spm.STAT
+		self.testname        = spm.testname
+		self.X               = spm.X
+		self.beta            = spm.beta             # fitted parameters
+		self.residuals       = spm.residuals        # model residuals
+		self.sigma2          = spm.sigma2           # variance
+		self.z               = spm.z                # test statistic value
+		self.df              = spm.df               # degrees of freedom
 		if self.isregress:
-			self.r          = spm.r
+			self.r              = spm.r
 		if self.isanova:
-			self.ss         = spm.ss
-			self.ms         = spm.ms
+			self.effect_label   = spm.effect_label
+			self.effect_label_s = spm.effect_label_s
+			self.ss             = spm.ss
+			self.ms             = spm.ms
 		# inference results:
-		self.method         = results.method
-		self.alpha          = results.alpha
-		self.zc             = results.zc
-		self.p              = results.p
-		self.dirn           = results.dirn
+		self.method          = results.method
+		self.alpha           = results.alpha
+		self.zc              = results.zc
+		self.p               = results.p
+		self.dirn            = results.dirn
 		self._add_extras( results.extras )
-		self.extras         = results.extras
-		# adjusted df:
-		self.df_adjusted    = df_adjusted
+		self.df_adjusted     = df_adjusted
 		
 		# if self.STAT=='T':
 		# 	self.dirn     = dirn
@@ -112,13 +112,16 @@ class SPM0Di(_SPMiParent):
 		if len( self.extras ) > 0:
 			dp.add_header( 'extras:' )
 			for k,v in self.extras.items():
-				dp.add(k)
+				if k=='nperm_possible':
+					dp.add(k, largeint2str)
+				else:
+					dp.add(k)
 		return dp.asstr()
 
 
-	def _add_extras(self, extras):
-		for k,v in extras.items():
-			setattr(self, k, v)
+	# def _add_extras(self, extras):
+	# 	for k,v in extras.items():
+	# 		setattr(self, k, v)
 	
 	@property
 	def h0reject(self):
