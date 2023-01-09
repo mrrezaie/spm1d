@@ -84,7 +84,7 @@ def _manova1_single_node_efficient(Y, GROUP, X, Xi, X0, X0i, nGroups):
 
 
 @appendSPMargs
-def manova1(Y, A, equal_var=True, roi=None):
+def manova1(Y, A, equal_var=True, roi=None, _eres_norm=False):
 	'''
 	Two-way repeated-measures ANOVA.
 	
@@ -119,16 +119,23 @@ def manova1(Y, A, equal_var=True, roi=None):
 		nComponents = Y.shape[1]
 		X2          = _manova1_single_node_efficient(Y, A, X, Xi, X0, X0i, nGroups)
 		df          = nComponents*( nGroups-1 )
+		R      = _mvbase._get_residuals_manova1_0d(Y, A, norm=True)
 		# return _spm.SPM0D_X2(X2, (1,df))
-		spm         = SPM0D('X2', X2, (1, df), beta=None, residuals=None, sigma2=None, X=None)
+		spm         = SPM0D('X2', X2, (1, df), beta=None, residuals=R, sigma2=None, X=None)
 	else:
 		nNodes      = Y.shape[1]
 		nComponents = Y.shape[2]
 		X2          = np.array([_manova1_single_node_efficient(Y[:,i,:], A, X, Xi, X0, X0i, nGroups)  for i in range(nNodes)])
 		X2          = X2 if roi is None else np.ma.masked_array(X2, np.logical_not(roi))
-		R           = _mvbase._get_residuals_manova1(Y, A)
-		fwhm        = _mvbase._fwhm(R)
-		resels      = _mvbase._resel_counts(R, fwhm, roi=roi)
+		if _eres_norm:
+			from .. geom import estimate_fwhm, resel_counts
+			R      = _mvbase._get_residuals_manova1(Y, A, norm=True)
+			fwhm   = estimate_fwhm(R)
+			resels = resel_counts(R, fwhm, element_based=False, roi=roi)
+		else:
+			R           = _mvbase._get_residuals_manova1(Y, A, norm=False)
+			fwhm        = _mvbase._fwhm(R)
+			resels      = _mvbase._resel_counts(R, fwhm, roi=roi)
 		df          = nComponents*( nGroups-1 )
 		spm    = SPM1D('X2', X2, (1,df), beta=None, residuals=R, sigma2=None, X=X, fwhm=fwhm, resels=resels, roi=roi)
 		# return _spm.SPM_X2(X2, (1,df), fwhm, resels, None, None, R, roi=roi)

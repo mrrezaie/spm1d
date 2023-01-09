@@ -22,18 +22,37 @@ def _fwhm(R):
 	return np.mean(W)
 
 	
-def _get_residuals_onesample(Y):
+def _get_residuals_onesample(Y, norm=True):
 	N = Y.shape[0]
 	m = Y.mean(axis=0)
 	R = Y - np.array([m]*N)
+	if norm:
+		R = np.linalg.norm(R, axis=2)
 	return R
 
-def _get_residuals_twosample(YA, YB):
-	RA = _get_residuals_onesample(YA)
-	RB = _get_residuals_onesample(YB)
-	return np.vstack((RA,RB))
+def _get_residuals_onesample_0d(Y, norm=True):
+	N = Y.shape[0]
+	m = Y.mean(axis=0)
+	R = Y - np.array([m]*N)
+	if norm:
+		R = np.linalg.norm(R, axis=1)
+	return R
 
-def _get_residuals_regression(y, x):
+def _get_residuals_twosample(YA, YB, norm=True):
+	RA = _get_residuals_onesample(YA, norm=norm)
+	RB = _get_residuals_onesample(YB, norm=norm)
+	R  = np.vstack( (RA,RB) )
+	return R
+
+
+def _get_residuals_twosample_0d(YA, YB, norm=True):
+	RA = _get_residuals_onesample_0d(YA, norm=norm)
+	RB = _get_residuals_onesample_0d(YB, norm=norm)
+	R  = np.hstack( (RA,RB) )
+	return R
+
+
+def _get_residuals_regression(y, x, norm=True):
 	J,Q,I      = y.shape  #nResponses, nNodes, nComponents
 	Z          = np.matrix(np.ones(J)).T
 	X          = np.hstack([np.matrix(x.T).T, Z])
@@ -45,14 +64,39 @@ def _get_residuals_regression(y, x):
 			b      = Xi*yy
 			eij    = yy - X*b
 			R[:,i,ii] = np.asarray(eij).flatten()
+	if norm:
+		R  = np.linalg.norm(R, axis=2)
 	return R
 
-def _get_residuals_manova1(Y, GROUP):
+def _get_residuals_regression_0d(y, x, norm=True):
+	J,I         = y.shape  #nResponses, nNodes, nComponents
+	Z           = np.matrix(np.ones(J)).T
+	X           = np.hstack([np.matrix(x.T).T, Z])
+	Xi          = np.linalg.pinv(X)
+	R           = np.zeros(y.shape)
+	for ii in range(I):
+		yy      = np.matrix(y[:,ii]).T
+		b       = Xi*yy
+		eij     = yy - X*b
+		R[:,ii] = np.asarray(eij).flatten()
+	if norm:
+		R  = np.linalg.norm(R, axis=1)
+	return R
+
+
+def _get_residuals_manova1(Y, GROUP, norm=True):
 	u  = np.unique(GROUP)
 	R  = []
 	for uu in u:
-		R.append(   _get_residuals_onesample(Y[GROUP==uu])   )
+		R.append(   _get_residuals_onesample(Y[GROUP==uu], norm=norm)   )
 	return np.vstack(R)
+
+def _get_residuals_manova1_0d(Y, GROUP, norm=True):
+	u  = np.unique(GROUP)
+	R  = []
+	for uu in u:
+		R.append(   _get_residuals_onesample_0d(Y[GROUP==uu], norm=norm)   )
+	return np.hstack(R)
 
 
 def _normalize_residuals(R):

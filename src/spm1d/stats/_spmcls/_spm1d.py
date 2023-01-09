@@ -159,7 +159,11 @@ class SPM1D(_SPMParent):
 		return( spmi )
 		
 		
-
+	def normality_test(self, alpha=0.05):
+		from .. normality.k2 import residuals
+		return residuals( self.residuals ).inference( alpha )
+		
+			
 		
 
 

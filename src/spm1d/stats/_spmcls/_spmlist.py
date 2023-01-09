@@ -170,7 +170,11 @@ class SPMFList(list):
 		
 
 
-		
+	def normality_test(self, alpha=0.05):
+		# residuals are identical for all F objects (same model)
+		# so normality test can be conducted on any of the F objects
+		return self[0].normality_test(alpha=alpha)
+	
 		
 		
 	def plot(self, plot_threshold_label=True, plot_p_values=True, autoset_ylim=True):
@@ -186,8 +190,8 @@ class SPMFList(list):
 		self.effect_labels   = [F.effect_label_s   for F in self]
 
 
-class SPMF1DList(list):
-	pass
+# class SPMiList(list):
+# 	pass
 
 
 class SPMFiList(SPMFList):

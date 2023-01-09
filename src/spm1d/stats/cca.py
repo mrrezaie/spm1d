@@ -12,6 +12,7 @@ from . import _mvbase #, _spm
 from . _spmcls import SPM0D, SPM1D
 
 
+
 ##########################################
 #    CANONICAL CORRELATION ANALYSIS
 ##########################################
@@ -98,7 +99,7 @@ def _cca_single_node_efficient(y, x, Rz, XXXiX):
 
 
 @appendSPMargs
-def cca(Y, x, roi=None):
+def cca(Y, x, roi=None, _eres_norm=True):
 	'''
 	Canonical correlation analysis (CCA).
 	
@@ -122,14 +123,21 @@ def cca(Y, x, roi=None):
 	if Y.ndim==2:
 		X2         = _cca_single_node_efficient(Y, x, Rz, XXXiX)
 		df         = 1, Y.shape[1]
+		R          = _mvbase._get_residuals_regression_0d(Y, x)
 		# return _spm.SPM0D_X2(X2, df)
-		spm = SPM0D('X2', X2, df, beta=None, residuals=None, sigma2=None, X=X)
+		spm = SPM0D('X2', X2, df, beta=None, residuals=R, sigma2=None, X=X)
 	else:
 		X2     = np.array([_cca_single_node_efficient(Y[:,q,:], x, Rz, XXXiX)   for q in range(Y.shape[1])])
 		X2     = X2 if roi is None else np.ma.masked_array(X2, np.logical_not(roi))
-		R      = _mvbase._get_residuals_regression(Y, x)
-		fwhm   = _mvbase._fwhm(R)
-		resels = _mvbase._resel_counts(R, fwhm, roi=roi)
+		if _eres_norm:
+			from .. geom import estimate_fwhm, resel_counts
+			R      = _mvbase._get_residuals_regression(Y, x, norm=True)
+			fwhm   = estimate_fwhm(R)
+			resels = resel_counts(R, fwhm, element_based=False, roi=roi)
+		else:
+			R      = _mvbase._get_residuals_regression(Y, x, norm=False)
+			fwhm   = _mvbase._fwhm(R)
+			resels = _mvbase._resel_counts(R, fwhm, roi=roi)
 		df     = 1, Y.shape[2]
 		spm    = SPM1D('X2', X2, df, beta=None, residuals=R, sigma2=None, X=X, fwhm=fwhm, resels=resels, roi=roi)
 	return spm

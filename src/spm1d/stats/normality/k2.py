@@ -11,7 +11,7 @@ on the residuals.
 
 from math import log
 import numpy as np
-from .. _spm import SPM0D_X2, SPM_X2
+# from .. _spm import SPM0D_X2, SPM_X2
 from .. t import regress as _main_regress
 from .. anova import anova1 as _main_anova1
 from .. anova import anova1rm as _main_anova1rm
@@ -127,13 +127,17 @@ def residuals(y):
 		raise( ValueError('In order to conduct a normality test there must at least 8 observations. Only %d found.' %J)   )
 	df     = 1, 2
 	if np.ndim(y)==1:
+		from .. _spmcls import SPM0D
 		k2     = k2_single_node(y)
-		spm    = SPM0D_X2(k2, df, residuals=y)
+		# spm    = SPM0D_X2(k2, df, residuals=y)
+		spm    = SPM0D('X2', k2, df, residuals=y)
 	else:
+		from .. _spmcls import SPM1D
 		k2     = np.array( [k2_single_node(yy)   for yy in y.T] )
 		fwhm   = estimate_fwhm(y)
 		resels = resel_counts(y, fwhm, element_based=False)
-		spm    = SPM_X2(k2, df, fwhm, resels, residuals=y)
+		# spm    = SPM_X2(k2, df, fwhm, resels, residuals=y)
+		spm    = SPM1D('X2', k2, df, residuals=y, fwhm=fwhm, resels=resels)
 	return spm
 
 

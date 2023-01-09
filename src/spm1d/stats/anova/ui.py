@@ -39,9 +39,9 @@ def aov(model, contrasts, f_terms, nfactors=1):
 		f           = ms0 / ms1
 		
 		if model.dim == 0:
-			beta      = np.asarray( model._beta )
-			residuals = np.asarray( model.eij )
-			sigma2    = model._MSE
+			beta      = np.asarray( model._beta ).flatten()
+			residuals = np.asarray( model.eij ).flatten()
+			sigma2    = float( model._MSE )
 			X         = model.X
 			spm       = SPM0D('F', f, (df0,df1), beta=beta, residuals=residuals, sigma2=sigma2, X=X)
 			spm._set_anova_attrs( ss=(ss0,ss1) , ms=(ms0,ms1) )

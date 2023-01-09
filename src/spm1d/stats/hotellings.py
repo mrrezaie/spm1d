@@ -31,7 +31,7 @@ def _T2_twosample_singlenode(yA, yB):  #at a single node:
 
 
 @appendSPMargs
-def hotellings(Y, mu=None, roi=None):
+def hotellings(Y, mu=None, roi=None, _eres_norm=True):
 	'''
 	One-sample Hotelling's T2 test.
 	
@@ -51,7 +51,8 @@ def hotellings(Y, mu=None, roi=None):
 		J,I           = Y.shape
 		m,p           = float(J)-1, float(I)
 		v1,v2         = p, m
-		spm           =  SPM0D('T2', T2, (v1, v2), beta=None, residuals=None, sigma2=None, X=None)
+		R      = _mvbase._get_residuals_onesample_0d(Y, norm=True)
+		spm           =  SPM0D('T2', T2, (v1, v2), beta=None, residuals=R, sigma2=None, X=None)
 		# return _spm.SPM0D_T2(T2, (v1, v2))
 	else:
 		if mu is not None:
@@ -59,9 +60,15 @@ def hotellings(Y, mu=None, roi=None):
 		nResponses,nNodes,nVectDim  = Y.shape
 		T2            = np.array([_T2_onesample_singlenode(Y[:,i,:])   for i in range(nNodes)])
 		T2            = T2 if roi is None else np.ma.masked_array(T2, np.logical_not(roi))
-		R             = _mvbase._get_residuals_onesample(Y)
-		fwhm          = _mvbase._fwhm(R)
-		resels        = _mvbase._resel_counts(R, fwhm, roi=roi)
+		if _eres_norm:
+			from .. geom import estimate_fwhm, resel_counts
+			R      = _mvbase._get_residuals_onesample(Y, norm=True)
+			fwhm   = estimate_fwhm(R)
+			resels = resel_counts(R, fwhm, element_based=False, roi=roi)
+		else:
+			R             = _mvbase._get_residuals_onesample(Y, norm=False)
+			fwhm          = _mvbase._fwhm(R)
+			resels        = _mvbase._resel_counts(R, fwhm, roi=roi)
 		m,p           = float(nResponses)-1, float(nVectDim)
 		v1,v2         = p, m
 		spm    = SPM1D('T2', T2, (v1,v2), beta=None, residuals=R, sigma2=None, X=None, fwhm=fwhm, resels=resels, roi=roi)
@@ -72,7 +79,7 @@ def hotellings(Y, mu=None, roi=None):
 	
 
 
-def hotellings_paired(YA, YB, roi=None):
+def hotellings_paired(YA, YB, roi=None, _eres_norm=True):
 	'''
 	Paired Hotelling's T2 test.
 	
@@ -88,12 +95,12 @@ def hotellings_paired(YA, YB, roi=None):
 		- A paired Hotelling's test on (YA,YB) is equivalent to a one-sample Hotelling's test on (YB-YA)
 	'''
 	
-	return hotellings( YB - YA, roi=roi )
+	return hotellings( YB - YA, roi=roi, _eres_norm=_eres_norm )
 
 
 
 @appendSPMargs
-def hotellings2(YA, YB, equal_var=True, roi=None):
+def hotellings2(YA, YB, equal_var=True, roi=None, _eres_norm=False):
 	'''
 	Two-sample Hotelling's T2 test.
 	
@@ -117,15 +124,22 @@ def hotellings2(YA, YB, equal_var=True, roi=None):
 		# v1,v2         = float(IA), float(JA+JB-IA-1)  ###incorrect;  these are F df, not T2 df
 		v1,v2         = float(IA), float(JA+JB-2)
 		# return _spm.SPM0D_T2(T2, (v1, v2))
-		spm           = SPM0D('T2', T2, (v1, v2), beta=None, residuals=None, sigma2=None, X=None)
+		R             = _mvbase._get_residuals_twosample_0d(YA, YB, norm=True)
+		spm           = SPM0D('T2', T2, (v1, v2), beta=None, residuals=R, sigma2=None, X=None)
 	else:
 		JA,QA,IA      = YA.shape
 		JB,QB,IB      = YB.shape
 		T2            = np.array([_T2_twosample_singlenode(YA[:,i,:], YB[:,i,:])   for i in range(QA)])
 		T2            = T2 if roi is None else np.ma.masked_array(T2, np.logical_not(roi))
-		R             = _mvbase._get_residuals_twosample(YA, YB)
-		fwhm          = _mvbase._fwhm(R)
-		resels        = _mvbase._resel_counts(R, fwhm, roi=roi)
+		if _eres_norm:
+			from .. geom import estimate_fwhm, resel_counts
+			R      = _mvbase._get_residuals_twosample(YA, YB, norm=True)
+			fwhm   = estimate_fwhm(R)
+			resels = resel_counts(R, fwhm, element_based=False, roi=roi)
+		else:
+			R             = _mvbase._get_residuals_twosample(YA, YB, norm=False)
+			fwhm          = _mvbase._fwhm(R)
+			resels        = _mvbase._resel_counts(R, fwhm, roi=roi)
 		# v1,v2         = float(IA), float(JA+JB-IA-1)  ###incorrect;  these are F df, not T2 df
 		v1,v2         = float(IA), float(JA+JB-2)
 		spm    = SPM1D('T2', T2, (v1,v2), beta=None, residuals=R, sigma2=None, X=None, fwhm=fwhm, resels=resels, roi=roi)
