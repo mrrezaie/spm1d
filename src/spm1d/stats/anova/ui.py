@@ -9,6 +9,7 @@ High-level ANOVA user interface using an R-like aov function.
 import warnings
 import numpy as np
 from . import designs,models
+from .. _dec import appendSPMargs
 from .. import _datachecks, _reml
 # from .. _spmcls import _spm0d, _spm1d, _spmlist
 from .. _spmcls import SPM0D, SPM1D, SPMFList
@@ -71,7 +72,7 @@ def aov(model, contrasts, f_terms, nfactors=1):
 
 
 ### ONE-WAY DESIGNS ##############
-
+@appendSPMargs
 def anova1(Y, A=None, equal_var=False, roi=None):
 	'''
 	One-way ANOVA.
@@ -112,8 +113,6 @@ def anova1(Y, A=None, equal_var=False, roi=None):
 	# 	Q,C     = design.A.get_Q(), design.contrasts.C.T
 	# 	spm.df  = _reml.estimate_df_anova1(Y, X, r, Q, C)
 
-	spm._set_testname( 'anova1' )
-	spm._set_data( Y, A )
 	spm.set_effect_label( design.effect_labels[0] )
 	spm._design = design
 	spm._model  = model
@@ -121,6 +120,7 @@ def anova1(Y, A=None, equal_var=False, roi=None):
 
 
 
+@appendSPMargs
 def anova1rm(Y, A, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 	'''
 	One-way repeated-measures ANOVA.
@@ -156,8 +156,8 @@ def anova1rm(Y, A, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 	# return F
 	
 	spm     = aov(model, design.contrasts, design.f_terms, nfactors=1)[0]
-	spm._set_testname( 'anova1rm' )
-	spm._set_data( Y, A, SUBJ )
+	# spm._set_testname( 'anova1rm' )
+	# spm._set_data( Y, A, SUBJ )
 	spm.set_effect_label( design.effect_labels[0] )
 	spm._design = design
 	spm._model  = model
@@ -175,9 +175,11 @@ def _set_labels(FF, design):
 	FF.set_design_label( design.__class__.__name__ )
 	FF.set_effect_labels( design.effect_labels )
 	# [F.set_effect_label(label)  for F,label in zip(FF, design.effect_labels)]
+	# FF._design = design
+	# FF._model  = model
+	
 
-
-
+@appendSPMargs
 def anova2(Y, A, B, equal_var=True, roi=None):
 	'''
 	Two-way ANOVA.
@@ -200,8 +202,8 @@ def anova2(Y, A, B, equal_var=True, roi=None):
 	model   = models.LinearModel(Y, design.X, roi=roi)
 	model.fit()
 	spm     = aov(model, design.contrasts, design.f_terms, nfactors=2)
-	spm._set_testname( 'anova2' )
-	spm._set_data( Y, A, B )
+	# spm._set_testname( 'anova2' )
+	# spm._set_data( Y, A, B )
 	_set_labels( spm, design )
 	spm._design = design
 	spm._model  = model
@@ -219,7 +221,7 @@ def anova2(Y, A, B, equal_var=True, roi=None):
 	# 	# 	ff.df = u,u2
 	# return F
 
-
+@appendSPMargs
 def anova2nested(Y, A, B, equal_var=True, roi=None):
 	'''
 	Two-way nested ANOVA.
@@ -244,8 +246,8 @@ def anova2nested(Y, A, B, equal_var=True, roi=None):
 	model   = models.LinearModel(Y, design.X, roi=roi)
 	model.fit()
 	spm     = aov(model, design.contrasts, design.f_terms, nfactors=2)
-	spm._set_testname( 'anova2nested' )
-	spm._set_data( Y, A, B )
+	# spm._set_testname( 'anova2nested' )
+	# spm._set_data( Y, A, B )
 	_set_labels( spm, design )
 	spm._design = design
 	spm._model  = model
@@ -255,7 +257,7 @@ def anova2nested(Y, A, B, equal_var=True, roi=None):
 	# return F
 
 
-
+@appendSPMargs
 def anova2rm(Y, A, B, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 	'''
 	Two-way repeated-measures ANOVA.
@@ -285,8 +287,8 @@ def anova2rm(Y, A, B, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 	else:
 		model.fit( )
 	spm     = aov(model, design.contrasts, design.f_terms, nfactors=2)
-	spm._set_testname( 'anova2rm' )
-	spm._set_data( Y, A, B, SUBJ )
+	# spm._set_testname( 'anova2rm' )
+	# spm._set_data( Y, A, B, SUBJ )
 	_set_labels( spm, design )
 	spm._design = design
 	spm._model  = model
@@ -303,6 +305,7 @@ def anova2rm(Y, A, B, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 	# return F
 
 
+@appendSPMargs
 def anova2onerm(Y, A, B, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 	'''
 	Two-way ANOVA with repeated-measures on one factor.
@@ -332,8 +335,8 @@ def anova2onerm(Y, A, B, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 	else:
 		model.fit( )
 	spm     = aov(model, design.contrasts, design.f_terms, nfactors=2)
-	spm._set_testname( 'anova2onerm' )
-	spm._set_data( Y, A, B, SUBJ )
+	# spm._set_testname( 'anova2onerm' )
+	# spm._set_data( Y, A, B, SUBJ )
 	_set_labels( spm, design )
 	spm._design = design
 	spm._model  = model
@@ -347,7 +350,7 @@ def anova2onerm(Y, A, B, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 
 ### THREE-WAY DESIGNS ##############
 
-
+@appendSPMargs
 def anova3(Y, A, B, C, equal_var=True, roi=None):
 	'''
 	Three-way ANOVA.
@@ -375,8 +378,8 @@ def anova3(Y, A, B, C, equal_var=True, roi=None):
 	model   = models.LinearModel(Y, design.X, roi=roi)
 	model.fit()
 	spm     = aov(model, design.contrasts, design.f_terms, nfactors=3)
-	spm._set_testname( 'anova3' )
-	spm._set_data( Y, A, B, C )
+	# spm._set_testname( 'anova3' )
+	# spm._set_data( Y, A, B, C )
 	_set_labels( spm, design )
 	spm._design = design
 	spm._model  = model
@@ -393,6 +396,7 @@ def anova3(Y, A, B, C, equal_var=True, roi=None):
 	# 		ff.df = u,u2
 	# return f
 
+@appendSPMargs
 def anova3nested(Y, A, B, C, equal_var=True, roi=None):
 	'''
 	Three-way fully nested ANOVA.
@@ -419,8 +423,8 @@ def anova3nested(Y, A, B, C, equal_var=True, roi=None):
 	model   = models.LinearModel(Y, design.X, roi=roi)
 	model.fit()
 	spm     = aov(model, design.contrasts, design.f_terms, nfactors=3)
-	spm._set_testname( 'anova3nested' )
-	spm._set_data( Y, A, B, C )
+	# spm._set_testname( 'anova3nested' )
+	# spm._set_data( Y, A, B, C )
 	_set_labels( spm, design )
 	spm._design = design
 	spm._model  = model
@@ -430,6 +434,7 @@ def anova3nested(Y, A, B, C, equal_var=True, roi=None):
 	# return F
 
 
+@appendSPMargs
 def anova3rm(Y, A, B, C, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 	'''
 	Three-way ANOVA (repeated measures on all factors).
@@ -460,8 +465,8 @@ def anova3rm(Y, A, B, C, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 	else:
 		model.fit( )
 	spm     = aov(model, design.contrasts, design.f_terms, nfactors=3)
-	spm._set_testname( 'anova3rm' )
-	spm._set_data( Y, A, B, C, SUBJ )
+	# spm._set_testname( 'anova3rm' )
+	# spm._set_data( Y, A, B, C, SUBJ )
 	_set_labels( spm, design )
 	spm._design = design
 	spm._model  = model
@@ -471,7 +476,7 @@ def anova3rm(Y, A, B, C, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 	# return F
 	
 
-
+@appendSPMargs
 def anova3onerm(Y, A, B, C, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 	'''
 	Three-way ANOVA with repeated-measures on one factor.
@@ -506,8 +511,8 @@ def anova3onerm(Y, A, B, C, SUBJ, equal_var=True, roi=None, _force_approx0D=Fals
 	else:
 		model.fit( )
 	spm     = aov(model, design.contrasts, design.f_terms, nfactors=3)
-	spm._set_testname( 'anova3onerm' )
-	spm._set_data( Y, A, B, C, SUBJ )
+	# spm._set_testname( 'anova3onerm' )
+	# spm._set_data( Y, A, B, C, SUBJ )
 	_set_labels( spm, design )
 	spm._design = design
 	spm._model  = model
@@ -517,7 +522,7 @@ def anova3onerm(Y, A, B, C, SUBJ, equal_var=True, roi=None, _force_approx0D=Fals
 	# return F
 
 
-
+@appendSPMargs
 def anova3tworm(Y, A, B, C, SUBJ, equal_var=True, roi=None, _force_approx0D=False):
 	'''
 	Three-way ANOVA with repeated-measures on two factors.
@@ -552,8 +557,8 @@ def anova3tworm(Y, A, B, C, SUBJ, equal_var=True, roi=None, _force_approx0D=Fals
 	else:
 		model.fit( )
 	spm     = aov(model, design.contrasts, design.f_terms, nfactors=3)
-	spm._set_testname( 'anova3tworm' )
-	spm._set_data( Y, A, B, C, SUBJ )
+	# spm._set_testname( 'anova3tworm' )
+	# spm._set_data( Y, A, B, C, SUBJ )
 	_set_labels( spm, design )
 	spm._design = design
 	spm._model  = model

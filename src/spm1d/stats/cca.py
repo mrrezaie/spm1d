@@ -7,6 +7,7 @@ CANONICAL CORRELATION ANALYSIS
 
 from math import sqrt,log
 import numpy as np
+from . _dec import appendSPMargs
 from . import _mvbase #, _spm
 from . _spmcls import SPM0D, SPM1D
 
@@ -96,6 +97,7 @@ def _cca_single_node_efficient(y, x, Rz, XXXiX):
 	return x2
 
 
+@appendSPMargs
 def cca(Y, x, roi=None):
 	'''
 	Canonical correlation analysis (CCA).
@@ -130,9 +132,6 @@ def cca(Y, x, roi=None):
 		resels = _mvbase._resel_counts(R, fwhm, roi=roi)
 		df     = 1, Y.shape[2]
 		spm    = SPM1D('X2', X2, df, beta=None, residuals=R, sigma2=None, X=X, fwhm=fwhm, resels=resels, roi=roi)
-		# return _spm.SPM_X2(X2, df, fwhm, resels, None, None, R, roi=roi)
-	spm._set_testname( 'cca' )
-	spm._set_data( Y, x )
 	return spm
 
 

@@ -3,6 +3,7 @@
 
 
 import numpy as np
+from . _dec import appendSPMargs
 from . import _mvbase#, _spm
 from . _spmcls import SPM0D, SPM1D
 
@@ -29,7 +30,7 @@ def _T2_twosample_singlenode(yA, yB):  #at a single node:
 
 
 
-
+@appendSPMargs
 def hotellings(Y, mu=None, roi=None):
 	'''
 	One-sample Hotelling's T2 test.
@@ -65,8 +66,8 @@ def hotellings(Y, mu=None, roi=None):
 		v1,v2         = p, m
 		spm    = SPM1D('T2', T2, (v1,v2), beta=None, residuals=R, sigma2=None, X=None, fwhm=fwhm, resels=resels, roi=roi)
 		# return _spm.SPM_T2(T2, (v1, v2), W, rCounts, None, None, R, roi=roi)
-	spm._set_testname( 'hotellings' )
-	spm._set_data( Y, mu )
+	# spm._set_testname( 'hotellings' )
+	# spm._set_data( Y, mu )
 	return spm
 	
 
@@ -91,6 +92,7 @@ def hotellings_paired(YA, YB, roi=None):
 
 
 
+@appendSPMargs
 def hotellings2(YA, YB, equal_var=True, roi=None):
 	'''
 	Two-sample Hotelling's T2 test.
@@ -128,8 +130,8 @@ def hotellings2(YA, YB, equal_var=True, roi=None):
 		v1,v2         = float(IA), float(JA+JB-2)
 		spm    = SPM1D('T2', T2, (v1,v2), beta=None, residuals=R, sigma2=None, X=None, fwhm=fwhm, resels=resels, roi=roi)
 		# return _spm.SPM_T2(T2, (v1, v2), W, rCounts, None, None, R, roi=roi)
-	spm._set_testname( 'hotellings2' )
-	spm._set_data( YA, YB )
+	# spm._set_testname( 'hotellings2' )
+	# spm._set_data( YA, YB )
 	return spm
 	
 

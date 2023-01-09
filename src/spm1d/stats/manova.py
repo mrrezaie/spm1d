@@ -10,6 +10,7 @@ MANOVA
 
 from math import sqrt,log
 import numpy as np
+from . _dec import appendSPMargs
 from . import _mvbase #, _spm
 from . _spmcls import SPM0D, SPM1D
 
@@ -82,6 +83,7 @@ def _manova1_single_node_efficient(Y, GROUP, X, Xi, X0, X0i, nGroups):
 
 
 
+@appendSPMargs
 def manova1(Y, A, equal_var=True, roi=None):
 	'''
 	Two-way repeated-measures ANOVA.
@@ -130,8 +132,8 @@ def manova1(Y, A, equal_var=True, roi=None):
 		df          = nComponents*( nGroups-1 )
 		spm    = SPM1D('X2', X2, (1,df), beta=None, residuals=R, sigma2=None, X=X, fwhm=fwhm, resels=resels, roi=roi)
 		# return _spm.SPM_X2(X2, (1,df), fwhm, resels, None, None, R, roi=roi)
-	spm._set_testname( 'manova1' )
-	spm._set_data( Y, A )
+	# spm._set_testname( 'manova1' )
+	# spm._set_data( Y, A )
 	return spm
 
 
