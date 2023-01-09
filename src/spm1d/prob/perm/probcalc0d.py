@@ -3,16 +3,6 @@
 import numpy as np
 
 
-			# if _use_both_tails: # using both tails tends to produce numerically more stable results
-			# 	p0     = ( Z >  abs(z) ).mean()
-			# 	p1     = ( Z < -abs(z) ).mean()
-			# 	p      = p0 + p1
-			# else:
-			# 	if z > 0:
-			# 		p  = 2 * ( Z > z ).mean()
-			# 	else:
-			# 		p  = 2 * ( Z < z ).mean()
-
 
 class ProbCalc0DSingleStat(object):
 	def __init__(self, stat, permuter, alpha=0.05, dirn=0):

@@ -1,15 +1,7 @@
 
-import numpy as np
 from . permuters import get_permuter
-from . probcalc0d import ProbCalc0DSingleStat, ProbCalc0DMultiStat
 
-# class ParamResults(object):
-# 	def __init__(self, alpha, dirn, zc, p):
-# 		self.method   = 'param'
-# 		self.alpha    = alpha
-# 		self.dirn     = dirn
-# 		self.zc       = zc
-# 		self.p        = p
+
 
 class PermResults0D(object):
 	def __init__(self, alpha, dirn, zc, p, permuter, nperm):
@@ -19,8 +11,6 @@ class PermResults0D(object):
 		self.zc       = zc
 		self.p        = p
 		self.extras   = dict(permuter=permuter, nperm_possible=permuter.nPermTotal, nperm_actual=nperm)
-		# self.permuter = permuter
-		# self.nperm    = nperm
 		
 	def __repr__(self):
 		s  = 'PermResults0D\n'
@@ -32,6 +22,7 @@ class PermResults0D(object):
 
 
 def inference0d(stat, z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000):
+	from . probcalc0d import ProbCalc0DSingleStat
 	permuter = get_permuter(testname, 0)( *args )
 	permuter.build_pdf(  nperm  )
 	probcalc = ProbCalc0DSingleStat(stat, permuter, alpha, dirn)
@@ -41,6 +32,7 @@ def inference0d(stat, z, alpha=0.05, dirn=0, testname=None, args=None, nperm=100
 	
 
 def inference0d_multi(stat, z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000):
+	from . probcalc0d import ProbCalc0DMultiStat
 	permuter = get_permuter(testname, 0)( *args )
 	permuter.build_pdf(  nperm  )
 	probcalc = ProbCalc0DMultiStat(stat, permuter, alpha, dirn)

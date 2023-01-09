@@ -1,8 +1,8 @@
 
-import numpy as np
+
 from . permuters import get_permuter
 from ... geom import assemble_clusters, ClusterList
-from . probcalc1d import ProbCalc1DSingleStat, ProbCalc1DMultiStat
+
 
 
 class PermResults1D(object):
@@ -28,6 +28,7 @@ class PermResults1D(object):
 
 
 def inference1d(stat, z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000, circular=False, cluster_metric='MaxClusterExtent'):
+	from . probcalc1d import ProbCalc1DSingleStat
 	permuter  = get_permuter(testname, 1)( *args )
 	# build primary PDF:
 	permuter.build_pdf(  nperm  )
@@ -60,6 +61,7 @@ def inference1d(stat, z, alpha=0.05, dirn=0, testname=None, args=None, nperm=100
 
 
 def inference1d_multi(stat, z, alpha=0.05, dirn=0, testname=None, args=None, nperm=10000, circular=False, cluster_metric='MaxClusterExtent'):
+	from . probcalc1d import ProbCalc1DMultiStat
 	permuter  = get_permuter(testname, 1)( *args )
 	# build primary PDF:
 	permuter.build_pdf(  nperm  )
