@@ -1,8 +1,8 @@
 '''
-MANOVA
-'''
+Multivariate analysis of variance
 
-# Copyright (C) 2016  Todd Pataky
+Copyright (C) 2023  Todd Pataky
+'''
 
 
 
@@ -11,10 +11,29 @@ MANOVA
 from math import sqrt,log
 import numpy as np
 from .. _dec import appendSPMargs
-from . import _mvbase #, _spm
 from .. _spmcls import SPM0D, SPM1D
 from ... geom import estimate_fwhm_mv, resel_counts_mv
 eps        = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero errors
+
+
+
+
+def _get_residuals_manova1(Y, GROUP):
+	from . hotellings import _get_residuals_onesample
+	u  = np.unique(GROUP)
+	R  = []
+	for uu in u:
+		R.append(   _get_residuals_onesample(Y[GROUP==uu])   )
+	return np.vstack(R)
+
+def _get_residuals_manova1_0d(Y, GROUP):
+	from . hotellings import _get_residuals_onesample_0d
+	u  = np.unique(GROUP)
+	R  = []
+	for uu in u:
+		R.append(   _get_residuals_onesample_0d(Y[GROUP==uu])   )
+	return np.hstack(R)
+
 
 
 
@@ -52,15 +71,6 @@ def manova1_single_node(Y, GROUP):
 
 
 
-# def manova1(Y, GROUP):
-# 	nNodes  = Y.shape[1]
-# 	X2      = np.array([manova1_single_node(Y[:,i,:], GROUP)  for i in range(nNodes)])
-# 	R       = _mvbase._get_residuals_manova1(Y, GROUP)
-# 	fwhm    = _mvbase._fwhm(R)
-# 	resels  = _mvbase._resel_counts(R, fwhm)
-# 	df      = Y.shape[2]*( np.unique(GROUP).size -1 )
-# 	return _spm.SPM_X2(X2, (1,df), fwhm, resels, None, None, R)
-# 
 
 
 
@@ -119,7 +129,7 @@ def manova1(Y, A, equal_var=True, roi=None, _fwhm_method='taylor2008'):
 		nComponents = Y.shape[1]
 		X2          = _manova1_single_node_efficient(Y, A, X, Xi, X0, X0i, nGroups)
 		df          = nComponents*( nGroups-1 )
-		R      = _mvbase._get_residuals_manova1_0d(Y, A)
+		R           = _get_residuals_manova1_0d(Y, A)
 		# return _spm.SPM0D_X2(X2, (1,df))
 		spm         = SPM0D('X2', X2, (1, df), beta=None, residuals=R, sigma2=None, X=None)
 	else:
@@ -127,13 +137,11 @@ def manova1(Y, A, equal_var=True, roi=None, _fwhm_method='taylor2008'):
 		nComponents = Y.shape[2]
 		X2          = np.array([_manova1_single_node_efficient(Y[:,i,:], A, X, Xi, X0, X0i, nGroups)  for i in range(nNodes)])
 		X2          = X2 if roi is None else np.ma.masked_array(X2, np.logical_not(roi))
-		R           = _mvbase._get_residuals_manova1(Y, A)
+		R           = _get_residuals_manova1(Y, A)
 		fwhm        = estimate_fwhm_mv(R, method=_fwhm_method)
-		# resels      = _mvbase._resel_counts(R, fwhm, roi=roi)
 		resels = resel_counts_mv(R, fwhm, roi=roi)
 		df          = nComponents*( nGroups-1 )
 		spm    = SPM1D('X2', X2, (1,df), beta=None, residuals=R, sigma2=None, X=X, fwhm=fwhm, resels=resels, roi=roi)
-		# return _spm.SPM_X2(X2, (1,df), fwhm, resels, None, None, R, roi=roi)
 	# spm._set_testname( 'manova1' )
 	# spm._set_data( Y, A )
 	return spm

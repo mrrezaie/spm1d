@@ -1,8 +1,9 @@
 '''
-CANONICAL CORRELATION ANALYSIS
+Canonical correlation analysis
+
+Copyright (C) 2023  Todd Pataky
 '''
 
-# Copyright (C) 2016  Todd Pataky
 
 
 from math import sqrt,log
@@ -10,7 +11,6 @@ import numpy as np
 from .. _dec import appendSPMargs
 from .. _spmcls import SPM0D, SPM1D
 from ... geom import estimate_fwhm_mv, resel_counts_mv
-from . import _mvbase #, _spm
 
 
 ##########################################
@@ -40,7 +40,34 @@ from . import _mvbase #, _spm
 # 	r          = vecs[:,ind]
 # 	return r
 
+def _get_residuals_regression(y, x):
+	J,Q,I      = y.shape  #nResponses, nNodes, nComponents
+	Z          = np.matrix(np.ones(J)).T
+	X          = np.hstack([np.matrix(x.T).T, Z])
+	Xi         = np.linalg.pinv(X)
+	R          = np.zeros(y.shape)
+	for i in range(Q):
+		for ii in range(I):
+			yy     = np.matrix(y[:,i,ii]).T
+			b      = Xi*yy
+			eij    = yy - X*b
+			R[:,i,ii] = np.asarray(eij).flatten()
+	return R
 
+def _get_residuals_regression_0d(y, x):
+	J,I         = y.shape  #nResponses, nNodes, nComponents
+	Z           = np.matrix(np.ones(J)).T
+	X           = np.hstack([np.matrix(x.T).T, Z])
+	Xi          = np.linalg.pinv(X)
+	R           = np.zeros(y.shape)
+	for ii in range(I):
+		yy      = np.matrix(y[:,ii]).T
+		b       = Xi*yy
+		eij     = yy - X*b
+		R[:,ii] = np.asarray(eij).flatten()
+	return R
+	
+	
 
 def cca_single_node(y, x):
 	N          = y.shape[0]
@@ -67,15 +94,6 @@ def cca_single_node(y, x):
 
 
 
-# def cca(y, x):
-# 	X2         = np.array([cca_single_node(y[:,q,:], x)   for q in range(y.shape[1])])
-# 	R          = _mvbase._get_residuals_regression(y, x)
-# 	fwhm       = _mvbase._fwhm(R)
-# 	resels     = _mvbase._resel_counts(R, fwhm)
-# 	df         = 1, y.shape[2]
-# 	return _spm.SPM_X2(X2, df, fwhm, resels, None, None, R)
-# 	
-	
 
 def _cca_single_node_efficient(y, x, Rz, XXXiX):
 	N          = y.shape[0]
@@ -123,13 +141,13 @@ def cca(Y, x, roi=None, _fwhm_method='taylor2008'):
 	if Y.ndim==2:
 		X2         = _cca_single_node_efficient(Y, x, Rz, XXXiX)
 		df         = 1, Y.shape[1]
-		R          = _mvbase._get_residuals_regression_0d(Y, x)
+		R          = _get_residuals_regression_0d(Y, x)
 		# return _spm.SPM0D_X2(X2, df)
 		spm = SPM0D('X2', X2, df, beta=None, residuals=R, sigma2=None, X=X)
 	else:
 		X2     = np.array([_cca_single_node_efficient(Y[:,q,:], x, Rz, XXXiX)   for q in range(Y.shape[1])])
 		X2     = X2 if roi is None else np.ma.masked_array(X2, np.logical_not(roi))
-		R      = _mvbase._get_residuals_regression(Y, x)
+		R      = _get_residuals_regression(Y, x)
 		fwhm   = estimate_fwhm_mv(R, method=_fwhm_method)
 		# resels = _mvbase._resel_counts(R, fwhm, roi=roi)
 		resels = resel_counts_mv(R, fwhm, roi=roi)

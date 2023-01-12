@@ -1,14 +1,45 @@
+'''
+Hotelling's multivariate one- , paired- and two-sample tests
 
-# Copyright (C) 2018  Todd Pataky
+Copyright (C) 2023  Todd Pataky
+'''
+
+# 
 
 
 import numpy as np
 from .. _dec import appendSPMargs
-from . import _mvbase#, _spm
 from .. _spmcls import SPM0D, SPM1D
 from ... geom import estimate_fwhm_mv, resel_counts_mv
 
 eps        = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero errors
+
+
+
+def _get_residuals_onesample(Y):
+	N = Y.shape[0]
+	m = Y.mean(axis=0)
+	R = Y - np.array([m]*N)
+	return R
+
+def _get_residuals_onesample_0d(Y):
+	N = Y.shape[0]
+	m = Y.mean(axis=0)
+	R = Y - np.array([m]*N)
+	return R
+
+def _get_residuals_twosample(YA, YB):
+	RA = _get_residuals_onesample(YA)
+	RB = _get_residuals_onesample(YB)
+	R  = np.vstack( (RA,RB) )
+	return R
+
+
+def _get_residuals_twosample_0d(YA, YB):
+	RA = _get_residuals_onesample_0d(YA)
+	RB = _get_residuals_onesample_0d(YB)
+	R  = np.hstack( (RA,RB) )
+	return R
 
 
 
@@ -53,7 +84,7 @@ def hotellings(Y, mu=None, roi=None, _fwhm_method='taylor2008'):
 		J,I           = Y.shape
 		m,p           = float(J)-1, float(I)
 		v1,v2         = p, m
-		R      = _mvbase._get_residuals_onesample_0d(Y)
+		R      = _get_residuals_onesample_0d(Y)
 		spm           =  SPM0D('T2', T2, (v1, v2), beta=None, residuals=R, sigma2=None, X=None)
 		# return _spm.SPM0D_T2(T2, (v1, v2))
 	else:
@@ -62,9 +93,8 @@ def hotellings(Y, mu=None, roi=None, _fwhm_method='taylor2008'):
 		nResponses,nNodes,nVectDim  = Y.shape
 		T2            = np.array([_T2_onesample_singlenode(Y[:,i,:])   for i in range(nNodes)])
 		T2            = T2 if roi is None else np.ma.masked_array(T2, np.logical_not(roi))
-		R             = _mvbase._get_residuals_onesample(Y)
+		R             = _get_residuals_onesample(Y)
 		fwhm          = estimate_fwhm_mv(R, method=_fwhm_method)
-		# resels        = _mvbase._resel_counts(R, fwhm, roi=roi)
 		resels = resel_counts_mv(R, fwhm, roi=roi)
 		m,p           = float(nResponses)-1, float(nVectDim)
 		v1,v2         = p, m
@@ -121,21 +151,19 @@ def hotellings2(YA, YB, equal_var=True, roi=None, _fwhm_method='taylor2008'):
 		# v1,v2         = float(IA), float(JA+JB-IA-1)  ###incorrect;  these are F df, not T2 df
 		v1,v2         = float(IA), float(JA+JB-2)
 		# return _spm.SPM0D_T2(T2, (v1, v2))
-		R             = _mvbase._get_residuals_twosample_0d(YA, YB, norm=True)
+		R             = _get_residuals_twosample_0d(YA, YB, norm=True)
 		spm           = SPM0D('T2', T2, (v1, v2), beta=None, residuals=R, sigma2=None, X=None)
 	else:
 		JA,QA,IA      = YA.shape
 		JB,QB,IB      = YB.shape
 		T2            = np.array([_T2_twosample_singlenode(YA[:,i,:], YB[:,i,:])   for i in range(QA)])
 		T2            = T2 if roi is None else np.ma.masked_array(T2, np.logical_not(roi))
-		R             = _mvbase._get_residuals_twosample(YA, YB)
+		R             = _get_residuals_twosample(YA, YB)
 		fwhm          = estimate_fwhm_mv(R, method=_fwhm_method)
-		# resels        = _mvbase._resel_counts(R, fwhm, roi=roi)
 		resels = resel_counts_mv(R, fwhm, roi=roi)
 		# v1,v2         = float(IA), float(JA+JB-IA-1)  ###incorrect;  these are F df, not T2 df
 		v1,v2         = float(IA), float(JA+JB-2)
 		spm    = SPM1D('T2', T2, (v1,v2), beta=None, residuals=R, sigma2=None, X=None, fwhm=fwhm, resels=resels, roi=roi)
-		# return _spm.SPM_T2(T2, (v1, v2), W, rCounts, None, None, R, roi=roi)
 	# spm._set_testname( 'hotellings2' )
 	# spm._set_data( YA, YB )
 	return spm
