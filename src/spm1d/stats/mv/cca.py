@@ -7,11 +7,10 @@ CANONICAL CORRELATION ANALYSIS
 
 from math import sqrt,log
 import numpy as np
-from . _dec import appendSPMargs
+from .. _dec import appendSPMargs
+from .. _spmcls import SPM0D, SPM1D
+from ... geom import estimate_fwhm_mv, resel_counts_mv
 from . import _mvbase #, _spm
-from . _spmcls import SPM0D, SPM1D
-from .. geom import estimate_fwhm_mv, resel_counts_mv
-
 
 
 ##########################################

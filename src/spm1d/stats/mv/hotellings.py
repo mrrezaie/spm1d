@@ -3,10 +3,10 @@
 
 
 import numpy as np
-from . _dec import appendSPMargs
+from .. _dec import appendSPMargs
 from . import _mvbase#, _spm
-from . _spmcls import SPM0D, SPM1D
-from .. geom import estimate_fwhm_mv, resel_counts_mv
+from .. _spmcls import SPM0D, SPM1D
+from ... geom import estimate_fwhm_mv, resel_counts_mv
 
 eps        = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero errors
 
