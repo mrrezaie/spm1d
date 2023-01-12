@@ -6,6 +6,7 @@ import numpy as np
 from . _dec import appendSPMargs
 from . import _mvbase#, _spm
 from . _spmcls import SPM0D, SPM1D
+from .. geom import estimate_fwhm_mv, resel_counts
 
 eps        = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero errors
 
@@ -30,8 +31,9 @@ def _T2_twosample_singlenode(yA, yB):  #at a single node:
 
 
 
+
 @appendSPMargs
-def hotellings(Y, mu=None, roi=None, _eres_norm=True):
+def hotellings(Y, mu=None, roi=None, _fwhm_method='taylor2008'):
 	'''
 	One-sample Hotelling's T2 test.
 	
@@ -51,7 +53,7 @@ def hotellings(Y, mu=None, roi=None, _eres_norm=True):
 		J,I           = Y.shape
 		m,p           = float(J)-1, float(I)
 		v1,v2         = p, m
-		R      = _mvbase._get_residuals_onesample_0d(Y, norm=True)
+		R      = _mvbase._get_residuals_onesample_0d(Y)
 		spm           =  SPM0D('T2', T2, (v1, v2), beta=None, residuals=R, sigma2=None, X=None)
 		# return _spm.SPM0D_T2(T2, (v1, v2))
 	else:
@@ -60,26 +62,20 @@ def hotellings(Y, mu=None, roi=None, _eres_norm=True):
 		nResponses,nNodes,nVectDim  = Y.shape
 		T2            = np.array([_T2_onesample_singlenode(Y[:,i,:])   for i in range(nNodes)])
 		T2            = T2 if roi is None else np.ma.masked_array(T2, np.logical_not(roi))
-		if _eres_norm:
-			from .. geom import estimate_fwhm, resel_counts
-			R      = _mvbase._get_residuals_onesample(Y, norm=True)
-			fwhm   = estimate_fwhm(R)
-			resels = resel_counts(R, fwhm, element_based=False, roi=roi)
-		else:
-			R             = _mvbase._get_residuals_onesample(Y, norm=False)
-			fwhm          = _mvbase._fwhm(R)
-			resels        = _mvbase._resel_counts(R, fwhm, roi=roi)
+		R             = _mvbase._get_residuals_onesample(Y)
+		fwhm          = estimate_fwhm_mv(R, method=_fwhm_method)
+		resels        = _mvbase._resel_counts(R, fwhm, roi=roi)
 		m,p           = float(nResponses)-1, float(nVectDim)
 		v1,v2         = p, m
 		spm    = SPM1D('T2', T2, (v1,v2), beta=None, residuals=R, sigma2=None, X=None, fwhm=fwhm, resels=resels, roi=roi)
-		# return _spm.SPM_T2(T2, (v1, v2), W, rCounts, None, None, R, roi=roi)
 	# spm._set_testname( 'hotellings' )
 	# spm._set_data( Y, mu )
 	return spm
 	
 
 
-def hotellings_paired(YA, YB, roi=None, _eres_norm=True):
+
+def hotellings_paired(YA, YB, roi=None, _fwhm_method='taylor2008'):
 	'''
 	Paired Hotelling's T2 test.
 	
@@ -95,7 +91,7 @@ def hotellings_paired(YA, YB, roi=None, _eres_norm=True):
 		- A paired Hotelling's test on (YA,YB) is equivalent to a one-sample Hotelling's test on (YB-YA)
 	'''
 	
-	return hotellings( YB - YA, roi=roi, _eres_norm=_eres_norm )
+	return hotellings( YB - YA, roi=roi, _fwhm_method=_fwhm_method )
 
 
 
