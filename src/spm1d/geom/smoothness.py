@@ -183,3 +183,15 @@ def resel_counts(r, fwhm=1, element_based=False, roi=None):
 		mask   = np.logical_not(b)                       # True for masked-out regions
 		resels = resel_counts(mask, fwhm, element_based)
 	return resels
+	
+	
+	
+def resel_counts_mv(r, fwhm=1, element_based=False, roi=None):
+	b            = np.any(np.any(np.abs(r)>0, axis=0), axis=1)  # False indicates no observations at that node
+	if roi is not None:
+		b      = np.logical_and(b, roi)  #node is true if in ROI and also not NaN
+	mask       = np.logical_not(b)                       # True for masked-out regions
+	resels     = resel_counts(mask, fwhm, element_based)
+	return resels
+
+	

@@ -6,7 +6,7 @@ import numpy as np
 from . _dec import appendSPMargs
 from . import _mvbase#, _spm
 from . _spmcls import SPM0D, SPM1D
-from .. geom import estimate_fwhm_mv, resel_counts
+from .. geom import estimate_fwhm_mv, resel_counts_mv
 
 eps        = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero errors
 
@@ -64,7 +64,8 @@ def hotellings(Y, mu=None, roi=None, _fwhm_method='taylor2008'):
 		T2            = T2 if roi is None else np.ma.masked_array(T2, np.logical_not(roi))
 		R             = _mvbase._get_residuals_onesample(Y)
 		fwhm          = estimate_fwhm_mv(R, method=_fwhm_method)
-		resels        = _mvbase._resel_counts(R, fwhm, roi=roi)
+		# resels        = _mvbase._resel_counts(R, fwhm, roi=roi)
+		resels = resel_counts_mv(R, fwhm, roi=roi)
 		m,p           = float(nResponses)-1, float(nVectDim)
 		v1,v2         = p, m
 		spm    = SPM1D('T2', T2, (v1,v2), beta=None, residuals=R, sigma2=None, X=None, fwhm=fwhm, resels=resels, roi=roi)
@@ -96,7 +97,7 @@ def hotellings_paired(YA, YB, roi=None, _fwhm_method='taylor2008'):
 
 
 @appendSPMargs
-def hotellings2(YA, YB, equal_var=True, roi=None, _eres_norm=False):
+def hotellings2(YA, YB, equal_var=True, roi=None, _fwhm_method='taylor2008'):
 	'''
 	Two-sample Hotelling's T2 test.
 	
@@ -127,15 +128,10 @@ def hotellings2(YA, YB, equal_var=True, roi=None, _eres_norm=False):
 		JB,QB,IB      = YB.shape
 		T2            = np.array([_T2_twosample_singlenode(YA[:,i,:], YB[:,i,:])   for i in range(QA)])
 		T2            = T2 if roi is None else np.ma.masked_array(T2, np.logical_not(roi))
-		if _eres_norm:
-			from .. geom import estimate_fwhm, resel_counts
-			R      = _mvbase._get_residuals_twosample(YA, YB, norm=True)
-			fwhm   = estimate_fwhm(R)
-			resels = resel_counts(R, fwhm, element_based=False, roi=roi)
-		else:
-			R             = _mvbase._get_residuals_twosample(YA, YB, norm=False)
-			fwhm          = _mvbase._fwhm(R)
-			resels        = _mvbase._resel_counts(R, fwhm, roi=roi)
+		R             = _mvbase._get_residuals_twosample(YA, YB)
+		fwhm          = estimate_fwhm_mv(R, method=_fwhm_method)
+		# resels        = _mvbase._resel_counts(R, fwhm, roi=roi)
+		resels = resel_counts_mv(R, fwhm, roi=roi)
 		# v1,v2         = float(IA), float(JA+JB-IA-1)  ###incorrect;  these are F df, not T2 df
 		v1,v2         = float(IA), float(JA+JB-2)
 		spm    = SPM1D('T2', T2, (v1,v2), beta=None, residuals=R, sigma2=None, X=None, fwhm=fwhm, resels=resels, roi=roi)
