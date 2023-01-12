@@ -87,7 +87,10 @@ class SPM1Di(_SPMiParent, SPM1D):
 		if self.isregress:
 			dp.add('r', fmt=array2shortstr )
 		dp.add( 'df', fmt=dflist2str )
+
+		dp.add_header( 'Smoothness estimates:' )
 		dp.add( 'fwhm', fmt='%.3f' )
+		dp.add( 'lkc', fmt='%.3f' )
 		dp.add( 'resels', fmt=resels2str )
 		
 		dp.add_header( 'Inference:' )

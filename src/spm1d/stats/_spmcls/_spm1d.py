@@ -44,7 +44,9 @@ class SPM1D(_SPMParent):
 		if self.isregress:
 			dp.add('r', fmt=array2shortstr )
 		dp.add( 'df', fmt=dflist2str )
+		dp.add_header( 'Smoothness estimates:' )
 		dp.add( 'fwhm', fmt='%.3f' )
+		dp.add( 'lkc', fmt='%.3f' )
 		dp.add( 'resels', fmt=resels2str )
 		return dp.asstr()
 
@@ -61,6 +63,10 @@ class SPM1D(_SPMParent):
 	@property
 	def Qmasked(self):
 		return self.z.size if (self.roi is None) else self.z.count()
+	@property
+	def lkc(self):
+		from ... geom.smoothness import fwhm2lkc
+		return fwhm2lkc( self.fwhm, self.Q )
 	
 	
 	def _repr_corrcoeff(self):

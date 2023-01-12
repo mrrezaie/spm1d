@@ -45,9 +45,9 @@ def _get_residuals_twosample_0d(YA, YB):
 
 def _T2_onesample_singlenode(y):  #at a single node:
 	y        = np.matrix(y)
-	n        = y.shape[0]      #nResponses
-	m        = y.mean(axis=0)  #mean vector
-	W        = np.cov(y.T) + eps    #covariance
+	n        = y.shape[0]           # nResponses
+	m        = y.mean(axis=0)       # mean vector
+	W        = np.cov(y.T) + eps    # covariance
 	T2       = n * m * np.linalg.inv(W) * m.T
 	return float(T2)
 
