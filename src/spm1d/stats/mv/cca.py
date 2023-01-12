@@ -40,33 +40,7 @@ from ... geom import estimate_fwhm_mv, resel_counts_mv
 # 	r          = vecs[:,ind]
 # 	return r
 
-def _get_residuals_regression(y, x):
-	J,Q,I      = y.shape  #nResponses, nNodes, nComponents
-	Z          = np.matrix(np.ones(J)).T
-	X          = np.hstack([np.matrix(x.T).T, Z])
-	Xi         = np.linalg.pinv(X)
-	R          = np.zeros(y.shape)
-	for i in range(Q):
-		for ii in range(I):
-			yy     = np.matrix(y[:,i,ii]).T
-			b      = Xi*yy
-			eij    = yy - X*b
-			R[:,i,ii] = np.asarray(eij).flatten()
-	return R
 
-def _get_residuals_regression_0d(y, x):
-	J,I         = y.shape  #nResponses, nNodes, nComponents
-	Z           = np.matrix(np.ones(J)).T
-	X           = np.hstack([np.matrix(x.T).T, Z])
-	Xi          = np.linalg.pinv(X)
-	R           = np.zeros(y.shape)
-	for ii in range(I):
-		yy      = np.matrix(y[:,ii]).T
-		b       = Xi*yy
-		eij     = yy - X*b
-		R[:,ii] = np.asarray(eij).flatten()
-	return R
-	
 	
 
 def cca_single_node(y, x):
@@ -78,7 +52,10 @@ def cca_single_node(y, x):
 	YStar      = Rz * Y
 	p,r        = 1.0, 1.0   #nContrasts, nNuisanceFactors
 	m          = N - p - r
-	H          = YStar.T * XStar  *  np.linalg.inv( XStar.T * XStar  )  * XStar.T * YStar / p
+	XsYs       = (XStar*np.linalg.inv(XStar.T*XStar)*XStar.T) * YStar
+	res        = YStar  - XsYs  # residuals  (same as fitting separate linear regressions to each component)
+	# H          = YStar.T * XStar  *  np.linalg.inv( XStar.T * XStar  )  * XStar.T * YStar / p
+	H          = YStar.T * XsYs / p
 	W          = YStar.T  * (np.eye(N)  -  XStar*np.linalg.inv(XStar.T*XStar)*XStar.T) * YStar  / m
 	#estimate maximum canonical correlation:
 	F          = np.linalg.inv(W)*H
@@ -90,7 +67,7 @@ def cca_single_node(y, x):
 	m          = y.shape[1]
 	x2         = -(N-1-0.5*(m+2)) * log(  (1-rmax**2) )
 	# df         = m
-	return x2
+	return x2,res
 
 
 
@@ -101,6 +78,7 @@ def _cca_single_node_efficient(y, x, Rz, XXXiX):
 	YStar      = Rz * Y
 	p,r        = 1.0, 1.0   #nContrasts, nNuisanceFactors
 	m          = N - p - r
+	res        = YStar - XXXiX * YStar  # residuals (same as fitting separate linear regressions to each component)
 	H          = YStar.T * XXXiX * YStar / p
 	W          = YStar.T  * (np.eye(N)  -  XXXiX) * YStar  / m
 	#estimate maximum canonical correlation:
@@ -113,7 +91,18 @@ def _cca_single_node_efficient(y, x, Rz, XXXiX):
 	m          = y.shape[1]
 	x2         = -(N-1-0.5*(m+2)) * log(  (1-rmax**2) )
 	# df         = m
-	return x2
+	return x2,res
+
+def _cca_efficient(y, x, Rz, XXXiX):
+	r    = np.empty_like(y)
+	x2   = []
+	for q in range(y.shape[1]):
+		xx2,rr = _cca_single_node_efficient(y[:,q,:], x, Rz, XXXiX)
+		r[:,q] = rr
+		x2.append(xx2)
+	return np.asarray(x2), r
+	
+	
 
 
 @appendSPMargs
@@ -139,17 +128,13 @@ def cca(Y, x, roi=None, _fwhm_method='taylor2008'):
 	XStar      = Rz * X
 	XXXiX      = XStar  *  np.linalg.inv( XStar.T * XStar  )  * XStar.T
 	if Y.ndim==2:
-		X2         = _cca_single_node_efficient(Y, x, Rz, XXXiX)
+		X2,R       = _cca_single_node_efficient(Y, x, Rz, XXXiX)
 		df         = 1, Y.shape[1]
-		R          = _get_residuals_regression_0d(Y, x)
-		# return _spm.SPM0D_X2(X2, df)
 		spm = SPM0D('X2', X2, df, beta=None, residuals=R, sigma2=None, X=X)
 	else:
-		X2     = np.array([_cca_single_node_efficient(Y[:,q,:], x, Rz, XXXiX)   for q in range(Y.shape[1])])
+		X2,R   = _cca_efficient(Y, x, Rz, XXXiX)
 		X2     = X2 if roi is None else np.ma.masked_array(X2, np.logical_not(roi))
-		R      = _get_residuals_regression(Y, x)
 		fwhm   = estimate_fwhm_mv(R, method=_fwhm_method)
-		# resels = _mvbase._resel_counts(R, fwhm, roi=roi)
 		resels = resel_counts_mv(R, fwhm, roi=roi)
 		df     = 1, Y.shape[2]
 		spm    = SPM1D('X2', X2, df, beta=None, residuals=R, sigma2=None, X=X, fwhm=fwhm, resels=resels, roi=roi)
