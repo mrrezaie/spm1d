@@ -25,6 +25,34 @@ class _SPM(object):
 	effect_label   = None    # only for ANOVA-like designs
 	effect_label_s = None    # only for ANOVA-like designs
 
+	def __eq__(self, other):
+		eq = True
+		for k,v in self.__dict__.items():
+			# print('\n\n\n\n\n')
+			# print(k)
+			# print('\n\n\n\n\n')
+			if not k.startswith('_'):
+				v1 = getattr(other, k)
+				if v is None:
+					eq = v1 is None
+				elif isinstance(v, float) and np.isnan(v):
+					eq = np.isnan( v1 )
+				elif isinstance(v, tuple) and isinstance(v[0], np.ndarray):
+					for vv,vv1 in zip(v,v1):
+						eq = np.all( np.isclose(vv, vv1, rtol=1e-5, atol=1e-9, equal_nan=True ) )
+						if not eq:
+							return False
+				elif isinstance(v, np.ndarray):
+					eq = np.all( np.isclose(v, v1, rtol=1e-5, atol=1e-9, equal_nan=True ) )
+				
+				elif isinstance(v, (str,int,float,tuple,list,dict)):
+					eq = v==v1
+				else:
+					raise ValueError( f'Unable to hash type: {type(v)}' )
+				if not eq:
+					return False
+		return eq
+
 	@property
 	def _class_str(self):
 		ss     = 'n' if (self.isinference and not self.isparametric) else ''

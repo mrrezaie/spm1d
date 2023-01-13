@@ -106,6 +106,7 @@ class _Cluster(metaclass=ABCMeta):
 
 class _WithInference(object):
 	
+
 	def __repr__(self):
 		s   = super().__repr__()
 		s  += 'Inference:\n'

@@ -31,6 +31,24 @@ class SPM1D(_SPMParent):
 		self.resels         = resels           # resel counts
 		self.roi            = roi              # region of interest
 
+	# def __eq__(self, other):
+	# 	eq = True
+	# 	for k,v in self.__dict__.items():
+	# 		if not k.startswith('_'):
+	# 			v1 = getattr(other, k)
+	# 			if isinstance(v, (str,int,float,tuple,list)):
+	# 				eq = v==v1
+	# 			elif isinstance(v, np.ndarray):
+	# 				eq = np.all( np.isclose(v, v1, rtol=1e-5, atol=1e-9, equal_nan=True ) )
+	# 			elif v is None:
+	# 				eq = v1 is None
+	# 			else:
+	# 				raise ValueError( f'Unable to hash type: {type(v)}' )
+	# 			if not eq:
+	# 				break
+	# 	return eq
+	
+	
 	def __repr__(self):
 		dp      = DisplayParams( self )
 		dp.add_header( self._class_str )

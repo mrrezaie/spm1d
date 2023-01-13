@@ -31,6 +31,23 @@ class Cluster( _Cluster ):
 		self.sign           = sign
 		self._endpoints     = x[0], x[-1]   # pre-interpolation
 		
+	def __eq__(self, other):
+		eq = True
+		for k,v in self.__dict__.items():
+			if not k.startswith('_'):
+				v1 = getattr(other, k)
+				if v is None:
+					eq = v1 is None
+				elif isinstance(v, float) and np.isnan(v):
+					eq = np.isnan( v1 )
+				elif isinstance(v, (int,float,tuple,list)):
+					eq = v==v1
+				else:
+					raise ValueError( f'Unable to hash type: {type(v)}' )
+				if not eq:
+					break
+		return eq
+
 	def __lt__(self, other):
 		return self.x[0] < other.x[0]
 
