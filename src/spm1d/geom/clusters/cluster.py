@@ -32,6 +32,8 @@ class Cluster( _Cluster ):
 		self._endpoints     = x[0], x[-1]   # pre-interpolation
 		
 	def __eq__(self, other):
+		if type(self)!=type(other):
+			return False
 		eq = True
 		for k,v in self.__dict__.items():
 			if not k.startswith('_'):

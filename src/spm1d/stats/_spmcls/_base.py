@@ -26,6 +26,8 @@ class _SPM(object):
 	effect_label_s = None    # only for ANOVA-like designs
 
 	def __eq__(self, other):
+		if type(self)!=type(other):
+			return False
 		eq = True
 		for k,v in self.__dict__.items():
 			# print('\n\n\n\n\n')
