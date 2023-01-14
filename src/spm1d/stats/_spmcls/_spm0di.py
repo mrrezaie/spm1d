@@ -26,7 +26,11 @@ class SPM0Di(_SPMiParent):
 	def __init__(self, spm, results, df_adjusted):
 		self.STAT            = spm.STAT
 		self.testname        = spm.testname
-		self.X               = spm.X
+		self._args           = spm._args            # arguments for spm1d.stats function
+		self._kwargs         = spm._kwargs          # keyword arguments for spm1d.stats function
+		self._iargs          = None                 # arguments for inference
+		self._ikwargs        = None                 # keyword arguments for inference
+		self.X               = spm.X                # design matrix
 		self.beta            = spm.beta             # fitted parameters
 		self.residuals       = spm.residuals        # model residuals
 		self.sigma2          = spm.sigma2           # variance
@@ -112,10 +116,11 @@ class SPM0Di(_SPMiParent):
 		if len( self.extras ) > 0:
 			dp.add_header( 'extras:' )
 			for k,v in self.extras.items():
-				if k=='nperm_possible':
-					dp.add(k, largeint2str)
-				else:
-					dp.add(k)
+				if not k.startswith('_'):
+					if k=='nperm_possible':
+						dp.add(k, largeint2str)
+					else:
+						dp.add(k)
 		return dp.asstr()
 
 

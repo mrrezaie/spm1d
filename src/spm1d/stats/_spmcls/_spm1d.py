@@ -180,6 +180,12 @@ class SPM1D(_SPMParent):
 		
 		
 		spmi = self._build_spmi(results, df_adjusted=dfa)
+		
+		spmi._iargs   = (alpha,)
+		spmi._ikwargs = dict(method=method)
+		spmi._ikwargs.update( **kwargs )
+		
+		
 		return( spmi )
 		
 		

@@ -19,6 +19,53 @@ class _Permuter(object):
 	alpha            = None
 	dirn             = None
 	
+	
+	def __eq__(self, other):
+
+		if type(self) != type(other):
+			return False
+
+		for k,v in self.__dict__.items():
+			if k.startswith('_'):
+				continue
+			
+			v1 = getattr(other, k)
+			
+			if v is None:
+				eq = v1 is None
+				
+			elif isinstance(v, float) and np.isnan(v):
+				eq = np.isnan( v1 )
+
+			elif k in ('calc','metric'):
+				eq = True
+			
+			elif isinstance(v, tuple) and isinstance(v[0], np.ndarray):
+				for vv,vv1 in zip(v,v1):
+					eq = np.all( np.isclose(vv, vv1, rtol=1e-5, atol=1e-9, equal_nan=True ) )
+					if not eq:
+						break
+
+			elif isinstance(v, np.ndarray):
+				eq = np.all( np.isclose(v, v1, rtol=1e-5, atol=1e-9, equal_nan=True ) )
+		
+			elif isinstance(v, (str,int,float,tuple,list,dict)):
+				eq = v==v1
+
+			else:
+				raise ValueError( f'Unable to hash type: {type(v)}' )
+
+			# if verbose:
+			# 	print( f'{k:<14} : equal={eq}'  )
+
+			if not eq:
+				return False
+		 
+		
+		return True
+			
+		
+		
 	def __repr__(self):
 		return self.__class__.__name__
 	

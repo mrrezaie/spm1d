@@ -26,34 +26,35 @@ class _SPM(object):
 	effect_label_s = None    # only for ANOVA-like designs
 
 	def __eq__(self, other):
-		if type(self)!=type(other):
-			return False
-		eq = True
-		for k,v in self.__dict__.items():
-			# print('\n\n\n\n\n')
-			# print(k)
-			# print('\n\n\n\n\n')
-			if not k.startswith('_'):
-				v1 = getattr(other, k)
-				if v is None:
-					eq = v1 is None
-				elif isinstance(v, float) and np.isnan(v):
-					eq = np.isnan( v1 )
-				elif isinstance(v, tuple) and isinstance(v[0], np.ndarray):
-					for vv,vv1 in zip(v,v1):
-						eq = np.all( np.isclose(vv, vv1, rtol=1e-5, atol=1e-9, equal_nan=True ) )
-						if not eq:
-							return False
-				elif isinstance(v, np.ndarray):
-					eq = np.all( np.isclose(v, v1, rtol=1e-5, atol=1e-9, equal_nan=True ) )
-				
-				elif isinstance(v, (str,int,float,tuple,list,dict)):
-					eq = v==v1
-				else:
-					raise ValueError( f'Unable to hash type: {type(v)}' )
-				if not eq:
-					return False
-		return eq
+		return self.isequal(other, verbose=False)
+		# if type(self)!=type(other):
+		# 	return False
+		# eq = True
+		# for k,v in self.__dict__.items():
+		# 	# print('\n\n\n\n\n')
+		# 	# print(k)
+		# 	# print('\n\n\n\n\n')
+		# 	if not k.startswith('_'):
+		# 		v1 = getattr(other, k)
+		# 		if v is None:
+		# 			eq = v1 is None
+		# 		elif isinstance(v, float) and np.isnan(v):
+		# 			eq = np.isnan( v1 )
+		# 		elif isinstance(v, tuple) and isinstance(v[0], np.ndarray):
+		# 			for vv,vv1 in zip(v,v1):
+		# 				eq = np.all( np.isclose(vv, vv1, rtol=1e-5, atol=1e-9, equal_nan=True ) )
+		# 				if not eq:
+		# 					return False
+		# 		elif isinstance(v, np.ndarray):
+		# 			eq = np.all( np.isclose(v, v1, rtol=1e-5, atol=1e-9, equal_nan=True ) )
+		#
+		# 		elif isinstance(v, (str,int,float,tuple,list,dict)):
+		# 			eq = v==v1
+		# 		else:
+		# 			raise ValueError( f'Unable to hash type: {type(v)}' )
+		# 		if not eq:
+		# 			return False
+		# return eq
 
 	@property
 	def _class_str(self):
@@ -80,16 +81,74 @@ class _SPM(object):
 		return h
 
 
+	def isequal(self, other, verbose=False):
+		if type(self)!=type(other):
+			return False
+		
+		for k,v in self.__dict__.items():
+			if k.startswith('_'):
+				continue
+			
+			v1 = getattr(other, k)
+			
+			
+			
+			if v is None:
+				eq = v1 is None
+				
+			elif isinstance(v, float) and np.isnan(v):
+				eq = np.isnan( v1 )
+
+			
+			elif (k=='extras') and (self.method=='perm'):
+				d,d1 = v.copy(), v1.copy()
+				# d.pop('permuter')
+				# d1.pop('permuter')
+				d.pop('_nprandstate')
+				d1.pop('_nprandstate')
+				eq = d==d1
+
+			elif (k=='permuter'):
+				eq = True
+			
+			elif isinstance(v, tuple) and isinstance(v[0], np.ndarray):
+				for vv,vv1 in zip(v,v1):
+					eq = np.all( np.isclose(vv, vv1, rtol=1e-5, atol=1e-9, equal_nan=True ) )
+					if not eq:
+						break
+
+			elif isinstance(v, np.ndarray):
+				eq = np.all( np.isclose(v, v1, rtol=1e-5, atol=1e-9, equal_nan=True ) )
+		
+			elif isinstance(v, (str,int,float,tuple,list,dict)):
+				eq = v==v1
+			else:
+				raise ValueError( f'Unable to hash type: {type(v)}' )
+
+			if verbose:
+				print( f'{k:<14} : equal={eq}'  )
+
+			if not eq:
+				return False
+
+		return True
+
 
 class _SPMParent(_SPM):
 	'''Parent class SPM classes.'''
+	
+	def _reexec(self):
+		import spm1d
+		fn  = eval(  f'spm1d.stats.{self.testname}'  )
+		return fn( *self._args, **self._kwargs )
 	
 	def _set_anova_attrs(self, ss=None, ms=None):
 		self.ss   = tuple( np.asarray(ss, dtype=float) )
 		self.ms   = tuple( np.asarray(ms, dtype=float) )
 	
-	def _set_data(self, *args):
-		self._args = args
+	def _set_data(self, *args, **kwargs):
+		self._args   = args
+		self._kwargs = kwargs
 	
 	def _set_testname(self, name):
 		self.testname = str( name )
@@ -169,6 +228,21 @@ class _SPMiParent(_SPM):
 		for k,v in extras.items():
 			setattr(self, k, v)
 	
+
+	def _reexec(self):
+		import spm1d
+		fn   = eval(  f'spm1d.stats.{self.testname}'  )
+		spm  = fn( *self._args, **self._kwargs )
+		if '_nprandstate' in self.extras.keys():
+			state0 = np.random.get_state()
+			np.random.set_state( self.extras['_nprandstate'] )
+			spmi = spm.inference( *self._iargs, **self._ikwargs )
+			np.random.set_state( state0 )
+		else:
+			spmi = spm.inference( *self._iargs, **self._ikwargs )
+		return spmi
+	
+
 	
 	# def _repr_summ(self):  # abstract method to be implemented by all subclasses
 	# 	pass

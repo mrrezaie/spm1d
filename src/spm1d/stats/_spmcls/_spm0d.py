@@ -155,7 +155,11 @@ class SPM0D(_SPMParent):
 
 		elif method == 'perm':
 			spmi = self._inference_perm(alpha, **kwargs)
-
+		
+		spmi._iargs   = (alpha,)
+		spmi._ikwargs = dict(method=method)
+		spmi._ikwargs.update( **kwargs )
+		
 		return spmi
 
 

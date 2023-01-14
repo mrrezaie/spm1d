@@ -26,9 +26,13 @@ class SPM1Di(_SPMiParent, SPM1D):
 
 
 	def __init__(self, spm, results, df_adjusted):
-		self.STAT            = spm.STAT
-		self.testname        = spm.testname
-		self.X               = spm.X
+		self.STAT            = spm.STAT             # test statistic (string): T, F, X2 or T2
+		self.testname        = spm.testname         # spm1d.stats function name
+		self._args           = spm._args            # arguments for spm1d.stats function
+		self._kwargs         = spm._kwargs          # keyword arguments for spm1d.stats function
+		self._iargs          = None                 # arguments for inference
+		self._ikwargs        = None                 # keyword arguments for inference
+		self.X               = spm.X                # design matrix
 		self.beta            = spm.beta             # fitted parameters
 		self.residuals       = spm.residuals        # model residuals
 		self.sigma2          = spm.sigma2           # variance
