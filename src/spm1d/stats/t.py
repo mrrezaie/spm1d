@@ -181,7 +181,7 @@ def ttest_paired(YA, YB, roi=None):
 
 # def ttest2(YA, YB, equal_var=None, roi=None):
 @appendSPMargs
-def ttest2(YA, YB, roi=None):
+def ttest2(YA, YB, equal_var=None, roi=None):
 	'''
 	Two-sample t test.
 	

@@ -17,7 +17,7 @@ class RSFlavor(_base.DatasetT2):
 		self.p    = 0.021526
 
 		self.set_spm1d_args( self.YA, self.YB, equal_var=True )
-		self.set_spm1d_inference_args( 0.05, dirn=0 )
+		self.set_spm1d_inference_args( 0.05, dirn=1 )
 		# self.tol.z      = 1e-5
 		# self.tol.p      = 1e-5
 		# self.tol.df     = 1e-5

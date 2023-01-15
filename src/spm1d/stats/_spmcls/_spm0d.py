@@ -146,20 +146,21 @@ class SPM0D(_SPMParent):
 	
 	
 	def inference(self, alpha, method='param', **kwargs):
-		# from . _argparsers import InferenceArgumentParser0D
-		# parser   = InferenceArgumentParser0D(self.STAT, method)
-		# parser.parse( alpha, **kwargs )
+		from . _argparsers import InferenceArgumentParser0D
+		parser   = InferenceArgumentParser0D(self.STAT, method)
+		parser.parse( alpha, **kwargs )
+		# print( parser.kwargs )
 
 		if method == 'param':
-			spmi = self._inference_param(alpha, **kwargs)
+			spmi = self._inference_param(alpha, **parser.kwargs)
 
 		elif method == 'perm':
-			spmi = self._inference_perm(alpha, **kwargs)
-		
+			spmi = self._inference_perm(alpha, **parser.kwargs)
+
 		spmi._iargs   = (alpha,)
 		spmi._ikwargs = dict(method=method)
 		spmi._ikwargs.update( **kwargs )
-		
+
 		return spmi
 
 
