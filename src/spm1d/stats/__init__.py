@@ -39,7 +39,7 @@ from . mv import cca, hotellings, hotellings_paired, hotellings2, manova1
 # from . manova import manova1
 # from . var import eqvartest
 #
-# from . import nonparam
+from . import nonparam
 # from . import normality
 
 # testnames = ['ttest']
