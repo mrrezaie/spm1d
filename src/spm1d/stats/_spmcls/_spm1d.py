@@ -172,6 +172,9 @@ class SPM1D(_SPMParent):
 		elif method == 'fdr':
 			results = prob.fdr(self.STAT, self.z, self.df, alpha=alpha, **kwargs)
 		
+		else:
+			raise ValueError( f'Unknown inference method: {method}. Must be one of: ["rft", "perm", "fdr"]' )
+		
 		# spmi       = self._build_spmi(alpha, zstar, clusters, p_set, two_tailed)    #assemble SPMi object
 		# return spmi
 		
