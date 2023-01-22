@@ -51,19 +51,19 @@ def anova3tworm(y, x):
 
 
 
-def hotellings2(y, x):
+def hotellings2(y, x, **kwargs):
 	from .. import hotellings2
 	ux = np.unique(x)
 	y0 = y[x==ux[0]]
 	y1 = y[x==ux[1]]
-	return hotellings2(y0, y1)
+	return hotellings2(y0, y1, **kwargs)
 
-def hotellings_paired(y, x):
+def hotellings_paired(y, x, **kwargs):
 	from .. import hotellings_paired
 	ux = np.unique(x)
 	y0 = y[x==ux[0]]
 	y1 = y[x==ux[1]]
-	return hotellings_paired(y0 - y1, 0)
+	return hotellings_paired(y0 - y1, 0, **kwargs)
 
 def ttest2(y, x):
 	from .. import ttest2
