@@ -26,7 +26,7 @@ def _clusterlevel_inference(calc, z, zc, fwhm, dirn=1, circular=False):
 	clusters = assemble_clusters(z, zc, dirn=dirn, circular=circular)
 	sc       = 2 if (dirn==0) else 1
 	for i,c in enumerate( clusters ):
-		k,u  = c.extent / fwhm, c.height
+		k,u  = c.extent / fwhm, abs(c.height)
 		p    = sc * calc.p.cluster(k, u)
 		clusters[i] = c.as_inference_cluster(k, p)
 	return clusters
