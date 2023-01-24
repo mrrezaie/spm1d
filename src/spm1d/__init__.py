@@ -25,7 +25,7 @@ __version__ = '0.5.0'  # (2023-01-01)
 
 __all__ = ['data', 'plot', 'rft1d', 'stats', 'util']
 
-from . import data
+# from . import data
 from . import geom
 from . import legacy
 from . import prob
