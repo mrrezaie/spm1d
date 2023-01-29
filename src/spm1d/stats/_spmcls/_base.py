@@ -143,8 +143,13 @@ class _SPMParent(_SPM):
 		return fn( *self._args, **self._kwargs )
 	
 	def _set_anova_attrs(self, ss=None, ms=None):
-		self.ss   = tuple( np.asarray(ss, dtype=float) )
-		self.ms   = tuple( np.asarray(ms, dtype=float) )
+		if self.dim==0:
+			self.ss   = tuple( [float(x) for x in ss] )
+			self.ms   = tuple( [float(x) for x in ms] )
+		else:
+			self.ss   = tuple( np.asarray(ss, dtype=float) )
+			self.ms   = tuple( np.asarray(ms, dtype=float) )
+
 	
 	def _set_data(self, *args, **kwargs):
 		self._args   = args
