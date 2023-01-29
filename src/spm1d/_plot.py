@@ -9,13 +9,10 @@ Users should access plotting functions through spm1d.plot (not spm1d._plot).
 # updated (2016/10/01) todd
 
 
-from copy import copy,deepcopy
+
 import numpy as np
-from scipy import ndimage
-import matplotlib
-from matplotlib import pyplot, cm as colormaps
-from matplotlib.patches import Polygon
-from matplotlib.collections import PatchCollection
+import matplotlib.pyplot as plt
+
 
 
 
@@ -37,7 +34,7 @@ class DataPlotter(object):
 		
 	@staticmethod
 	def _gca(ax):
-		return pyplot.gca() if ax is None else ax
+		return plt.gca() if ax is None else ax
 	
 	def _set_axlim(self):
 		self._set_xlim()
@@ -47,7 +44,7 @@ class DataPlotter(object):
 		self.x         = np.arange(Q) if x is None else x
 
 	def _set_xlim(self):
-		pyplot.setp(self.ax, xlim=(self.x.min(), self.x.max())  )
+		plt.setp(self.ax, xlim=(self.x.min(), self.x.max())  )
 
 	def _set_ylim(self, pad=0.075):
 		def minmax(x):
@@ -64,7 +61,8 @@ class DataPlotter(object):
 			ymin    = min(y0, ymin)
 			ymax    = max(y1, ymax)
 		for text in ax.texts:
-			r       = matplotlib.backend_bases.RendererBase()
+			from matplotlib.backend_bases import RendererBase
+			r       = RendererBase()
 			bbox    = text.get_window_extent(r)
 			y0,y1   = ax.transData.inverted().transform(bbox)[:,1]
 			ymin    = min(y0, ymin)
@@ -83,6 +81,8 @@ class DataPlotter(object):
 	# 	return self.ax.plot(y, **kwdargs)
 	
 	def plot_cloud(self, Y, facecolor='0.8', edgecolor='0.8', alpha=0.5, edgelinestyle='-'):
+		from matplotlib.patches import Polygon
+		from matplotlib.collections import PatchCollection
 		### create patches:
 		y0,y1       = Y
 		x,y0,y1     = self.x.tolist(), y0.tolist(), y1.tolist()
@@ -97,7 +97,7 @@ class DataPlotter(object):
 		patches     = PatchCollection(   [  Polygon(  np.array([x,y]).T  )  ], edgecolors=None)
 		### plot:
 		self.ax.add_collection(patches)
-		pyplot.setp(patches, facecolor=facecolor, edgecolor=edgecolor, alpha=alpha, linestyle=edgelinestyle)
+		plt.setp(patches, facecolor=facecolor, edgecolor=edgecolor, alpha=alpha, linestyle=edgelinestyle)
 		return patches
 
 	def plot_datum(self, y=0, color='k', linestyle=':'):
@@ -111,6 +111,9 @@ class DataPlotter(object):
 		self.ax.plot([x-w,x+w], [y+e]*2, '-', color=color, lw=linewidth)
 
 	def plot_roi(self, roi, ylim=None, facecolor='b', edgecolor='w', alpha=0.5):
+		from matplotlib.patches import Polygon
+		from matplotlib.collections import PatchCollection
+		from scipy import ndimage
 		L,n       = ndimage.label(roi)
 		y0,y1     = self.ax.get_ylim() if ylim is None else ylim
 		poly      = []
@@ -118,12 +121,12 @@ class DataPlotter(object):
 			x0,x1 = np.argwhere(L==(i+1)).flatten()[[0,-1]]
 			verts = [(x0,y0), (x1,y0), (x1,y1), (x0,y1)]
 			poly.append( Polygon(verts) )
-			pyplot.setp(poly, facecolor=facecolor, edgecolor=edgecolor, alpha=alpha)
+			plt.setp(poly, facecolor=facecolor, edgecolor=edgecolor, alpha=alpha)
 		self.ax.add_collection( PatchCollection(poly, match_original=True) )
 		
 		
 	def set_ax_prop(self, *args, **kwdargs):
-		pyplot.setp(self.ax, *args, **kwdargs)
+		plt.setp(self.ax, *args, **kwdargs)
 
 
 
@@ -148,6 +151,7 @@ class SPMPlotter(DataPlotter):
 		self._set_ylim()
 
 	def plot_design(self, factor_labels=None, fontsize=10):
+		from matplotlib import cm
 		def scaleColumns(X):
 			mn,mx     = np.min(X,axis=0) , np.max(X,axis=0)
 			Xs        = (X-mn)/(mx-mn+eps)
@@ -157,11 +161,11 @@ class SPMPlotter(DataPlotter):
 		vmin,vmax     = None, None
 		if np.all(X==1):
 			vmin,vmax = 0, 1
-		self.ax.imshow(scaleColumns(X), cmap=colormaps.gray, interpolation='nearest', vmin=vmin, vmax=vmax)
+		self.ax.imshow(scaleColumns(X), cmap=cm.gray, interpolation='nearest', vmin=vmin, vmax=vmax)
 		if factor_labels != None:
 			gs        = X.shape
 			tx        = [self.ax.text(i, -0.05*gs[0], label)   for i,label in enumerate(factor_labels)]
-			pyplot.setp(tx, ha='center', va='bottom', color='k', fontsize=fontsize)
+			plt.setp(tx, ha='center', va='bottom', color='k', fontsize=fontsize)
 		self.ax.axis('normal')
 		self.ax.axis('off')
 	
@@ -187,8 +191,10 @@ class SPMPlotter(DataPlotter):
 		self.ax.set_ylabel(label, size=16)
 	
 	def set_data(self):
+		# from copy import copy,deepcopy
 		if isinstance(self.spm.z, np.ma.MaskedArray):
-			self.zma      = deepcopy(self.spm.z)
+			# self.zma      = deepcopy(self.spm.z)
+			self.zma      = self.spm.z.copy()
 			self.z        = np.asarray(self.spm.z, dtype=float)
 			self.ismasked = True
 		else:
@@ -223,7 +229,7 @@ class SPMiPlotter(SPMPlotter):
 		# 			polyg.append(  Polygon(  np.array([x,z]).T  )  )
 		# 	patches    = PatchCollection(polyg, edgecolors=None)
 		# 	self.ax.add_collection(patches)
-		# 	pyplot.setp(patches, facecolor=facecolor, edgecolor=facecolor)
+		# 	plt.setp(patches, facecolor=facecolor, edgecolor=facecolor)
 
 	def plot_p_values(self, size=8, offsets=None, offset_all_clusters=None):
 		n          = len(self.spm.p_cluster)
@@ -266,7 +272,7 @@ class SPMiPlotter(SPMPlotter):
 				if np.any(spmi.roi<0):
 					zz     = np.ma.masked_array([-zs]*spmi.Q, np.logical_not(spmi.roi<0))
 					h.append( ax.plot(self.x, zz) )
-		pyplot.setp(h, color=color, lw=1, linestyle='--')
+		plt.setp(h, color=color, lw=1, linestyle='--')
 		return h
 
 	def plot_threshold_label(self, lower=False, pos=None, **kwdargs):
@@ -312,7 +318,7 @@ def _plot_F_list(FF, plot_threshold_label=True, plot_p_values=True, autoset_ylim
 	# mm     = 2 if len(FF)<5 else 3
 	AX     = []
 	for i,F in enumerate(FF):
-		ax = pyplot.subplot(m,m,i+1)
+		ax = plt.subplot(m,m,i+1)
 		F.plot(ax=ax)
 		ax.set_title( F.effect_label )
 		if F.isinference:
@@ -337,7 +343,7 @@ def _plot_F_list(FF, plot_threshold_label=True, plot_p_values=True, autoset_ylim
 	if autoset_ylim:
 		ylim   = np.array(  [ax.get_ylim()  for ax in AX]  )
 		ylim   = ylim[:,0].min(), ylim[:,1].max()
-		pyplot.setp(AX, ylim=ylim)
+		plt.setp(AX, ylim=ylim)
 	
 
 

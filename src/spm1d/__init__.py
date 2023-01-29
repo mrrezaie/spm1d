@@ -27,7 +27,7 @@ __all__ = ['data', 'plot', 'rft1d', 'stats', 'util']
 
 # from . import data
 from . import geom
-from . import legacy
+# from . import legacy
 from . import prob
 from . import plot
 from . import stats
