@@ -7,7 +7,6 @@ Normality testing using the Shapiro-Wilks statistic
 # Copyright (C) 2016  Todd Pataky
 
 import numpy as np
-from scipy import stats
 from .. t import regress as _main_regress
 from .. anova import anova1 as _main_anova1
 from .. anova import anova1rm as _main_anova1rm
@@ -23,7 +22,8 @@ from .. anova import anova3tworm as _main_anova3tworm
 
 
 def sw_single_node(x):
-	w,p = stats.shapiro(x)
+	from scipy.stats import shapiro
+	w,p = shapiro(x)
 	return w,p
 
 def residuals(y):

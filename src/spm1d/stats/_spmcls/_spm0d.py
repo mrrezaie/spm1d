@@ -11,10 +11,10 @@ This module contains class definitions for 0D SPMs.
 # Copyright (C) 2023  Todd Pataky
 
 
-from copy import deepcopy
+# from copy import deepcopy
 import warnings
 import numpy as np
-from scipy import stats
+# from scipy import stats
 from . _base import _SPMParent
 from ... import prob
 from ... util import dflist2str, tuple2str, DisplayParams

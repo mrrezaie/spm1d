@@ -9,8 +9,8 @@ Clusters module
 
 # from copy import deepcopy
 import numpy as np
-from matplotlib.patches import Polygon
-from matplotlib.collections import PatchCollection
+# from matplotlib.patches import Polygon
+# from matplotlib.collections import PatchCollection
 from ... util import tuple2str
 from . _base import _Cluster, _WithInference
 
@@ -150,6 +150,7 @@ class Cluster( _Cluster ):
 		self._interp_right(zfull)
 		
 	def plot(self, ax, **kwargs):
+		from matplotlib.patches import Polygon
 		patch  = Polygon( self.asarray(), **kwargs )
 		ax.add_patch( patch )
 

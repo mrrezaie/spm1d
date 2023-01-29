@@ -5,7 +5,6 @@ False discover rate (FDR) probabilities
 
 from copy import deepcopy
 import numpy as np
-import rft1d
 from .. geom import assemble_clusters, ClusterList
 eps    = np.finfo(float).eps  #smallest floating number greater than zero
 
@@ -36,6 +35,7 @@ class FDRResults(object):
 
 
 def p_uncorrected(STAT, z, df):
+	import rft1d
 	if STAT=='T':
 		p     = rft1d.t.sf0d(z, df[1])
 	elif STAT=='F':

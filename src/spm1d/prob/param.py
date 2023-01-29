@@ -4,7 +4,7 @@ Common parametric (0D) probabilities
 '''
 
 import numpy as np
-import rft1d
+
 
 
 class ParamResults(object):
@@ -18,6 +18,7 @@ class ParamResults(object):
 		
 
 def isf_sf_t(z, df, alpha=0.05, dirn=0):
+	import rft1d
 	# critical value:
 	a      = 0.5 * alpha if (dirn==0) else alpha
 	zc     = rft1d.t.isf0d( a, df )
@@ -35,6 +36,7 @@ def isf_sf_t(z, df, alpha=0.05, dirn=0):
 
 
 def param(stat, z, df, alpha=0.05, dirn=None):
+	import rft1d
 	if stat=='T':
 		v    = df[1] if isinstance(df, (list,tuple,np.ndarray)) else df
 		zc,p = isf_sf_t(z, v, alpha, dirn=dirn)

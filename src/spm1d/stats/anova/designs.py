@@ -9,7 +9,6 @@ High-level ANOVA designs.
 
 import warnings
 import numpy as np
-from matplotlib import pyplot
 from . factors import Factor,FactorNested,FactorNested2,FactorNestedTwoWay #FactorRM,FactorSubject
 
 
@@ -24,11 +23,12 @@ class Contrasts(object):
 		self.term_labels = term_labels
 
 	def plot(self, ax=None):
-		ax  = pyplot.gca() if ax==None else ax
+		import matplotlib.pyplot as plt
+		ax  = plt.gca() if ax==None else ax
 		ax.imshow(self.C, interpolation='nearest', cmap='gray', vmin=-1, vmax=1, aspect='auto')
 		xskip   = self.C.shape[1] / 10 + 1
 		yskip   = self.C.shape[0] / 10 + 1
-		pyplot.setp(ax, xticks=range(0, self.C.shape[1], xskip), yticks=range(0, self.C.shape[0], yskip))
+		plt.setp(ax, xticks=range(0, self.C.shape[1], xskip), yticks=range(0, self.C.shape[0], yskip))
 
 
 
@@ -81,27 +81,28 @@ class _Design(object):
 	
 	
 	def plot(self, ax=None, plot_contrasts=True, contrastnums=[0,1,2]):
+		import matplotlib.pyplot as plt
 		if plot_contrasts:
-			ax0 = pyplot.axes([0.05,0.05,0.4,0.9])
+			ax0 = plt.axes([0.05,0.05,0.4,0.9])
 		else:
-			ax0 = pyplot.axes()
+			ax0 = plt.axes()
 		# self.design.plot(ax=ax0)
 		ax0.imshow(self.X, interpolation='nearest', cmap='gray', vmin=-1, vmax=1, aspect='auto')
 		xskip   = self.X.shape[1] / 10 + 1
 		yskip   = self.X.shape[0] / 10 + 1
-		pyplot.setp(ax0, xticks=range(0, self.X.shape[1], xskip), yticks=range(0, self.J, yskip))
+		plt.setp(ax0, xticks=range(0, self.X.shape[1], xskip), yticks=range(0, self.J, yskip))
 		### plot contrasts:
 		if plot_contrasts and self.contrasts!=None:
 			yy  = np.linspace(0.7, 0.05, 3)
 			if len(self.contrasts) < 4:
 				for i,contrast in enumerate(self.contrasts):
-					ax  = pyplot.axes([0.53,yy[i],0.45,0.2])
+					ax  = plt.axes([0.53,yy[i],0.45,0.2])
 					contrast.plot(ax=ax)
 			else:
 				for i,ci in enumerate(contrastnums):
-					ax  = pyplot.axes([0.53,yy[i],0.45,0.2])
+					ax  = plt.axes([0.53,yy[i],0.45,0.2])
 					self.contrasts[ci].plot(ax=ax)
-		pyplot.show()
+		plt.show()
 
 
 

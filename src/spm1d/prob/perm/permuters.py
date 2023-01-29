@@ -3,7 +3,8 @@
 
 import itertools
 import numpy as np
-from scipy.special import factorial
+# from scipy.special import factorial
+from math import factorial
 from . import calculators
 from . metrics import metric_dict
 

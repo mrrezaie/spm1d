@@ -5,7 +5,6 @@ Tests for variance.
 # Copyright (C) 2021  Todd Pataky
 
 import numpy as np
-import rft1d
 from .. geom import estimate_fwhm #, resel_counts
 
 
@@ -48,6 +47,7 @@ def eqvartest(y0, y1, alt="unequal", alpha=None, withBonf=True):
 	>>> plt.plot(f)
 	>>> plt.axhline(fcrit)
 	'''
+	import rft1d
 	# check dimensionality:
 	if (np.ndim(y0)<2) or (np.ndim(y1)<2):
 		raise NotImplementedError( 'Only implemented for 1D data.' )

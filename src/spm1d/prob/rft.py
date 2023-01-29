@@ -5,7 +5,6 @@ Common parametric (0D) probabilities
 
 from copy import deepcopy
 import numpy as np
-import rft1d
 from .. geom import assemble_clusters
 
 
@@ -62,6 +61,7 @@ def rft(STAT, z, df, fwhm, resels, alpha=0.05, cluster_size=0, circular=False, w
 	'''
 	COMMENT:  fwhm is needed ONLY for cluster extent (in FWHM units)
 	'''
+	import rft1d
 	_stats = ["T", "F", "T2", "X2"]
 	if STAT not in _stats:
 		raise ValueError( f'Unknown statistic: {STAT}. Must be one of: {_stats}' )

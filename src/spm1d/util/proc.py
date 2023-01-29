@@ -4,9 +4,8 @@ Utility functions (general processing)
 '''
 
 
-from math import sqrt,log
+
 import numpy as np
-from scipy.ndimage import gaussian_filter1d
 
 
 
@@ -70,5 +69,7 @@ def smooth(Y, fwhm=5.0):
 	
 	>>> fwhm = sd * sqrt(8*log(2))
 	'''
+	from math import sqrt,log
+	from scipy.ndimage import gaussian_filter1d
 	sd    = fwhm / sqrt(8*log(2))
 	return gaussian_filter1d(Y, sd, mode='wrap')

@@ -32,7 +32,7 @@ from . import prob
 from . import plot
 from . import stats
 from . import util
-import rft1d
+# import rft1d
 
 
 from . cfg import cfg
