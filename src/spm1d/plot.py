@@ -30,12 +30,13 @@ These include:
 
 
 import numpy as np
-from . _plot import DataPlotter, SPMPlotter, SPMiPlotter, _legend_manual
+# from . _plot import DataPlotter, SPMPlotter, SPMiPlotter, _legend_manual
 
 
 
 
 def legend_manual(ax, colors=None, labels=None, linestyles=None, markerfacecolors=None, linewidths=None, **kwdargs):
+	from . _plot import _legend_manual
 	return _legend_manual(ax, colors, labels, linestyles, markerfacecolors, linewidths, **kwdargs)
 
 
@@ -44,6 +45,7 @@ def plot_ci_0d(ci, ax=None, color='b', color_criterion='r', markersize=10, autos
 	'''
 	Plot a one-sample confidence interval for 0D data.
 	'''
+	from . _plot import DataPlotter
 	plotter   = DataPlotter(ax)
 	plotter.plot_errorbar(ci.mean, ci.hstar, color=color, x=0)
 	if ci.mu is not None:
@@ -58,6 +60,7 @@ def plot_ci_multisample_0d(ci, ax=None, color='b', color_criterion='r', markersi
 	'''
 	Plot a paired- or two-sample confidence interval for 0D data.
 	'''
+	from . _plot import DataPlotter
 	plotter   = DataPlotter(ax)
 	if ci.criterion_type == 'meanB':
 		hbarw = 0.1
@@ -84,6 +87,7 @@ def plot_ci(ci, ax=None, x=None, linecolor='k', facecolor='0.8', edgecolor='0.8'
 	'''
 	Plot a condfidence interval.
 	'''
+	from . _plot import DataPlotter
 	y,h,Q     = ci.mean, ci.hstar, ci.Q
 	### initialize plotter:
 	plotter   = DataPlotter(ax)
@@ -106,6 +110,7 @@ def plot_ci_multisample(ci, ax=None, x=None, linecolors=('k','b'), facecolors=('
 	'''
 	Plot a multi-mean condfidence interval.
 	'''
+	from . _plot import DataPlotter
 	### assemble means and thresholds:
 	mA,mB,h     = ci.meanA, ci.meanB, ci.hstar
 	### initialize plotter:
@@ -163,6 +168,7 @@ def plot_errorcloud(datum, sd, ax=None, x=None, facecolor='0.8', edgecolor='0.8'
 	>>> spm1d.plot.plot_errorcloud(a, b)
 	>>> pyplot.xlim(0, 50)
 	'''
+	from . _plot import DataPlotter
 	plotter  = DataPlotter(ax)
 	plotter._set_x(x, datum.size)
 	y,s      = np.asarray(datum, dtype=float), np.asarray(sd, dtype=float)
@@ -205,6 +211,7 @@ def plot_mean_sd(Y, ax=None, x=None, lw=3, linecolor='k', linestyle='-', facecol
 	>>> Y  = np.random.randn(10,101)
 	>>> spm1d.plot.plot_mean_sd(Y)
 	'''
+	from . _plot import DataPlotter
 	plotter  = DataPlotter(ax)
 	plotter._set_x(x, Y.shape[1])
 	### plot mean and SD:
@@ -224,6 +231,7 @@ def plot_mean_sd(Y, ax=None, x=None, lw=3, linecolor='k', linestyle='-', facecol
 
 
 def plot_roi(roi, ax=None, facecolor='0.7', alpha=1, edgecolor='w', ylim=None):
+	from . _plot import DataPlotter
 	plotter   = DataPlotter(ax)
 	plotter.plot_roi(roi, ylim=ylim, facecolor=facecolor, edgecolor=edgecolor, alpha=alpha)
 
@@ -252,6 +260,7 @@ def plot_spm(spm, ax=None, plot_ylabel=True, autoset_xlim=True, autoset_ylim=Tru
 	>>> line  = t.plot()   # equivalent to "line = spm1d.plot.plot_spm(t)"
 	>>> line.set_color('r')
 	'''
+	from . _plot import SPMPlotter
 	plotter = SPMPlotter(spm, ax=ax)
 	plotter.plot(**kwdargs)
 	if plot_ylabel:
@@ -273,6 +282,7 @@ def plot_spm_design(spm, ax=None, factor_labels=None, fontsize=10):
 	
 	None
 	'''
+	from . _plot import SPMPlotter
 	plotter = SPMPlotter(spm, ax=ax)
 	plotter.plot_design(factor_labels, fontsize)
 
@@ -304,6 +314,7 @@ def plot_spmi(spmi, ax=None, color='k', linestyle='-', marker='', facecolor='0.8
 	>>> ti    = t.inference(0.05)
 	>>> ti.plot()   # equivalent to "spm1d.plot.plot_spmi(ti)"
 	'''
+	from . _plot import SPMiPlotter
 	plotter = SPMiPlotter(spmi, ax=ax)
 	plotter.plot(color=color, lw=lw, linestyle=linestyle, marker= marker, facecolor=facecolor, label=label, thresh_color=thresh_color)
 	if plot_ylabel:
@@ -342,6 +353,7 @@ def plot_spmi_p_values(spmi, ax=None, size=8, offsets=None, offset_all_clusters=
 	>>> ti.plot_p_values(offsets=myoffsets) #equivalent to: "spm1d.plot.plot_p_values(ti, offsets=myoffsets)"
 	
 	'''
+	from . _plot import SPMiPlotter
 	plotter = SPMiPlotter(spmi, ax=ax)
 	h       = plotter.plot_p_values(size, offsets, offset_all_clusters)
 	if autoset_ylim:
@@ -377,6 +389,7 @@ def plot_spmi_threshold_label(spmi, ax=None, lower=False, pos=None, autoset_ylim
 	>>> ti    = t.inference(0.05)
 	>>> ti.plot_threshold_label(pos=(50,3.0))   # equivalent to "spm1d.plot.plot_spmi_threshold_label(ti, pos=(50,3.0))"
 	'''
+	from . _plot import SPMiPlotter
 	plotter = SPMiPlotter(spmi, ax=ax)
 	h       = plotter.plot_threshold_label(lower=False, pos=pos, **kwdargs)
 	if autoset_ylim:

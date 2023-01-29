@@ -9,8 +9,8 @@ from copy import deepcopy
 import numpy as np
 from . _base import _SPMParent
 from ... import prob
-from ... plot import plot_spm, plot_spm_design
-from ... plot import plot_spmi, plot_spmi_p_values, plot_spmi_threshold_label
+# from ... plot import plot_spm, plot_spm_design
+# from ... plot import plot_spmi, plot_spmi_p_values, plot_spmi_threshold_label
 from ... util import array2shortstr, arraytuple2str, dflist2str, resels2str, DisplayParams
 
 
@@ -201,9 +201,11 @@ class SPM1D(_SPMParent):
 
 
 	def plot(self, **kwdargs):
+		from ... plot import plot_spm
 		return plot_spm(self, **kwdargs)
 		
 	def plot_design(self, **kwdargs):
+		from ... plot import plot_spm_design
 		plot_spm_design(self, **kwdargs)
 		
 	def toarray(self):

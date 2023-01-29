@@ -14,7 +14,7 @@ and inference SPMs (thresholded test statistic).
 
 import numpy as np
 from ... import prob
-from ... _plot import _plot_F_list
+# from ... _plot import _plot_F_list
 
 
 class SPMFList(list):
@@ -178,6 +178,7 @@ class SPMFList(list):
 		
 		
 	def plot(self, plot_threshold_label=True, plot_p_values=True, autoset_ylim=True):
+		from ... _plot import _plot_F_list
 		_plot_F_list(self, plot_threshold_label, plot_p_values, autoset_ylim)
 	def print_summary(self):
 		print( self._repr_summ() )
