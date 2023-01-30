@@ -38,7 +38,7 @@ def _get_residuals_twosample(YA, YB):
 def _get_residuals_twosample_0d(YA, YB):
 	RA = _get_residuals_onesample_0d(YA)
 	RB = _get_residuals_onesample_0d(YB)
-	R  = np.hstack( (RA,RB) )
+	R  = np.vstack( (RA,RB) )
 	return R
 
 
