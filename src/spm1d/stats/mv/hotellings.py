@@ -151,7 +151,7 @@ def hotellings2(YA, YB, equal_var=True, roi=None, _fwhm_method='taylor2008'):
 		# v1,v2         = float(IA), float(JA+JB-IA-1)  ###incorrect;  these are F df, not T2 df
 		v1,v2         = float(IA), float(JA+JB-2)
 		# return _spm.SPM0D_T2(T2, (v1, v2))
-		R             = _get_residuals_twosample_0d(YA, YB, norm=True)
+		R             = _get_residuals_twosample_0d(YA, YB)
 		spm           = SPM0D('T2', T2, (v1, v2), beta=None, residuals=R, sigma2=None, X=None)
 	else:
 		JA,QA,IA      = YA.shape
