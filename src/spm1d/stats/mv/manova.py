@@ -32,7 +32,7 @@ def _get_residuals_manova1_0d(Y, GROUP):
 	R  = []
 	for uu in u:
 		R.append(   _get_residuals_onesample_0d(Y[GROUP==uu])   )
-	return np.hstack(R)
+	return np.vstack(R)
 
 
 
