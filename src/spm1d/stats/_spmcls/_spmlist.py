@@ -197,6 +197,12 @@ class SPMFList(list):
 
 class SPMFiList(SPMFList):
 	name          = 'SPM{F} inference list'
+	@property
+	def h0reject(self):
+		for f in self:
+			if f.h0reject:
+				return True
+		return False
 	def get_h0reject_values(self):
 		return tuple( [f.h0reject for f in self] )
 	def get_p_values(self):
