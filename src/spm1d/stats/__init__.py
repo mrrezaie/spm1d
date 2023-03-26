@@ -37,7 +37,7 @@ from . mv import cca, hotellings, hotellings_paired, hotellings2, manova1
 # from . hotellings import hotellings, hotellings_paired, hotellings2
 # from . cca import cca
 # from . manova import manova1
-# from . var import eqvartest
+from . var import eqvartest
 #
 from . import nonparam
 # from . import normality
