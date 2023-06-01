@@ -1,22 +1,66 @@
 '''
-Restricted maximum likelihood estimates
+Covariance compoonent modeling and estimation
 
 (This and all modules whose names start with underscores
 are not meant to be accessed directly by the user.)
 
 
-The module contains functions which correct for non-sphericity.
+The module supports the modeling and estimation of
+covariance components. These "components" represent
+separate contributions to the overall inter-observation
+variance-covariance.
 
-The code is based on the Matlab routines in "spm_reml.m" as
-released with SPM8 at www.fil.ion.ucl.ac.uk/spm/.
+These covariance models permit corrections mainly for
+three key dataset characteristics:
+- heteroscedasticity (unequal group variances),
+- non-sphericity (within-subject difference variance
+inequality) and
+- autocorrelation (error correlation between
+neighboring observations)
+
+As a simple example:
+Two simple covariance models for a two-sample test are:
+
+- Model 1: Constant variance for all observations
+- Model 2: Separate variance for groups A and B
+
+Substantially more complex covariance models are
+also possible including models of autoregression
+(e.g. error correlation between closely neighboring
+observations)
+
+Modeled covariance components are estimated using
+REML (restricted maximum likelihood). The REML code
+is based on the MATLAB routines in "spm_reml.m" as
+released with SPM8 at www.fil.ion.ucl.ac.uk/spm/
 
 Specific version details:
     spm_reml.m
     $Id: spm_reml.m 1165 2008-02-22 12:45:16Z guillaume $
     authors: John Ashburner & Karl Friston
+
+Users can access covariance component modeling through
+the "equal_var" or "cov_model" keyword arguments that
+are available in relevant spm1d.stats procedures. The
+"equal_var" keyword argument is a legacy argument from
+spm1d v.0.4;  support for it is retained because it may
+be more attractive to some users than the new (v.0.5)
+and more-complex "cov_model" keyword argument. Through
+"cov_model", arbitrary covariance models are supported.
+All models are routed through this module's REML estimates.
+
+For more details refer to Chapter 10 "Covariance Components"
+from Friston et al. (2007)
+
+References:
+
+Friston, K. J., Penny, W. D., Ashburner, J. T., Kiebel,
+S. J., & Nichols, T. E. (Eds.). (2011). Statistical
+parametric mapping: the analysis of functional brain
+images. Elsevier.
 '''
 
-# Copyright (C) 2016  Todd Pataky
+# Copyright (C) 2023  Todd Pataky
 
 
 

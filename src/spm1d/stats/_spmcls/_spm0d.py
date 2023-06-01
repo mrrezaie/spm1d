@@ -98,28 +98,31 @@ class SPM0D(_SPMParent):
 		# 	spmi.permuter = results.permuter
 		return spmi
 
-	def _adjust_df(self):
-		
-		### heteroscedacity correction:
-		if self.testname == 'ttest2':
-			from .. import _reml
-			yA,yB            = self._args
-			y                = np.hstack([yA,yB]) if (self.dim==0) else np.vstack([yA,yB])
-			JA,JB            = yA.shape[0], yB.shape[0]
-			J                = JA + JB
-			q0,q1            = np.eye(JA), np.eye(JB)
-			Q0,Q1            = np.matrix(np.zeros((J,J))), np.matrix(np.zeros((J,J)))
-			Q0[:JA,:JA]      = q0
-			Q1[JA:,JA:]      = q1
-			Q                = [Q0, Q1]
-			df               = _reml.estimate_df_T(y, self.X, self.residuals, Q)
-			dfa              = (1, df)
-		
-		elif self.testname == 'anova1':
-			warnings.warn('\nWARNING:  Non-sphericity corrections for one-way ANOVA are currently approximate and have not been verified.\n', UserWarning, stacklevel=2)
-			Y,X,r   = model.Y, model.X, model.eij
-			Q,C     = design.A.get_Q(), design.contrasts.C.T
-			spm.df  = _reml.estimate_df_anova1(Y, X, r, Q, C)
+	# def _adjust_df(self):
+	#   this code was commented out on 2023-06-01 during v0.5 development
+	# 	it uses the old _reml.py module which is now _cov.py
+	#   but this method may not be necessary at all
+	#
+	### heteroscedasticity correction:
+	# 	if self.testname == 'ttest2':
+	# 		from .. import _reml
+	# 		yA,yB            = self._args
+	# 		y                = np.hstack([yA,yB]) if (self.dim==0) else np.vstack([yA,yB])
+	# 		JA,JB            = yA.shape[0], yB.shape[0]
+	# 		J                = JA + JB
+	# 		q0,q1            = np.eye(JA), np.eye(JB)
+	# 		Q0,Q1            = np.matrix(np.zeros((J,J))), np.matrix(np.zeros((J,J)))
+	# 		Q0[:JA,:JA]      = q0
+	# 		Q1[JA:,JA:]      = q1
+	# 		Q                = [Q0, Q1]
+	# 		df               = _reml.estimate_df_T(y, self.X, self.residuals, Q)
+	# 		dfa              = (1, df)
+	#
+	# 	elif self.testname == 'anova1':
+	# 		warnings.warn('\nWARNING:  Non-sphericity corrections for one-way ANOVA are currently approximate and have not been verified.\n', UserWarning, stacklevel=2)
+	# 		Y,X,r   = model.Y, model.X, model.eij
+	# 		Q,C     = design.A.get_Q(), design.contrasts.C.T
+	# 		spm.df  = _reml.estimate_df_anova1(Y, X, r, Q, C)
 	
 	def _inference_param(self, alpha, dirn=0, equal_var=False):
 		dfa = self.df

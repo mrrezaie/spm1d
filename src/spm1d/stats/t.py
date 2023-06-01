@@ -11,7 +11,7 @@ One- and two sample tests.
 import numpy as np
 # from matplotlib import pyplot, cm as colormaps
 from . _dec import appendSPMargs
-from . import _datachecks, _reml
+from . import _datachecks#, _reml
 from .. geom import estimate_fwhm, resel_counts
 
 

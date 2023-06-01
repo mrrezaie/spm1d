@@ -10,7 +10,7 @@ import warnings
 import numpy as np
 from . import designs,models
 from .. _dec import appendSPMargs
-from .. import _datachecks, _reml
+from .. import _datachecks  #, _reml
 # from .. _spmcls import _spm0d, _spm1d, _spmlist
 from .. _spmcls import SPM0D, SPM1D, SPMFList
 
