@@ -16,7 +16,7 @@ from . _la import rank
 eps = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero errors
 
 
-def _tstat_cov_model(Y, X, Xi, c, b, s2, Q):
+def __tstat_cov_model(Y, X, Xi, c, b, s2, Q):
 	'''
 	t statistic calculation given a covariance model (Q)
 	
@@ -40,6 +40,17 @@ def _tstat_cov_model(Y, X, Xi, c, b, s2, Q):
 	trRV,trRVRV = traceRV(V, X)
 	df          = trRV**2 / trRVRV  # effective degrees of freedom
 	t           = (c @ b)  /   ( np.sqrt( s2 * (c @ Xi @ V @ Xi.T @ c)  + eps ) )
+	return t, df
+
+
+def _tstat_cov_model(Y, X, Xi, c, b, s2, Q, roi=None):
+	if roi is None:
+		t,df      = __tstat_cov_model(Y, X, Xi, c, b, s2, Q)
+	else:
+		_Y,_b,_s2 = Y[:,roi], b[:,roi], s2[roi]
+		_t,df     = __tstat_cov_model(_Y, X, Xi, c, _b, _s2, Q)
+		t         = np.nan * np.ones(Y.shape[1])
+		t[roi]    = _t
 	return t, df
 
 
@@ -76,7 +87,7 @@ def glm(Y, X, c, Q=None, roi=None):
 	if Q is None:  # covariance not modeled
 		t      = (c @ b)  /   ( np.sqrt( s2 * (c @ np.linalg.inv(X.T @ X) @ c) ) + eps )
 	else:
-		t,df   = _tstat_cov_model(Y, X, Xi, c, b, s2, Q)
+		t,df   = _tstat_cov_model(Y, X, Xi, c, b, s2, Q, roi=roi)
 
 	if Y.ndim == 1:
 		from . _spmcls import SPM0D
