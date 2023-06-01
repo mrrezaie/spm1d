@@ -2,22 +2,45 @@
 One- and two sample tests.
 '''
 
-# Copyright (C) 2016  Todd Pataky
+# Copyright (C) 2023  Todd Pataky
 
 
 
 
 
 import numpy as np
-# from matplotlib import pyplot, cm as colormaps
 from . _dec import appendSPMargs
-from . import _datachecks#, _reml
-from .. geom import estimate_fwhm, resel_counts
+from . import _datachecks
+from . _cov import CovarianceModel
+from . _la import rank
+eps = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero errors
 
 
-rank   = np.linalg.matrix_rank
-eps    = np.finfo(float).eps   #smallest float, used to avoid divide-by-zero errors
-
+def _tstat_cov_model(Y, X, Xi, c, b, s2, Q):
+	'''
+	t statistic calculation given a covariance model (Q)
+	
+	Covariance components (V) and their hyperparameters (h)
+	are estimated using REML. See spm1d.stats._cov.py for
+	more details
+	'''
+	from . _cov import reml, traceRV
+	ndim        = Y.ndim
+	if ndim == 1:
+		Y       = np.array([Y]).T
+	n,s         = Y.shape
+	trRV        = n - rank(X)
+	q           = np.diag(np.sqrt( trRV / s2 )).T if (ndim==2) else np.array( [np.sqrt( trRV / s2 )] )
+	Ym          = Y @ q
+	if ndim == 1:
+		Ym      = np.array([Ym]).T
+	YY          = Ym @ Ym.T / s
+	V,h         = reml(YY, X, Q)
+	V           = V * (n / np.trace(V))
+	trRV,trRVRV = traceRV(V, X)
+	df          = trRV**2 / trRVRV  # effective degrees of freedom
+	t           = (c @ b)  /   ( np.sqrt( s2 * (c @ Xi @ V @ Xi.T @ c)  + eps ) )
+	return t, df
 
 
 def glm(Y, X, c, Q=None, roi=None):
@@ -29,8 +52,8 @@ def glm(Y, X, c, Q=None, roi=None):
 	- *Y* --- (J x Q) numpy array (dependent variable)
 	- *X* --- (J x B) design matrix  (J responses, B parameters)
 	- *c* --- B-component contrast vector (list or array)
-	
-	.. note:: Non-sphericity estimates are not supported for **spm1d.stats.glm**
+	- *Q* --- list of (J,J) covariance components (optional)
+	- *roi* --- (Q,) boolean numpy array (optional)
 	
 	:Returns:
 	
@@ -43,18 +66,24 @@ def glm(Y, X, c, Q=None, roi=None):
 	>>> ti.plot()
 	'''
 	
-	b      = np.linalg.pinv(X) @ Y    # parameters
+	Xi     = np.linalg.pinv(X)
+	b      = Xi @ Y    # parameters
 	eij    = Y - X @ b                # residuals
 	ss     = (eij ** 2).sum(axis=0)   # sum-of-squared residuals
 	df     = Y.shape[0] - rank(X)     # degrees of freedom
 	s2     = ss / df                  # variance
-	t      = (c @ b)  /   ( np.sqrt( s2 * (c @ np.linalg.inv(X.T @ X) @ c) ) + eps )
+	
+	if Q is None:  # covariance not modeled
+		t      = (c @ b)  /   ( np.sqrt( s2 * (c @ np.linalg.inv(X.T @ X) @ c) ) + eps )
+	else:
+		t,df   = _tstat_cov_model(Y, X, Xi, c, b, s2, Q)
 
 	if Y.ndim == 1:
 		from . _spmcls import SPM0D
 		spm  = SPM0D('T', t, (1,df), beta=b, residuals=eij, sigma2=s2, X=X)
 	else:
 		from . _spmcls import SPM1D
+		from .. geom import estimate_fwhm, resel_counts
 		fwhm   = estimate_fwhm(eij)
 		resels = resel_counts(eij, fwhm, element_based=False, roi=roi)
 		if roi is not None:
@@ -217,6 +246,15 @@ def ttest2(YA, YB, equal_var=None, roi=None):
 	X[JA:,1] = 1
 	c        = (1, -1)
 	### compute SPM{t}:
-	spm = glm(Y, X, c, Q=None, roi=roi)
+	
+	model    = CovarianceModel(X)
+	if equal_var:
+		model.add_constant_var()
+	else:
+		model.add_group_vars()
+		# model.add_autocorr()
+	Q        = model.get_model()
+		
+	spm = glm(Y, X, c, Q=Q, roi=roi)
 	return spm
 

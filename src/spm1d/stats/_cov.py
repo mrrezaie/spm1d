@@ -167,67 +167,130 @@ def reml(YY, X, Q, N=1, K=128):
 	Q     = [QQ[q,:][:,q]   for QQ in Q]
 
 	m     = len(Q)
-	h     = np.matrix([float(np.any(np.diag(QQ)))  for QQ in Q]).T
+	# h     = np.matrix([float(np.any(np.diag(QQ)))  for QQ in Q]).T
+	h     = np.array(   [float(np.any(np.diag(QQ)))  for QQ in Q]   )
+	
+	# print( h )
+	
 	X0    = np.linalg.qr(X)[0]
-	dFdhh = np.zeros((m,m))
+	dFdhh = np.zeros( (m,m) )
 
-	hE   = np.matrix(np.zeros((m,1)))
-	hP   = np.eye(m)/exp(32)
+	hE   = np.zeros( m )
+	hP   = np.eye(m) / exp(32)
 
 	dF  = np.inf
 	for k in range(K):
-		C    = np.matrix(np.zeros((n,n)))
+		C    = np.zeros( (n,n) )
 		for i in range(m):
 			C   += Q[i] * float(h[i])
 		iC   = np.linalg.inv(C) + np.eye(n)/exp(32)
-		iCX  = iC*X0
-		Cq   = np.linalg.inv(X0.T*iCX)
-	
+		iCX  = iC @ X0
+		Cq   = np.linalg.inv( X0.T @ iCX )
+
 		# Gradient dF/dh (first derivatives)
-		P    = iC - iCX*Cq*iCX.T
-		U    = np.eye(n) - P*YY/N
-	
-		PQ   = [P*QQ for QQ in Q]
-		dFdh = np.matrix([-np.trace(PQQ*U)*0.5*N   for PQQ in PQ]).T
-		
+		P    = iC - iCX@Cq@iCX.T
+		U    = np.eye(n) - P@YY/N
+
+		PQ   = [P@QQ for QQ in Q]
+		dFdh = np.array([-np.trace(PQQ@U)*0.5*N   for PQQ in PQ]).T
+
 		# Expected curvature E{dF/dhh} (second derivatives)
 		for i in range(m):
 			for j in range(m):
-		            dFdhh[i,j] = -np.trace(PQ[i]*PQ[j])*0.5*N
+		            dFdhh[i,j] = -np.trace(PQ[i]@PQ[j])*0.5*N
 		            dFdhh[j,i] =  dFdhh[i,j]
 
 		#add hyper-priors
 		e     = h - hE
-		dFdh -= hP*e
+		# print( e )
+		# print( hP @ e )
+		dFdh -= hP@e
 		dFdhh -= hP
-		
+
 		# Fisher scoring
-		dh    = -np.linalg.inv(dFdhh)*dFdh / log(k+3)
+		dh    = -np.linalg.inv(dFdhh)@dFdh / log(k+3)
 		h    += dh
-		dF    = float(dFdh.T*dh)
-		
+		dF    = float(dFdh.T@dh)
+
 		#final covariance estimate (with missing data points)
 		if dF < 0.1:
 			V     = 0
 			for i in range(m):
 				V += Q[i]*float(h[i])
 			return V, h
-			
+
+# def reml(YY, X, Q, N=1, K=128):
+# 	'''
+# 	Previous implementation that uses np.matrix
+#
+# 	Kept as a reference
+# 	'''
+# 	from copy import deepcopy
+# 	n     = X.shape[0]
+# 	W     = deepcopy(Q)
+#
+# 	q     = np.asarray(np.all(YY<np.inf, axis=0)).flatten()
+# 	Q     = [QQ[q,:][:,q]   for QQ in Q]
+#
+# 	m     = len(Q)
+# 	h     = np.matrix([float(np.any(np.diag(QQ)))  for QQ in Q]).T
+# 	X0    = np.linalg.qr(X)[0]
+# 	dFdhh = np.zeros((m,m))
+#
+# 	hE   = np.matrix(np.zeros((m,1)))
+# 	hP   = np.eye(m)/exp(32)
+#
+# 	dF  = np.inf
+# 	for k in range(K):
+# 		C    = np.matrix(np.zeros((n,n)))
+# 		for i in range(m):
+# 			C   += Q[i] * float(h[i])
+# 		iC   = np.linalg.inv(C) + np.eye(n)/exp(32)
+# 		iCX  = iC*X0
+# 		Cq   = np.linalg.inv(X0.T*iCX)
+#
+# 		# Gradient dF/dh (first derivatives)
+# 		P    = iC - iCX*Cq*iCX.T
+# 		U    = np.eye(n) - P*YY/N
+#
+# 		PQ   = [P*QQ for QQ in Q]
+# 		dFdh = np.matrix([-np.trace(PQQ*U)*0.5*N   for PQQ in PQ]).T
+#
+# 		# Expected curvature E{dF/dhh} (second derivatives)
+# 		for i in range(m):
+# 			for j in range(m):
+# 		            dFdhh[i,j] = -np.trace(PQ[i]*PQ[j])*0.5*N
+# 		            dFdhh[j,i] =  dFdhh[i,j]
+#
+# 		#add hyper-priors
+# 		e     = h - hE
+# 		dFdh -= hP*e
+# 		dFdhh -= hP
+#
+# 		# Fisher scoring
+# 		dh    = -np.linalg.inv(dFdhh)*dFdh / log(k+3)
+# 		h    += dh
+# 		dF    = float(dFdh.T*dh)
+#
+# 		#final covariance estimate (with missing data points)
+# 		if dF < 0.1:
+# 			V     = 0
+# 			for i in range(m):
+# 				V += Q[i]*float(h[i])
+# 			return V, h
+#
 
 
 def traceRV(V, X):
-	# rk   = _rank(X);
-	# rk   = np.linalg.matrix_rank(X)
-	rk   = rank(X)
-	sL   = X.shape[0]
-	u    = np.linalg.qr(X)[0]
-
+	rk      = rank(X)
+	sL      = X.shape[0]
+	u       = np.linalg.qr(X)[0]
 	Vu      = V @ u
 	trV     = np.trace(V)
 	trRVRV  = np.linalg.norm(V,  ord='fro')**2
 	trRVRV -= 2*np.linalg.norm(Vu, ord='fro')**2
 	trRVRV += np.linalg.norm(u.T @ Vu, ord='fro')**2
-	trMV    = np.sum(np.array(u)*np.array(Vu))
+	trMV    = np.sum(  u * Vu  )  # element-wise multiplication (see spm8/spm_SpUtil.m, Line 550)
 	trRV    = trV - trMV
 	return trRV, trRVRV
 	
@@ -476,17 +539,3 @@ def traceRV(V, X):
 # 	trMVMV      = np.linalg.norm(u1.T*Vu,  ord='fro')**2
 # 	return trMV, trMVMV
 #
-# def traceRV(V, X):
-# 	# rk   = _rank(X);
-# 	rk   = np.linalg.matrix_rank(X)
-# 	sL   = X.shape[0]
-# 	u    = np.linalg.qr(X)[0]
-#
-# 	Vu      = V*u
-# 	trV     = np.trace(V)
-# 	trRVRV  = np.linalg.norm(V,  ord='fro')**2
-# 	trRVRV -= 2*np.linalg.norm(Vu, ord='fro')**2
-# 	trRVRV += np.linalg.norm(u.T*Vu, ord='fro')**2
-# 	trMV    = np.sum(np.array(u)*np.array(Vu))
-# 	trRV    = trV - trMV
-# 	return trRV, trRVRV
