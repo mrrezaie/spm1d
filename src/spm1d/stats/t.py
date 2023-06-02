@@ -221,7 +221,7 @@ def ttest_paired(YA, YB, roi=None):
 
 # def ttest2(YA, YB, equal_var=None, roi=None):
 @appendSPMargs
-def ttest2(YA, YB, equal_var=None, roi=None):
+def ttest2(YA, YB, equal_var=None, var_model=1, roi=None):
 	'''
 	Two-sample t test.
 	
@@ -229,7 +229,12 @@ def ttest2(YA, YB, equal_var=None, roi=None):
 	
 	- *YA* --- (J x Q) data array  (J responses, Q nodes)
 	- *YB* --- (J x Q) data array  (J responses, Q nodes)
-	- *equal_var* --- If *True*, equal group variance will be assumed
+	- *equal_var* --- (deprecated) If *True*, equal group variance will be assumed
+	- *var_model* --- Variance model (see below)
+	
+	Variance/covariance modeling:
+	- Models the variance / covariance amongst observations (NOT across domain nodes)
+	- The previous "equal_var" keyword argument is deprecated
 	
 	:Returns:
 	
