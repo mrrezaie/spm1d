@@ -293,9 +293,10 @@ def traceMV(V, X, c):
 	rnk1        = rank(X1o)
 	u1,ds1,v1   = np.linalg.svd(X1o)
 	u1          = np.matrix(u1[:,:rnk1])
-	Vu          = V*u1
+	Vu          = V @ u1
 	trMV        = (np.asarray(u1)*np.asarray(Vu)).sum()
-	trMVMV      = np.linalg.norm(u1.T*Vu,  ord='fro')**2
+	# trMVMV      = np.linalg.norm(u1.T*Vu,  ord='fro')**2
+	trMVMV      = np.linalg.norm(u1.T@Vu,  ord='fro')**2
 	return trMV, trMVMV
 
 def traceRV(V, X):
