@@ -281,6 +281,23 @@ def reml(YY, X, Q, N=1, K=128):
 #
 
 
+
+def traceMV(V, X, c):
+	rankX       = rank(X)
+	u,ds,v      = np.linalg.svd(X)
+	u           = np.matrix(u[:,:rankX])
+	ukX1o       = (np.matrix(np.diag(1/ds)) * np.matrix(v).T)*c
+	ukX1o       = ukX1o[:rankX]
+	X1o         = u * ukX1o
+	###
+	rnk1        = rank(X1o)
+	u1,ds1,v1   = np.linalg.svd(X1o)
+	u1          = np.matrix(u1[:,:rnk1])
+	Vu          = V*u1
+	trMV        = (np.asarray(u1)*np.asarray(Vu)).sum()
+	trMVMV      = np.linalg.norm(u1.T*Vu,  ord='fro')**2
+	return trMV, trMVMV
+
 def traceRV(V, X):
 	rk      = rank(X)
 	sL      = X.shape[0]
@@ -521,21 +538,5 @@ def traceRV(V, X):
 #
 #
 #
-#
-#
-# def traceMV(V, X, c):
-# 	rankX       = _rank(X)
-# 	u,ds,v      = np.linalg.svd(X)
-# 	u           = np.matrix(u[:,:rankX])
-# 	ukX1o       = (np.matrix(np.diag(1/ds)) * np.matrix(v).T)*c
-# 	ukX1o       = ukX1o[:rankX]
-# 	X1o         = u * ukX1o
-# 	###
-# 	rnk1        = _rank(X1o)
-# 	u1,ds1,v1   = np.linalg.svd(X1o)
-# 	u1          = np.matrix(u1[:,:rnk1])
-# 	Vu          = V*u1
-# 	trMV        = (np.asarray(u1)*np.asarray(Vu)).sum()
-# 	trMVMV      = np.linalg.norm(u1.T*Vu,  ord='fro')**2
-# 	return trMV, trMVMV
+
 #
