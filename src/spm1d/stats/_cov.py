@@ -283,6 +283,7 @@ def reml(YY, X, Q, N=1, K=128):
 
 
 def traceMV(V, X, c):
+	c           = np.matrix(c)
 	rankX       = rank(X)
 	u,ds,v      = np.linalg.svd(X)
 	u           = np.matrix(u[:,:rankX])
