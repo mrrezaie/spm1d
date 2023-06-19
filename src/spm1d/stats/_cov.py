@@ -157,9 +157,21 @@ class CovarianceEstimator(object):
 		return V,df
 
 
+def _spm_en(a):  # Euclidean normalization following spm_en.m in SPM8
+	return a / np.linalg.norm(a, axis=0)
 
-def reml(YY, X, Q, N=1, K=128):
+def _spm_svd(X, u=1e-6, t=0):  # SVD following spm_svd.m in SPM8
+	import scipy.linalg
+	v,s,_ = scipy.linalg.svd( X.T @ X , full_matrices=False, lapack_driver='gesvd')
+	i     = np.logical_and(   ( s / s.mean() ) >= u  ,  s >= u   )
+	v     = v[:,i]
+	u     = _spm_en( X @ v )  
+	return u
+
+
+def reml(YY, X, Q, N=1, K=128):   # updated 2023-06-19
 	from copy import deepcopy
+	from math import sqrt,exp,log
 	n     = X.shape[0]
 	W     = deepcopy(Q)
 	
@@ -170,10 +182,27 @@ def reml(YY, X, Q, N=1, K=128):
 	# h     = np.matrix([float(np.any(np.diag(QQ)))  for QQ in Q]).T
 	h     = np.array(   [float(np.any(np.diag(QQ)))  for QQ in Q]   )
 	
-	# print( h )
+	X0    = _spm_svd( X )
 	
-	X0    = np.linalg.qr(X)[0]
+	# print( np.around(YY,4)[:,:5] )
+	
+	# # print( m, n, q )
+	#
+	# # X0     = np.linalg.qr(X, mode='reduced')[0]
+	# # print(X0.shape)
+	# X0,_,_ = scipy.linalg.svd(model.X, full_matrices=False, lapack_driver='gesvd')
+	# # print( np.around(X0, 3) )
+	#     # * 'reduced'  : returns q, r with dimensions
+	#     #                (..., M, K), (..., K, N) (default)
+	#     # * 'complete' : returns q, r with dimensions (..., M, M), (..., M, N)
+	#     # * 'r'        : returns r only with dimensions (..., K, N)
+	#     # * 'raw'      : returns h, tau with dimensions (..., N, M), (..., K,)
+	# # X0    = np.linalg.svd(X)
 	dFdhh = np.zeros( (m,m) )
+	
+	# print( np.around(YY[:,:5], 4) )
+	# print(YY.shape)
+	
 
 	hE   = np.zeros( m )
 	hP   = np.eye(m) / exp(32)
@@ -186,13 +215,21 @@ def reml(YY, X, Q, N=1, K=128):
 		iC   = np.linalg.inv(C) + np.eye(n)/exp(32)
 		iCX  = iC @ X0
 		Cq   = np.linalg.inv( X0.T @ iCX )
+		
+		
 
 		# Gradient dF/dh (first derivatives)
 		P    = iC - iCX@Cq@iCX.T
 		U    = np.eye(n) - P@YY/N
 
+
 		PQ   = [P@QQ for QQ in Q]
 		dFdh = np.array([-np.trace(PQQ@U)*0.5*N   for PQQ in PQ]).T
+		
+		# print( np.around(dFdh, 4) )
+		# # print( np.around(dFdh, 4)[:,:5] )
+		# print()
+		
 
 		# Expected curvature E{dF/dhh} (second derivatives)
 		for i in range(m):
@@ -200,24 +237,157 @@ def reml(YY, X, Q, N=1, K=128):
 		            dFdhh[i,j] = -np.trace(PQ[i]@PQ[j])*0.5*N
 		            dFdhh[j,i] =  dFdhh[i,j]
 
+		# # print( np.around(dFdh, 4) )
+		# print( np.around(dFdhh, 4)[:,:] )
+		# print()
+		# # break
+
+
 		#add hyper-priors
 		e     = h - hE
-		# print( e )
+		# print( e**0.5 )
 		# print( hP @ e )
 		dFdh -= hP@e
 		dFdhh -= hP
 
-		# Fisher scoring
-		dh    = -np.linalg.inv(dFdhh)@dFdh / log(k+3)
-		h    += dh
-		dF    = float(dFdh.T@dh)
+		# print( np.around(e, 4) )
+		# print( np.around(dFdh, 4) )
+		# print( np.around(dFdhh, 4) )
+		# print()
+		# # break
 
+
+		# Fisher scoring
+		def _spm_dx(dfdx, f, t):
+			import scipy.linalg
+			t   = np.diag(   np.exp(t - np.log(np.diagonal(-dfdx)) )   )
+			a   = np.vstack( [t@f,  (t @ dfdx).T] ).T
+			a   = np.vstack(  [np.zeros((1,a.shape[1])), a]  )
+			dx  = scipy.linalg.expm( a )
+			dx  = dx[1:, 0]
+			return dx
+			
+		dh  = _spm_dx(dFdhh, dFdh, 4)
+		h   = h + dh
+		dF    = float( dFdh.T @ dh )
+		# # print( np.around( h ,4) )
+		
+		# print( dF )
+		# # print(dh)
+		# print()
+		# # return np.eye(X.shape[0]), np.zeros(X.shape[0])
+		# # break
+		
+		
+		#
 		#final covariance estimate (with missing data points)
 		if dF < 0.1:
 			V     = 0
 			for i in range(m):
 				V += Q[i]*float(h[i])
 			return V, h
+		
+		
+		
+		
+		# import scipy.linalg
+		# dfdx,f,t  = dFdhh, dFdh, 4
+		# t         = np.diag(   np.exp(t - np.log(np.diagonal(-dfdx)) )   )
+		# #
+		# # print( np.around( t@f ,4) )
+		# # print( np.around( t@dfdx ,4) )
+		# a   = np.vstack( [t@f,  (t @ dfdx).T] ).T
+		# a   = np.vstack(  [np.zeros((1,a.shape[1])), a]  )
+		# dx  = scipy.linalg.expm( a )
+		# dx  = dx[1:, 0]
+		# # print( np.around( dx ,4) )
+		# # print()
+		
+		
+		# dh    = -np.linalg.inv(dFdhh)@dFdh / log(k+3)
+		# h    += dh
+		# dF    = float(dFdh.T@dh)
+		#
+		# # print(dh)
+		#
+		# #final covariance estimate (with missing data points)
+		# if dF < 0.1:
+		# 	V     = 0
+		# 	for i in range(m):
+		# 		V += Q[i]*float(h[i])
+		# 	return V, h
+		#
+
+
+# def reml(YY, X, Q, N=1, K=128):   # superceded by new version on 2023-06-19
+# 	'''
+# 	superceded by new version on 2023-06-19
+#
+# 	Primary difference:
+# 	- dh estimate useing _spm_dx  in the new version
+# 	'''
+# 	from copy import deepcopy
+# 	n     = X.shape[0]
+# 	W     = deepcopy(Q)
+#
+# 	q     = np.asarray(np.all(YY<np.inf, axis=0)).flatten()
+# 	Q     = [QQ[q,:][:,q]   for QQ in Q]
+#
+# 	m     = len(Q)
+# 	# h     = np.matrix([float(np.any(np.diag(QQ)))  for QQ in Q]).T
+# 	h     = np.array(   [float(np.any(np.diag(QQ)))  for QQ in Q]   )
+#
+# 	# print( h )
+#
+# 	X0    = np.linalg.qr(X)[0]
+# 	dFdhh = np.zeros( (m,m) )
+#
+# 	hE   = np.zeros( m )
+# 	hP   = np.eye(m) / exp(32)
+#
+# 	dF  = np.inf
+# 	for k in range(K):
+# 		C    = np.zeros( (n,n) )
+# 		for i in range(m):
+# 			C   += Q[i] * float(h[i])
+# 		iC   = np.linalg.inv(C) + np.eye(n)/exp(32)
+# 		iCX  = iC @ X0
+# 		Cq   = np.linalg.inv( X0.T @ iCX )
+#
+# 		# Gradient dF/dh (first derivatives)
+# 		P    = iC - iCX@Cq@iCX.T
+# 		U    = np.eye(n) - P@YY/N
+#
+# 		PQ   = [P@QQ for QQ in Q]
+# 		dFdh = np.array([-np.trace(PQQ@U)*0.5*N   for PQQ in PQ]).T
+#
+# 		# Expected curvature E{dF/dhh} (second derivatives)
+# 		for i in range(m):
+# 			for j in range(m):
+# 		            dFdhh[i,j] = -np.trace(PQ[i]@PQ[j])*0.5*N
+# 		            dFdhh[j,i] =  dFdhh[i,j]
+#
+# 		#add hyper-priors
+# 		e     = h - hE
+# 		# print( e )
+# 		# print( hP @ e )
+# 		dFdh -= hP@e
+# 		dFdhh -= hP
+#
+# 		# Fisher scoring
+# 		dh    = -np.linalg.inv(dFdhh)@dFdh / log(k+3)
+# 		h    += dh
+# 		dF    = float(dFdh.T@dh)
+#
+# 		#final covariance estimate (with missing data points)
+# 		if dF < 0.1:
+# 			V     = 0
+# 			for i in range(m):
+# 				V += Q[i]*float(h[i])
+# 			return V, h
+
+
+
 
 # def reml(YY, X, Q, N=1, K=128):
 # 	'''
