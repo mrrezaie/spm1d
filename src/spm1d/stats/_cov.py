@@ -319,72 +319,72 @@ def reml(YY, X, Q, N=1, K=128):   # updated 2023-06-19
 		#
 
 
-# def reml(YY, X, Q, N=1, K=128):   # superceded by new version on 2023-06-19
-# 	'''
-# 	superceded by new version on 2023-06-19
-#
-# 	Primary difference:
-# 	- dh estimate useing _spm_dx  in the new version
-# 	'''
-# 	from copy import deepcopy
-# 	n     = X.shape[0]
-# 	W     = deepcopy(Q)
-#
-# 	q     = np.asarray(np.all(YY<np.inf, axis=0)).flatten()
-# 	Q     = [QQ[q,:][:,q]   for QQ in Q]
-#
-# 	m     = len(Q)
-# 	# h     = np.matrix([float(np.any(np.diag(QQ)))  for QQ in Q]).T
-# 	h     = np.array(   [float(np.any(np.diag(QQ)))  for QQ in Q]   )
-#
-# 	# print( h )
-#
-# 	X0    = np.linalg.qr(X)[0]
-# 	dFdhh = np.zeros( (m,m) )
-#
-# 	hE   = np.zeros( m )
-# 	hP   = np.eye(m) / exp(32)
-#
-# 	dF  = np.inf
-# 	for k in range(K):
-# 		C    = np.zeros( (n,n) )
-# 		for i in range(m):
-# 			C   += Q[i] * float(h[i])
-# 		iC   = np.linalg.inv(C) + np.eye(n)/exp(32)
-# 		iCX  = iC @ X0
-# 		Cq   = np.linalg.inv( X0.T @ iCX )
-#
-# 		# Gradient dF/dh (first derivatives)
-# 		P    = iC - iCX@Cq@iCX.T
-# 		U    = np.eye(n) - P@YY/N
-#
-# 		PQ   = [P@QQ for QQ in Q]
-# 		dFdh = np.array([-np.trace(PQQ@U)*0.5*N   for PQQ in PQ]).T
-#
-# 		# Expected curvature E{dF/dhh} (second derivatives)
-# 		for i in range(m):
-# 			for j in range(m):
-# 		            dFdhh[i,j] = -np.trace(PQ[i]@PQ[j])*0.5*N
-# 		            dFdhh[j,i] =  dFdhh[i,j]
-#
-# 		#add hyper-priors
-# 		e     = h - hE
-# 		# print( e )
-# 		# print( hP @ e )
-# 		dFdh -= hP@e
-# 		dFdhh -= hP
-#
-# 		# Fisher scoring
-# 		dh    = -np.linalg.inv(dFdhh)@dFdh / log(k+3)
-# 		h    += dh
-# 		dF    = float(dFdh.T@dh)
-#
-# 		#final covariance estimate (with missing data points)
-# 		if dF < 0.1:
-# 			V     = 0
-# 			for i in range(m):
-# 				V += Q[i]*float(h[i])
-# 			return V, h
+def _reml_old(YY, X, Q, N=1, K=128):   # superceded by new version on 2023-06-19
+	'''
+	superceded by new version on 2023-06-19
+
+	Primary difference:
+	- dh estimate useing _spm_dx  in the new version
+	'''
+	from copy import deepcopy
+	n     = X.shape[0]
+	W     = deepcopy(Q)
+
+	q     = np.asarray(np.all(YY<np.inf, axis=0)).flatten()
+	Q     = [QQ[q,:][:,q]   for QQ in Q]
+
+	m     = len(Q)
+	# h     = np.matrix([float(np.any(np.diag(QQ)))  for QQ in Q]).T
+	h     = np.array(   [float(np.any(np.diag(QQ)))  for QQ in Q]   )
+
+	# print( h )
+
+	X0    = np.linalg.qr(X)[0]
+	dFdhh = np.zeros( (m,m) )
+
+	hE   = np.zeros( m )
+	hP   = np.eye(m) / exp(32)
+
+	dF  = np.inf
+	for k in range(K):
+		C    = np.zeros( (n,n) )
+		for i in range(m):
+			C   += Q[i] * float(h[i])
+		iC   = np.linalg.inv(C) + np.eye(n)/exp(32)
+		iCX  = iC @ X0
+		Cq   = np.linalg.inv( X0.T @ iCX )
+
+		# Gradient dF/dh (first derivatives)
+		P    = iC - iCX@Cq@iCX.T
+		U    = np.eye(n) - P@YY/N
+
+		PQ   = [P@QQ for QQ in Q]
+		dFdh = np.array([-np.trace(PQQ@U)*0.5*N   for PQQ in PQ]).T
+
+		# Expected curvature E{dF/dhh} (second derivatives)
+		for i in range(m):
+			for j in range(m):
+		            dFdhh[i,j] = -np.trace(PQ[i]@PQ[j])*0.5*N
+		            dFdhh[j,i] =  dFdhh[i,j]
+
+		#add hyper-priors
+		e     = h - hE
+		# print( e )
+		# print( hP @ e )
+		dFdh -= hP@e
+		dFdhh -= hP
+
+		# Fisher scoring
+		dh    = -np.linalg.inv(dFdhh)@dFdh / log(k+3)
+		h    += dh
+		dF    = float(dFdh.T@dh)
+
+		#final covariance estimate (with missing data points)
+		if dF < 0.1:
+			V     = 0
+			for i in range(m):
+				V += Q[i]*float(h[i])
+			return V, h
 
 
 

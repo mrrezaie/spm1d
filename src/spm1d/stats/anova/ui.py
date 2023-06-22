@@ -9,8 +9,9 @@ from . glm import OneWayANOVAModel, OneWayRMANOVAModel
 
 def anova1(y, A, equal_var=False):
 	model  = OneWayANOVAModel(y, A)
+	model.build_variance_model( equal_var=equal_var )
 	model.fit()
-	model.estimate_variance( equal_var=equal_var )
+	model.estimate_variance()
 	model.calculate_effective_df()
 	model.calculate_f_stat()
 	f,df   = model.f, model.df

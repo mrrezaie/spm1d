@@ -9,12 +9,10 @@ ANOVA
 import numpy as np
 import scipy.stats
 import rft1d
-from .. _cov import reml, traceRV, traceMV
+from .. _cov import reml, traceRV, traceMV, _reml_old
 from .. _la import rank
 
-
-
-class OneWayANOVAModel(object):
+class GLM(object):
 	def __init__(self, y, A, *args, Q=None):
 		self.ndim = y.ndim
 		self.y    = y if (self.ndim==2) else np.array( [y] ).T
@@ -74,21 +72,15 @@ class OneWayANOVAModel(object):
 	# 	pass
 	#
 	
+	
+
+	
 	def calculate_effective_df(self):
-		i             = np.any(self.C, axis=1)
-		_X            = self.X[:,i]  # design matrix excluding non-contrast columns
-		_C            = self.C[i]
-		
-		# print( _X.shape )
-		
-		
+		# i             = np.any(self.C, axis=1)
+		# _X            = self.X[:,i]  # design matrix excluding non-contrast columns
+		# _C            = self.C[i]
 		trRV,trRVRV   = traceRV(self.V, self.X[:,:-1])
 		trMV,trMVMV   = traceMV(self.V, self.X, self.C)
-		
-		
-		# trRV,trRVRV   = traceRV(self.V, _X)
-		# trMV,trMVMV   = traceMV(self.V, _X, _C)
-		# print('anova1_oop:',  trRV, trRVRV, trMV, trMVMV)
 		df0           = max(trMV**2 / trMVMV, 1.0)
 		df1           = trRV**2 / trRVRV
 		v0,v1         = trMV, trRV
@@ -109,23 +101,97 @@ class OneWayANOVAModel(object):
 		self.f  = float(f) if (self.ndim==1) else np.diag(f)
 		
 	
-	def estimate_variance(self, equal_var=False):
-		i             = np.any(self.C, axis=1)
-		_X            = self.X[:,i]  # design matrix excluding non-contrast columns
-		_C            = self.C[i]
+	def estimate_variance(self):
+		# i             = np.any(self.C, axis=1)
+		# _X            = self.X[:,i]  # design matrix excluding non-contrast columns
+		# _C            = self.C[i]
+		n,s           = self.y.shape
+		# trRV          = n - rank(_X)
+		trRV          = n - rank(self.X)
+		ss            = (self.e**2).sum(axis=0)
+		q             = np.diag(  np.sqrt( trRV / ss )  ).T
+		Ym            = self.y @ q
+		# Ym            = self.e @ q
+		YY            = Ym @ Ym.T / s
+		V,h           = reml(YY, self.X, self.QQ)
+		V            *= (n / np.trace(V))
+		self.h        = h
+		self.V        = V
+
+	
+	def fit(self):
+		Xi     = np.linalg.pinv( self.X )
+		b      = Xi @ self.y
+		self.e = self.y - self.X @ b   # residuals
+
+
+
+
+
+
+class OneWayANOVAModel(GLM):
+
+	def _build_contrast_matrix(self):
+		n        = self.X.shape[1]
+		C        = np.zeros( (n-2, n) )
+		for i in range(n-2):
+			C[i,i]   = 1
+			C[i,i+1] = -1
+		self.C   = C.T
+
+	def _build_design_matrix(self):
+		u        = self.uA
+		# JJ       = [(self.A==uu).sum()  for uu in u]
+		n        = u.size
+		X        = np.zeros( (self.J,n+1) )
+		for i,uu in enumerate(u):
+			X[:,i]  = self.A==uu
+		X[:,n]   = 1
+		self.X   = X
+
+	def build_variance_model(self, equal_var=False):
 		if equal_var:
 			Q  = [np.eye(self.J)]
 		else:
 			Q  = [np.asarray(np.diag( self.A==uu ), dtype=float)  for uu in self.uA]
+		self.QQ  = Q
+		
+		
+	
+	def estimate_variance(self):
+		# i             = np.any(self.C, axis=1)
+		# _X            = self.X[:,i]  # design matrix excluding non-contrast columns
+		# _C            = self.C[i]
 		n,s           = self.y.shape
-		trRV          = n - rank(_X)
+		# trRV          = n - rank(_X)
+		trRV          = n - rank(self.X)
 		ss            = (self.e**2).sum(axis=0)
 		q             = np.diag(  np.sqrt( trRV / ss )  ).T
 		Ym            = self.y @ q
+		# Ym            = self.e @ q
 		YY            = Ym @ Ym.T / s
-		V,h           = reml(YY, _X, Q)
+		V,h           = _reml_old(YY, self.X, self.QQ)
 		V            *= (n / np.trace(V))
 		self.V        = V
+		self.h        = h
+		
+	# def estimate_variance(self, equal_var=False):
+	# 	i             = np.any(self.C, axis=1)
+	# 	_X            = self.X[:,i]  # design matrix excluding non-contrast columns
+	# 	_C            = self.C[i]
+	# 	if equal_var:
+	# 		Q  = [np.eye(self.J)]
+	# 	else:
+	# 		Q  = [np.asarray(np.diag( self.A==uu ), dtype=float)  for uu in self.uA]
+	# 	n,s           = self.y.shape
+	# 	trRV          = n - rank(_X)
+	# 	ss            = (self.e**2).sum(axis=0)
+	# 	q             = np.diag(  np.sqrt( trRV / ss )  ).T
+	# 	Ym            = self.y @ q
+	# 	YY            = Ym @ Ym.T / s
+	# 	V,h           = reml(YY, _X, Q)
+	# 	V            *= (n / np.trace(V))
+	# 	self.V        = V
 
 	# def estimate_variance(self, equal_var=False):
 	# 	if equal_var:
@@ -142,11 +208,6 @@ class OneWayANOVAModel(object):
 	# 	V            *= (n / np.trace(V))
 	# 	self.V        = V
 	
-	
-	def fit(self):
-		Xi     = np.linalg.pinv( self.X )
-		b      = Xi @ self.y
-		self.e = self.y - self.X @ b   # residuals
 
 
 
