@@ -69,7 +69,8 @@ images. Elsevier.
 # from copy import deepcopy
 from math import sqrt,exp,log
 import numpy as np
-from . _la import rank
+# from . _la import rank
+rank = np.linalg.matrix_rank
 # eps = np.finfo(float).eps
 
 

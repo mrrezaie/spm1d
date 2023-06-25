@@ -50,22 +50,10 @@ class GLM(object):
 	# 	self.X   = X
 
 	def _build_contrast_matrix(self):
-		n        = self.X.shape[1]
-		C        = np.zeros( (n-2, n) )
-		for i in range(n-2):
-			C[i,i]   = 1
-			C[i,i+1] = -1
-		self.C   = C.T
+		pass
 
 	def _build_design_matrix(self):
-		u        = self.uA
-		# JJ       = [(self.A==uu).sum()  for uu in u]
-		n        = u.size
-		X        = np.zeros( (self.J,n+1) )
-		for i,uu in enumerate(u):
-			X[:,i]  = self.A==uu
-		X[:,n]   = 1
-		self.X   = X
+		pass
 
 
 	# def build_projectors(self):
@@ -75,19 +63,58 @@ class GLM(object):
 	
 
 	
-	def calculate_effective_df(self):
-		# i             = np.any(self.C, axis=1)
-		# _X            = self.X[:,i]  # design matrix excluding non-contrast columns
-		# _C            = self.C[i]
-		trRV,trRVRV   = traceRV(self.V, self.X[:,:-1])
-		trMV,trMVMV   = traceMV(self.V, self.X, self.C)
-		df0           = max(trMV**2 / trMVMV, 1.0)
-		df1           = trRV**2 / trRVRV
-		v0,v1         = trMV, trRV
-		self.df       = df0, df1
-		self._v       = v0, v1
+	# def calculate_effective_df(self):
+	# 	# i             = np.any(self.C, axis=1)
+	# 	# _X            = self.X[:,i]  # design matrix excluding non-contrast columns
+	# 	# _C            = self.C[i]
+	# 	trRV,trRVRV   = traceRV(self.V, self.X[:,:-1])
+	# 	trMV,trMVMV   = traceMV(self.V, self.X, self.C)
+	# 	df0           = max(trMV**2 / trMVMV, 1.0)
+	# 	df1           = trRV**2 / trRVRV
+	# 	v0,v1         = trMV, trRV
+	# 	self.df       = df0, df1
+	# 	self._v       = v0, v1
 		
 	
+	# def calculate_effective_df(self):
+	# 	i             = np.any(self.C, axis=1)
+	# 	_X            = self.X[:,i]  # design matrix excluding non-contrast columns
+	# 	_C            = self.C[i]
+	#
+	# 	# print( _X.shape, _C.shape )
+	#
+	#
+	# 	# PX      = self.X @ np.linalg.pinv(self.X)      # X projector
+	# 	# H       = np.linalg.pinv( self.X.T ) @ self.C  # text between eqns. 9.17 & 9.18 (Friston 2007, p.136)
+	# 	# PH      = H @ np.linalg.inv(H.T @ H) @ H.T     # H projector
+	# 	#
+	# 	# X0 = PX - PH
+	# 	#
+	# 	# print( rank(X0) )
+	#
+	# 	# trRV,trRVRV   = traceRV(self.V, _X)
+	# 	# trMV,trMVMV   = traceMV(self.V, _X, _C)
+	#
+	# 	# trRV,trRVRV   = traceRV(self.V, self.X)
+	# 	trRV,trRVRV   = traceRV(self.V, self.X[:,:-1])
+	# 	trMV,trMVMV   = traceMV(self.V, self.X, self.C)
+	# 	# trMV,trMVMV   = traceMV(self.V, _X, _C)
+	#
+	# 	# print('anova1_oop:',  trRV, trRVRV, trMV, trMVMV)
+	# 	df0           = max(trMV**2 / trMVMV, 1.0)
+	# 	df1           = trRV**2 / trRVRV
+	# 	v0,v1         = trMV, trRV
+	#
+	# 	# print(v1)
+	#
+	# 	# df1,v1 = 27.0, 27.0
+	#
+	#
+	# 	self.df       = df0, df1
+	# 	self._v       = v0, v1
+
+
+
 	def calculate_f_stat(self):
 		# build projectors:
 		PX      = self.X @ np.linalg.pinv(self.X)      # X projector
@@ -133,8 +160,8 @@ class OneWayANOVAModel(GLM):
 
 	def _build_contrast_matrix(self):
 		n        = self.X.shape[1]
-		C        = np.zeros( (n-2, n) )
-		for i in range(n-2):
+		C        = np.zeros( (n-1, n) )
+		for i in range(n-1):
 			C[i,i]   = 1
 			C[i,i+1] = -1
 		self.C   = C.T
@@ -143,11 +170,31 @@ class OneWayANOVAModel(GLM):
 		u        = self.uA
 		# JJ       = [(self.A==uu).sum()  for uu in u]
 		n        = u.size
-		X        = np.zeros( (self.J,n+1) )
+		X        = np.zeros( (self.J,n) )
 		for i,uu in enumerate(u):
 			X[:,i]  = self.A==uu
-		X[:,n]   = 1
+		# X[:,n]   = 1
 		self.X   = X
+		
+
+
+	# def _build_contrast_matrix(self):
+	# 	n        = self.X.shape[1]
+	# 	C        = np.zeros( (n-2, n) )
+	# 	for i in range(n-2):
+	# 		C[i,i]   = 1
+	# 		C[i,i+1] = -1
+	# 	self.C   = C.T
+	#
+	# def _build_design_matrix(self):
+	# 	u        = self.uA
+	# 	# JJ       = [(self.A==uu).sum()  for uu in u]
+	# 	n        = u.size
+	# 	X        = np.zeros( (self.J,n+1) )
+	# 	for i,uu in enumerate(u):
+	# 		X[:,i]  = self.A==uu
+	# 	X[:,n]   = 1
+	# 	self.X   = X
 
 	def build_variance_model(self, equal_var=False):
 		if equal_var:
@@ -157,6 +204,20 @@ class OneWayANOVAModel(GLM):
 		self.QQ  = Q
 		
 		
+	
+	def calculate_effective_df(self):
+		# i             = np.any(self.C, axis=1)
+		# _X            = self.X[:,i]  # design matrix excluding non-contrast columns
+		# _C            = self.C[i]
+		trRV,trRVRV   = traceRV(self.V, self.X[:,:])
+		trMV,trMVMV   = traceMV(self.V, self.X, self.C)
+		df0           = max(trMV**2 / trMVMV, 1.0)
+		df1           = trRV**2 / trRVRV
+		v0,v1         = trMV, trRV
+		self.df       = df0, df1
+		self._v       = v0, v1
+	
+	
 	
 	def estimate_variance(self):
 		# i             = np.any(self.C, axis=1)
