@@ -31,6 +31,16 @@ class Factor(object):
 	def nlevels(self):
 		return self.n
 
+	def get_design_interaction(self, other):
+		XAB        = []
+		A,B        = self.A, other.A
+		for uB in other.u[1:]:
+			for uA in self.u[1:]:
+				x      = np.zeros(self.J)
+				x[(A==uA)&(B==uB)] =  1
+				XAB.append(x)
+		return np.array(XAB).T
+
 	def get_design_main(self):
 		X = []
 		for u in self.u:
