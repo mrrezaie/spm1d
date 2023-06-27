@@ -4,29 +4,42 @@ import numpy as np
 
 
 class Factor(object):
-	def __init__(self, A, name='A'):
+	def __init__(self, A, name='A', level_names=None):
 		self.A            = np.asarray(A, dtype=int)        #integer vector of factor levels
 		self.J            = None     # number of observations
 		self.u            = None     # unique levels
 		self.n            = None     # number of levels
 		self.name         = name
+		self.unames       = None
 		# self.isnested     = False    # nested flag
 		# self.nested       = None
 		# self.balanced     = True
-		self._parse()
+		self._parse( level_names )
+
+
 
 	def __repr__(self):
 		s  = f'Factor "{self.name}"\n'
-		s += f'    J       = {self.J}\n'
-		s += f'    n       = {self.n}\n'
-		s += f'    u       = {self.u}\n'
+		s += f'    name        = {self.name}\n'
+		s += f'    J           = {self.J}\n'
+		s += f'    n           = {self.n}\n'
+		s += f'    u           = {self.u}\n'
+		s += f'    unames      = {self.unames}\n'
 		return s
 	
-	def _parse(self):
+	def _parse(self, level_names):
 		self.J            = self.A.size
 		self.u            = np.unique(self.A)
 		self.n            = self.u.size
+		if level_names is None:
+			self.unames   = [f'{self.name}{uu}'  for uu in self.u]
+		else:
+			self.unames   = [str(s) for s in level_names]
+		
 
+	@property
+	def level_names(self):
+		return self.unames
 	@property
 	def nlevels(self):
 		return self.n
