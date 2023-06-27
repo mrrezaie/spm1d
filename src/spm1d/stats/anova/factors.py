@@ -1,5 +1,5 @@
 
-
+import itertools
 import numpy as np
 
 
@@ -54,6 +54,9 @@ class Factor(object):
 				XAB.append(x)
 		return np.array(XAB).T
 
+	def get_design_intercept(self):
+		return np.ones((self.J,1))
+	
 	def get_design_main(self):
 		X = []
 		for u in self.u:
@@ -61,3 +64,28 @@ class Factor(object):
 			x[self.A==u] =  1
 			X.append(x)
 		return np.array( X ).T
+
+	def get_design_mway_main(self):
+		X = []
+		for i,u0 in enumerate(self.u[:-1]):
+			for u1 in self.u[i+1:]:
+				x = np.zeros(self.J)
+				x[self.A==u0] = -1
+				x[self.A==u1] = +1
+				X.append(x)
+		return np.array( X ).T
+		
+		
+	def get_design_mway_interaction(self, other):
+		A,B  = self.A, other.A
+		XAB  = []
+		for uA0,uA1 in itertools.combinations(self.u, 2):
+			for uB0,uB1 in itertools.combinations(other.u, 2):
+				x      = np.zeros(self.J)
+				x[(A==uA0)&(B==uB0)] =  +1
+				x[(A==uA0)&(B==uB1)] =  -1
+				x[(A==uA1)&(B==uB0)] =  -1
+				x[(A==uA1)&(B==uB1)] =  +1
+				XAB.append(x)
+		return np.array(XAB).T
+	
