@@ -65,14 +65,28 @@ class Factor(object):
 			X.append(x)
 		return np.array( X ).T
 
+	# def get_design_mway_main(self):
+	# 	X = []
+	# 	for i,u0 in enumerate(self.u[:-1]):
+	# 		for u1 in self.u[i+1:]:
+	# 			x = np.zeros(self.J)
+	# 			x[self.A==u0] = -1
+	# 			x[self.A==u1] = +1
+	# 			X.append(x)
+	# 	return np.array( X ).T
+
 	def get_design_mway_main(self):
 		X = []
 		for i,u0 in enumerate(self.u[:-1]):
-			for u1 in self.u[i+1:]:
-				x = np.zeros(self.J)
-				x[self.A==u0] = -1
-				x[self.A==u1] = +1
-				X.append(x)
+			x = np.zeros(self.J)
+			x[self.A==u0] = 1
+			x[self.A==self.u[-1]] = -1
+			X.append(x)
+			# for u1 in self.u[i+1:]:
+			#
+			# 	x[self.A==u0] = -1
+			# 	x[self.A==u1] = +1
+			#
 		return np.array( X ).T
 		
 		
