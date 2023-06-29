@@ -58,6 +58,21 @@ def anova1rm(y, A, SUBJ, equal_var=False, gg=True):
 	# 	p       = rft1d.f.sf(f.max(), df, y.shape[1], fwhm)
 	# return f, df, p, model
 
+
+def anova2(y, A, B, equal_var=False):
+	if not equal_var:
+		raise NotImplementedError('not yet')
+	from . designs import ANOVA2
+	design   = ANOVA2( A, B )
+	# Q        = design.get_variance_model( equal_var=equal_var )
+	
+	#
+	# J  = A.size
+	# Q  = [np.eye(J)]
+	#
+	# return aov(y, design.X, design.C, Q)
+
+
 # def anova1(y, A, equal_var=False):
 # 	from . designs import ANOVA1
 # 	design   = ANOVA1( A )
