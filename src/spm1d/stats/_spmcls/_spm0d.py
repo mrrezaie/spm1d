@@ -60,10 +60,10 @@ class SPM0D(_SPMParent):
 		dp.add_header( self._class_str )
 		dp.add( 'testname' )
 		dp.add( 'STAT' )
-		if self.isanova:
-			dp.add( 'effect_label' )
-			dp.add( 'ss' , tuple2str )
-			dp.add( 'ms' , tuple2str )
+		# if self.isanova:
+		# 	dp.add( 'effect_label' )
+		# 	dp.add( 'ss' , tuple2str )
+		# 	dp.add( 'ms' , tuple2str )
 		dp.add( 'z', fmt='%.5f' )
 		if self.isregress:
 			dp.add('r', fmt='%.5f')

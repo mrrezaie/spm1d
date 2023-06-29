@@ -7,25 +7,60 @@ from . models import GeneralLinearModel
 
 
 
+# def aov(y, X, C, Q, gg=False, _Xeff=None):
+# 	model    = GeneralLinearModel()
+# 	model.set_design_matrix( X )
+# 	model.set_contrast_matrix( C )
+# 	model.set_variance_model( Q )
+# 	fit      = model.fit( y )
+# 	fit.estimate_variance()
+# 	fit.calculate_effective_df( _Xeff )
+# 	fit.calculate_f_stat()
+# 	if gg:
+# 		fit.greenhouse_geisser()
+# 	f,df     = fit.f, fit.df
+# 	if fit.dvdim==1:
+# 		p  = scipy.stats.f.sf(float(f), df[0], df[1])
+# 	else:
+# 		fwhm    = rft1d.geom.estimate_fwhm( fit.e )
+# 		p       = rft1d.f.sf(f.max(), df, y.shape[1], fwhm)
+# 	return f, df, p, model
+
 def aov(y, X, C, Q, gg=False, _Xeff=None):
 	model    = GeneralLinearModel()
 	model.set_design_matrix( X )
-	model.set_contrast_matrix( C )
+	# model.set_contrast_matrix( C )
 	model.set_variance_model( Q )
 	fit      = model.fit( y )
 	fit.estimate_variance()
-	fit.calculate_effective_df( _Xeff )
-	fit.calculate_f_stat()
-	if gg:
-		fit.greenhouse_geisser()
-	f,df     = fit.f, fit.df
-	if fit.dvdim==1:
-		p  = scipy.stats.f.sf(float(f), df[0], df[1])
+	
+	SPM = []
+	for c in C:
+		model.set_contrast_matrix( c )
+		fit.calculate_effective_df( _Xeff )
+		fit.calculate_f_stat()
+		if gg:
+			fit.greenhouse_geisser()
+	
+		f,df     = fit.f, fit.df
+		if fit.dvdim==1:
+			from .. _spmcls import SPM0D
+			spm = SPM0D('F', fit.f, fit.df, beta=None, residuals=None, sigma2=None, X=None)
+			
+			# p  = scipy.stats.f.sf(float(f), df[0], df[1])
+		else:
+			from .. _spmcls import SPM1D
+			fwhm    = rft1d.geom.estimate_fwhm( fit.e )
+			p       = rft1d.f.sf(f.max(), df, y.shape[1], fwhm)
+			
+		SPM.append(spm)
+	if len(SPM)==1:
+		SPM = SPM[0]
 	else:
-		fwhm    = rft1d.geom.estimate_fwhm( fit.e )
-		p       = rft1d.f.sf(f.max(), df, y.shape[1], fwhm)
-	return f, df, p, model
-
+		from .. _spmcls import SPMFList
+		SPM = SPMFList( SPM, nfactors=2 )
+	return SPM
+	# return f, df, p, model
 
 
 def anova1(y, A, equal_var=False):
@@ -65,12 +100,10 @@ def anova2(y, A, B, equal_var=False):
 	from . designs import ANOVA2
 	design   = ANOVA2( A, B )
 	# Q        = design.get_variance_model( equal_var=equal_var )
-	
-	#
-	# J  = A.size
-	# Q  = [np.eye(J)]
-	#
-	# return aov(y, design.X, design.C, Q)
+	import numpy as np
+	J  = A.size
+	Q  = [np.eye(J)]
+	return aov(y, design.X, design.C, Q)
 
 
 # def anova1(y, A, equal_var=False):
