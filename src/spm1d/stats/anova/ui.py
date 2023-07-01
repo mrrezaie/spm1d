@@ -1,7 +1,6 @@
 
 import scipy.stats
-import rft1d
-from . models import GeneralLinearModel
+
 # from . _glm import OneWayANOVAModel, OneWayRMANOVAModel
 
 
@@ -26,41 +25,63 @@ from . models import GeneralLinearModel
 # 		p       = rft1d.f.sf(f.max(), df, y.shape[1], fwhm)
 # 	return f, df, p, model
 
+# def aov(y, X, C, Q, gg=False, _Xeff=None):
+# 	model    = GeneralLinearModel()
+# 	model.set_design_matrix( X )
+# 	# model.set_contrast_matrix( C )
+# 	model.set_variance_model( Q )
+# 	fit      = model.fit( y )
+# 	fit.estimate_variance()
+#
+# 	SPM = []
+# 	for c in C:
+# 		model.set_contrast_matrix( c )
+# 		fit.calculate_effective_df( _Xeff )
+# 		fit.calculate_f_stat()
+# 		if gg:
+# 			fit.greenhouse_geisser()
+#
+# 		f,df     = fit.f, fit.df
+# 		if fit.dvdim==1:
+# 			from .. _spmcls import SPM0D
+# 			spm = SPM0D('F', fit.f, fit.df, beta=None, residuals=None, sigma2=None, X=None)
+#
+# 			# p  = scipy.stats.f.sf(float(f), df[0], df[1])
+# 		else:
+# 			from .. _spmcls import SPM1D
+# 			fwhm    = rft1d.geom.estimate_fwhm( fit.e )
+# 			p       = rft1d.f.sf(f.max(), df, y.shape[1], fwhm)
+#
+# 		SPM.append(spm)
+# 	if len(SPM)==1:
+# 		SPM = SPM[0]
+# 	else:
+# 		from .. _spmcls import SPMFList
+# 		SPM = SPMFList( SPM, nfactors=2 )
+# 	return SPM
+# 	# return f, df, p, model
+
+
+
 def aov(y, X, C, Q, gg=False, _Xeff=None):
+	from . models import GeneralLinearModel
 	model    = GeneralLinearModel()
 	model.set_design_matrix( X )
-	# model.set_contrast_matrix( C )
 	model.set_variance_model( Q )
 	fit      = model.fit( y )
 	fit.estimate_variance()
-	
-	SPM = []
+	f,df     = [], []
 	for c in C:
-		model.set_contrast_matrix( c )
+		model.set_contrast_matrix( c.C )
 		fit.calculate_effective_df( _Xeff )
 		fit.calculate_f_stat()
 		if gg:
-			fit.greenhouse_geisser()
+			fit.adjust_df_greenhouse_geisser()
+		f.append( fit._f )
+		df.append( fit._df )
+	return fit, f, df
 	
-		f,df     = fit.f, fit.df
-		if fit.dvdim==1:
-			from .. _spmcls import SPM0D
-			spm = SPM0D('F', fit.f, fit.df, beta=None, residuals=None, sigma2=None, X=None)
-			
-			# p  = scipy.stats.f.sf(float(f), df[0], df[1])
-		else:
-			from .. _spmcls import SPM1D
-			fwhm    = rft1d.geom.estimate_fwhm( fit.e )
-			p       = rft1d.f.sf(f.max(), df, y.shape[1], fwhm)
-			
-		SPM.append(spm)
-	if len(SPM)==1:
-		SPM = SPM[0]
-	else:
-		from .. _spmcls import SPMFList
-		SPM = SPMFList( SPM, nfactors=2 )
-	return SPM
-	# return f, df, p, model
+
 
 
 def anova1(y, A, equal_var=False):
@@ -94,16 +115,32 @@ def anova1rm(y, A, SUBJ, equal_var=False, gg=True):
 	# return f, df, p, model
 
 
-def anova2(y, A, B, equal_var=False):
+def _assemble_spm_objects(f, df, design, fit):
+	if fit.dvdim==1:
+		from .. _spmcls import SPM0D as _SPM
+	else:
+		from .. _spmcls import SPM1D as _SPM
+	# spm = [_SPM('F', ff, ddf, beta=None, residuals=None, sigma2=None, X=None)  for ff,ddf in zip(f,df)]
+	spm = [_SPM('F', ff, ddf, design, fit)  for ff,ddf in zip(f,df)]
+	if len(spm)==1:
+		spm = spm[0]
+	else:
+		from .. _spmcls import SPMFList
+		spm = SPMFList( spm, nfactors=len(spm) )
+	return spm
+
+
+def anova2(y, A, B, equal_var=False, factor_names=('A', 'B')):
 	if not equal_var:
 		raise NotImplementedError('not yet')
 	from . designs import ANOVA2
-	design   = ANOVA2( A, B )
+	design   = ANOVA2( A, B, factor_names=factor_names )
 	# Q        = design.get_variance_model( equal_var=equal_var )
 	import numpy as np
 	J  = A.size
 	Q  = [np.eye(J)]
-	return aov(y, design.X, design.C, Q)
+	fit, f, df = aov(y, design.X, design.C, Q)
+	return _assemble_spm_objects(f, df, design, fit)
 
 
 # def anova1(y, A, equal_var=False):

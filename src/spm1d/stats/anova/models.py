@@ -52,16 +52,17 @@ class GeneralLinearModel(object):
 
 class FittedGLM(object):
 	def __init__(self, model, y, b, e):
+		self._df   = None   # effective degrees of freedom (for one contrast)
+		self._f    = None   # F statistic (for one contrast)
+		self._v    = None   # variance scale (for one contrast); same as df when equal variance is assumed
 		self.model = model
 		self.V     = None   # estimated (co-)variance
 		self.b     = b      # betas (fitted parameters)
-		self.df    = None   # effective degrees of freedom
 		self.dvdim = 1 if ((y.ndim==1) or (1 in y.shape)) else y.ndim # dependent variable dimensionality
 		self.e     = e      # residuals
-		self.f     = None   # F statistic
 		self.h     = None   # (co-)variance hyperparameters
 		self.y     = y      # (J,Q) dependent variable array where J=num.observations and Q=num.continuum nodes
-		self._v    = None   # variance scale (same as df when equal variance is assumed)
+		
 		
 
 	@property
@@ -69,7 +70,7 @@ class FittedGLM(object):
 		return self.model.J
 
 	
-	def greenhouse_geisser(self):
+	def adjust_df_greenhouse_geisser(self):
 		pass
 		#
 		# # this works for 0D data:
@@ -100,7 +101,7 @@ class FittedGLM(object):
 		# Sz      = M.T @ S @ M
 		# w,_     = np.linalg.eig( Sz )
 		# e       = w.sum()**2 / (   (k-1) * (w**2).sum()   )   # Eqn.13.37, Friston et al. (2007), p.176
-		# self.df = (k-1)*e, (n-1)*(k-1)*e    # Eqn.13.36, Friston et al. (2007), p.176
+		# self._df = (k-1)*e, (n-1)*(k-1)*e    # Eqn.13.36, Friston et al. (2007), p.176
 
 	def calculate_effective_df(self, X=None):
 		X             = self.model.X if (X is None) else X
@@ -109,7 +110,7 @@ class FittedGLM(object):
 		df0           = max(trMV**2 / trMVMV, 1.0)
 		df1           = trRV**2 / trRVRV
 		v0,v1         = trMV, trRV
-		self.df       = df0, df1
+		self._df       = df0, df1
 		self._v       = v0, v1
 
 	def calculate_f_stat(self):
@@ -123,7 +124,7 @@ class FittedGLM(object):
 		YPHYY   = y.T @ PH @ y               # eqn.9.18 (Friston 2007, p.136)
 		v0,v1   = self._v
 		f       = (YPHYY / v0) / ( YIPY / v1 )         # eqn.9.13 (Friston 2007, p.135)
-		self.f  = float(f) if (self.dvdim==1) else np.diag(f)
+		self._f  = float(f) if (self.dvdim==1) else np.diag(f)
 		
 	
 	def estimate_variance(self):

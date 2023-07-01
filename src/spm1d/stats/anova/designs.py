@@ -11,10 +11,15 @@ class _Design(object):
 	@property
 	def J(self):
 		return self.X.shape[0]
+	@property
+	def nfactors(self):
+		return len( self.factors )
 		
 	def _assemble(self):
 		self.X  = self._build_design_matrix()
 		self.C  = self._build_contrasts()
+
+
 
 
 
@@ -149,11 +154,14 @@ class ANOVA1RM(_Design):
 
 
 class ANOVA2(_Design):
-	def __init__(self, A, B):
-		self.factors      = [ Factor(A, name='A'), Factor(B, name='B') ]
+	def __init__(self, A, B, factor_names=['A', 'B']):
+		s0,s1        = factor_names
+		self.factors = [ Factor(A, name=s0), Factor(B, name=s1) ]
 		self._assemble()
 
 	def _build_contrasts(self):
+		from . contrasts import Contrast
+		
 		fA,fB = self.factors
 		n     = self.X.shape[1]
 		nA    = fA.n - 1
@@ -165,7 +173,7 @@ class ANOVA2(_Design):
 			c   = np.zeros(n)
 			c[i] = 1
 			CA.append(c)
-		CA      = np.asarray(CA).T
+		CA = Contrast( np.asarray(CA).T, name=f'Main {fA.name}' )
 
 
 		CB = []
@@ -173,14 +181,14 @@ class ANOVA2(_Design):
 			c   = np.zeros(n)
 			c[nA+i] = 1
 			CB.append(c)
-		CB      = np.asarray(CB).T
+		CB = Contrast( np.asarray(CB).T, name=f'Main {fB.name}' )
 
 		CAB  = []
 		for i in range(nAB):
 			c   = np.zeros(n)
 			c[nA+nB+i] = 1
 			CAB.append(c)
-		CAB     = np.asarray(CAB).T
+		CAB = Contrast( np.asarray(CAB).T, name=f'Interaction {fA.name} x {fB.name}' )
 	
 		C    = [CA, CB, CAB]
 		

@@ -26,15 +26,13 @@ from ... util import dflist2str, tuple2str, DisplayParams
 
 class SPM0D(_SPMParent):
 
-	def __init__(self, STAT, z, df, design, fit):
+	def __init__(self, STAT, z, df, beta=None, residuals=None, sigma2=None, X=None):
 		self.STAT           = STAT             # test statistic type ("T" or "F")
 		self.testname       = None             # hypothesis test name (set using set_testname method)
-		self.design         = design
-		self.fit            = fit
-		# self.X              = X                # design matrix
-		# self.beta           = beta             # fitted parameters
-		# self.residuals      = residuals        # model residuals
-		# self.sigma2         = sigma2           # variance
+		self.X              = X                # design matrix
+		self.beta           = beta             # fitted parameters
+		self.residuals      = residuals        # model residuals
+		self.sigma2         = sigma2           # variance
 		self.z              = np.float64(z)    # test statistic value
 		self.df             = df               # degrees of freedom
 		if self.STAT=='F':
