@@ -67,6 +67,7 @@ class SPMFList(list):
 	def _repr_get_header(self):
 		s        = '%s\n'  %self.name
 		s       += '   testname  :  %s\n'      %self.testname
+		s       += '   nfactors  :  %d\n'      %self.nfactors
 		s       += '   neffects  :  %d\n'      %self.neffects
 		return s
 	def _repr_summ(self):
