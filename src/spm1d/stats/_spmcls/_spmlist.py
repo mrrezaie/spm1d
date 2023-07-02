@@ -255,9 +255,10 @@ class SPMFiList(SPMFList):
 
 
 	def print_table(self):
-		fmt0 = '{:<6} {:>6} {:>8} {:>8} {:>8} {:>8}'
-		fmt  = '{:<6} {:6.3f} {:8.3f} {:8.3f} {:8.3f} {:8.3f}'
-		fmte = '{:<6} {:6.3f} {:8.3f} {:8.3f}'
+		n    = 1 + max(   [len(f.name_s)  for f in self]   )
+		fmt0 = '{:<%d} {:>6} {:>8} {:>8} {:>8} {:>8}' %n
+		fmt  = '{:<%d} {:6.3f} {:8.3f} {:8.3f} {:8.3f} {:8.3f}' %n
+		fmte = '{:<%d} {:6.3f} {:8.3f} {:8.3f}' %n
 		# print table
 		print( fmt0.format('Source', 'DF', 'SS', 'MS', 'F', 'P') )
 		for f in self:
