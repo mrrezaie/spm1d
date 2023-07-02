@@ -1,8 +1,8 @@
 
-import scipy.stats
+# import scipy.stats
 
 # from . _glm import OneWayANOVAModel, OneWayRMANOVAModel
-
+# from .. _dec import appendSPMargs
 
 
 
@@ -115,7 +115,7 @@ def anova1rm(y, A, SUBJ, equal_var=False, gg=True):
 	# return f, df, p, model
 
 
-def _assemble_spm_objects(f, df, design, fit):
+def _assemble_spm_objects(f, df, design, fit, testname=None):
 	if fit.dvdim==1:
 		from .. _spmcls import SPM0D as _SPM
 	else:
@@ -126,10 +126,23 @@ def _assemble_spm_objects(f, df, design, fit):
 		spm = spm[0]
 	else:
 		from .. _spmcls import SPMFList
-		spm = SPMFList( spm, nfactors=len(spm) )
+		spm = SPMFList( spm )
 	return spm
 
 
+class appendSPMargs(object):
+	def __init__(self, f):
+		self.f = f
+
+	def __call__(self, *args, **kwargs):
+		spm = self.f(*args, **kwargs)
+		spm._set_testname( self.f.__name__ )
+		spm._set_data( *args, **kwargs )
+		return spm
+
+
+
+@appendSPMargs
 def anova2(y, A, B, equal_var=False, factor_names=('A', 'B'), factor_names_s=('A', 'B')):
 	if not equal_var:
 		raise NotImplementedError('not yet')
@@ -140,7 +153,7 @@ def anova2(y, A, B, equal_var=False, factor_names=('A', 'B'), factor_names_s=('A
 	J        = A.size
 	Q        = [np.eye(J)]
 	f,df,fit = aov(y, design.X, design.C, Q)
-	return _assemble_spm_objects(f, df, design, fit)
+	return _assemble_spm_objects(f, df, design, fit, testname='anova2')
 
 
 # def anova1(y, A, equal_var=False):

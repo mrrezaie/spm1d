@@ -38,9 +38,10 @@ class SPM0D(_SPMParent):
 		# self.sigma2         = sigma2           # variance
 		self.z              = np.float64(z)    # test statistic value
 		self.df             = df               # degrees of freedom
-		if self.STAT=='F':
-			self.effect_label       = contrast.name_s
-			# self.effect_label_s     = 'A'
+
+		# if self.STAT=='F':
+		# 	self.effect_label       = contrast.name_s
+		# 	# self.effect_label_s     = 'A'
 
 
 	# def __repr__(self):
@@ -63,6 +64,7 @@ class SPM0D(_SPMParent):
 		dp.add_header( self._class_str )
 		dp.add( 'testname' )
 		dp.add( 'name' )
+		dp.add( 'name_short' )
 		dp.add( 'STAT' )
 		# if self.isanova:
 		# 	dp.add( 'effect_label' )
@@ -94,6 +96,12 @@ class SPM0D(_SPMParent):
 	@property
 	def name(self):
 		return self.contrast.name
+	@property
+	def name_s(self):
+		return self.contrast.name_s
+	@property
+	def name_short(self):
+		return self.contrast.name_s
 
 	
 	def _build_spmi(self, results, df_adjusted=None):
@@ -153,8 +161,9 @@ class SPM0D(_SPMParent):
 	
 	
 	def _repr_summ(self, n=5):  # used only for ANOVA
-		fmts = '{:<%s}    F = {:<8} df = {}\n' %n
-		return fmts.format( self.effect_label,  '%.3f'%self.z, dflist2str(self.df) )
+		fmts = '{:<%s}  F = {:<8} df = {}\n' %n
+		return fmts.format( self.name_s,  '%.3f'%self.z, dflist2str(self.df) )
+		# return fmts.format( self.effect_label,  '%.3f'%self.z, dflist2str(self.df) )
 		# return '{:<5}:   F = {:<8} df = {}\n'.format(self.effect_label,  '%.3f'%self.z, dflist2str(self.df))
 	
 	

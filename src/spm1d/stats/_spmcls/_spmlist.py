@@ -21,19 +21,17 @@ class SPMFList(list):
 	STAT          = 'F'
 	name          = 'SPM{F} list'
 	testname      = None
-	design        = ''
+	# design        = ''
 	dim           = 0
-	neffects      = 1
 	isparametric  = True
 	effect_labels = None
 	
-	def __init__(self, FF, nfactors=2):
-		super().__init__(FF)
-		self.neffects  = len(self)
-		self.nfactors  = nfactors
-		self.dim       = self[0].dim
-		# if self.dim==0:
-		# 	self.name += ' (0D)'
+	# def __init__(self, FF):
+	# 	super().__init__(FF)
+	# 	self.neffects  = len(self)
+	# 	self.dim       = self[0].dim
+	# 	# if self.dim==0:
+	# 	# 	self.name += ' (0D)'
 
 
 	# def __init__(self, FF, nFactors=2):
@@ -51,9 +49,24 @@ class SPMFList(list):
 	def __repr__(self):
 		return self._repr_summ()
 	
+	
+	@property
+	def design(self):
+		return self[0].design
+	@property
+	def dim(self):
+		return self[0].dim
+	@property
+	def neffects(self):
+		return len(self)
+	@property
+	def nfactors(self):
+		return self[0].design.nfactors
+
+	
 	def _repr_get_header(self):
 		s        = '%s\n'  %self.name
-		s       += '   design    :  %s\n'      %self.design
+		s       += '   testname  :  %s\n'      %self.testname
 		s       += '   neffects  :  %d\n'      %self.neffects
 		return s
 	def _repr_summ(self):
@@ -71,10 +84,11 @@ class SPMFList(list):
 			s   += '\n'
 		return s
 
-	def _set_data(self, *args):
-		self._args = args
+	def _set_data(self, *args, **kwargs):
+		self._args   = args
+		self._kwargs = kwargs
 		for f in self:
-			f._set_data( *args )
+			f._set_data( *args, **kwargs )
 	def _set_testname(self, name):
 		self.testname = str( name )
 		for f in self:
@@ -150,21 +164,21 @@ class SPMFList(list):
 
 
 		if method in ['param', 'rft']:
-			FFi     = SPMFiList(  [f.inference(alpha=alpha, **kwargs)   for f in self]  )
+			FFi     = SPMFiList(self,  [f.inference(alpha=alpha, **kwargs)   for f in self]  )
 			
 		elif method == 'perm':
 			z       = np.array([f.z for f in self])
 			nperm   = kwargs['nperm']
 			results = prob.perm(self.STAT, z, alpha=alpha, testname=self.testname, args=self._args, nperm=nperm, dim=self.dim)
-			FFi     = SPMFiList(   [f._build_spmi(res, dfa)  for f,res in zip(self, results)]   )
+			FFi     = SPMFiList(self,   [f._build_spmi(res, dfa)  for f,res in zip(self, results)]   )
 			
 		elif method == 'fdr':
-			FFi     = SPMFiList(  [f.inference(alpha=alpha, method='fdr', **kwargs)   for f in self]  )
+			FFi     = SPMFiList(self,  [f.inference(alpha=alpha, method='fdr', **kwargs)   for f in self]  )
 		
 
-		FFi.set_design_label( self.design )
-		FFi.effect_labels = self.effect_labels
-		FFi.nfactors      = self.nfactors
+		# FFi.set_design_label( self.design )
+		# FFi.effect_labels = self.effect_labels
+		# FFi.nfactors      = self.nfactors
 		
 		return FFi
 		
@@ -185,8 +199,8 @@ class SPMFList(list):
 		print( self._repr_summ() )
 	def print_verbose(self):
 		print( self._repr_verbose() )
-	def set_design_label(self, label):
-		self.design  = str(label)
+	# def set_design_label(self, label):
+	# 	self.design  = str(label)
 	def set_effect_labels(self, labels):
 		[F.set_effect_label(label)  for F,label in zip(self, labels)]
 		self.effect_labels   = [F.effect_label_s   for F in self]
@@ -198,6 +212,12 @@ class SPMFList(list):
 
 class SPMFiList(SPMFList):
 	name          = 'SPM{F} inference list'
+	
+	def __init__(self, spmlist, spmis):
+		super().__init__(spmis)
+		self.testname = spmlist.testname
+	
+	
 	@property
 	def h0reject(self):
 		for f in self:
