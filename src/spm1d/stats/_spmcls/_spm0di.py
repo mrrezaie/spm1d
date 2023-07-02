@@ -114,7 +114,7 @@ class SPM0Di(_SPMiParent):
 	# 	return '{:<5} F = {:<8} df = {:<9} p = {}\n'.format(self.effect_label_s,  '%.3f'%self.z, dflist2str(self.df), p2string(self.p,fmt='%.5f'))
 	
 	def _repr_summ(self, n=5):  # used only for ANOVA
-		fmts = '{:<%s}  F = {:<8} df = {:<15} p = {}\n' %n
+		fmts = '{:<%s}   F = {:<8} df = {:<15} p = {}\n' %n
 		return fmts.format( self.name_s,  '%.3f'%self.z, dflist2str(self.df), p2string(self.p,fmt='%.5f') )
 
 

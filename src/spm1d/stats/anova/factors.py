@@ -4,17 +4,18 @@ import numpy as np
 
 
 class Factor(object):
-	def __init__(self, A, name='A', name_s='A', level_names=None):
+	def __init__(self, A, name='A', name_s=None, level_names=None):
 		self.A            = np.asarray(A, dtype=int)        #integer vector of factor levels
 		self.J            = None     # number of observations
 		self.u            = None     # unique levels
 		self.n            = None     # number of levels
-		self.name         = name     # factor label
-		self.name_s       = name     # factor label short (for summary table display)
-		self.unames       = None
+		self.name         = None     # factor label
+		self.name_s       = None     # factor label short (for summary table display)
+		self.unames       = None     # factor level labels
 		# self.isnested     = False    # nested flag
 		# self.nested       = None
 		# self.balanced     = True
+		self.set_name(name, name_s)
 		self._parse( level_names )
 
 
@@ -22,6 +23,7 @@ class Factor(object):
 	def __repr__(self):
 		s  = f'Factor "{self.name}"\n'
 		s += f'    name        = {self.name}\n'
+		s += f'    name_s      = {self.name_s}\n'
 		s += f'    J           = {self.J}\n'
 		s += f'    n           = {self.n}\n'
 		s += f'    u           = {self.u}\n'
@@ -103,4 +105,10 @@ class Factor(object):
 				x[(A==uA1)&(B==uB1)] =  +1
 				XAB.append(x)
 		return np.array(XAB).T
+		
+		
+	def set_name(self, name, name_s=None):
+		self.name   = str(name).upper()
+		self.name_s = self.name if (name_s is None) else str(name_s).upper()
+
 	

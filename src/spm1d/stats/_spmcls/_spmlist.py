@@ -206,6 +206,15 @@ class SPMFList(list):
 		[F.set_effect_label(label)  for F,label in zip(self, labels)]
 		self.effect_labels   = [F.effect_label_s   for F in self]
 
+	def set_factor_names(self, names, names_s=None):
+		self.design.set_factor_names(names, names_s)
+
+		# if names_short is None:
+		# 	names_short = [None] * self.nfactors
+		#
+		# for factor,s,ss in zip(self.design.factors, names, names_short):
+		# 	factor.set_name( s, ss )
+
 
 # class SPMiList(list):
 # 	pass

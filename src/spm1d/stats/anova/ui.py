@@ -2,7 +2,7 @@
 # import scipy.stats
 
 # from . _glm import OneWayANOVAModel, OneWayRMANOVAModel
-# from .. _dec import appendSPMargs
+from .. _dec import appendSPMargs
 
 
 
@@ -115,13 +115,27 @@ def anova1rm(y, A, SUBJ, equal_var=False, gg=True):
 	# return f, df, p, model
 
 
-def _assemble_spm_objects(f, df, design, fit, testname=None):
+# def _assemble_spm_objects(f, df, design, fit, testname=None):
+# 	if fit.dvdim==1:
+# 		from .. _spmcls import SPM0D as _SPM
+# 	else:
+# 		from .. _spmcls import SPM1D as _SPM
+# 	# spm = [_SPM('F', ff, ddf, beta=None, residuals=None, sigma2=None, X=None)  for ff,ddf in zip(f,df)]
+# 	spm = [_SPM('F', ff, ddf, design, fit, c)  for ff,ddf,c in zip(f,df,design.C)]
+# 	if len(spm)==1:
+# 		spm = spm[0]
+# 	else:
+# 		from .. _spmcls import SPMFList
+# 		spm = SPMFList( spm )
+# 	return spm
+
+def _assemble_spm_objects(f, df, design, fit):
 	if fit.dvdim==1:
 		from .. _spmcls import SPM0D as _SPM
 	else:
 		from .. _spmcls import SPM1D as _SPM
 	# spm = [_SPM('F', ff, ddf, beta=None, residuals=None, sigma2=None, X=None)  for ff,ddf in zip(f,df)]
-	spm = [_SPM('F', ff, ddf, design, fit, c)  for ff,ddf,c in zip(f,df,design.C)]
+	spm = [_SPM('F', ff, ddf, design, fit, c)  for ff,ddf,c in zip(f,df,design.contrasts)]
 	if len(spm)==1:
 		spm = spm[0]
 	else:
@@ -130,30 +144,24 @@ def _assemble_spm_objects(f, df, design, fit, testname=None):
 	return spm
 
 
-class appendSPMargs(object):
-	def __init__(self, f):
-		self.f = f
-
-	def __call__(self, *args, **kwargs):
-		spm = self.f(*args, **kwargs)
-		spm._set_testname( self.f.__name__ )
-		spm._set_data( *args, **kwargs )
-		return spm
-
-
 
 @appendSPMargs
-def anova2(y, A, B, equal_var=False, factor_names=('A', 'B'), factor_names_s=('A', 'B')):
+def anova2(y, A, B, equal_var=False):
 	if not equal_var:
 		raise NotImplementedError('not yet')
 	from . designs import ANOVA2
-	design   = ANOVA2( A, B, factor_names=factor_names, factor_names_s=factor_names_s )
+	design   = ANOVA2( A, B )
 	# Q        = design.get_variance_model( equal_var=equal_var )
+	
+	# temporary variance components:
 	import numpy as np
 	J        = A.size
 	Q        = [np.eye(J)]
-	f,df,fit = aov(y, design.X, design.C, Q)
-	return _assemble_spm_objects(f, df, design, fit, testname='anova2')
+
+
+	f,df,fit = aov(y, design.X, design.contrasts, Q)
+	return _assemble_spm_objects(f, df, design, fit)
+
 
 
 # def anova1(y, A, equal_var=False):

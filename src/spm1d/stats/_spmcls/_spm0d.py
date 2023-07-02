@@ -161,7 +161,7 @@ class SPM0D(_SPMParent):
 	
 	
 	def _repr_summ(self, n=5):  # used only for ANOVA
-		fmts = '{:<%s}  F = {:<8} df = {}\n' %n
+		fmts = '{:<%s}   F = {:<8} df = {}\n' %n
 		return fmts.format( self.name_s,  '%.3f'%self.z, dflist2str(self.df) )
 		# return fmts.format( self.effect_label,  '%.3f'%self.z, dflist2str(self.df) )
 		# return '{:<5}:   F = {:<8} df = {}\n'.format(self.effect_label,  '%.3f'%self.z, dflist2str(self.df))
