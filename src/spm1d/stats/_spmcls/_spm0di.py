@@ -128,6 +128,12 @@ class SPM0Di(_SPMiParent):
 	def fit(self):
 		return self._spm.fit
 	@property
+	def ms(self):
+		return self._spm.ms
+	@property
+	def ss(self):
+		return self._spm.ss
+	@property
 	def testname(self):
 		return self._spm.testname
 	@property

@@ -51,11 +51,20 @@ class SPMFList(list):
 	
 	
 	@property
+	def contrasts(self):
+		return self[0].design.contrasts
+	@property
 	def design(self):
 		return self[0].design
 	@property
+	def dfe(self):
+		return self[0].df[1]
+	@property
 	def dim(self):
 		return self[0].dim
+	@property
+	def fit(self):
+		return self[0].fit
 	@property
 	def neffects(self):
 		return len(self)
@@ -198,6 +207,9 @@ class SPMFList(list):
 		_plot_F_list(self, plot_threshold_label, plot_p_values, autoset_ylim)
 	def print_summary(self):
 		print( self._repr_summ() )
+			
+			
+		print( self._repr_verbose() )
 	def print_verbose(self):
 		print( self._repr_verbose() )
 	# def set_design_label(self, label):
@@ -241,4 +253,14 @@ class SPMFiList(SPMFList):
 	def get_zstar_values(self):
 		return tuple( [f.zstar for f in self] )
 
+
+	def print_table(self):
+		fmt0 = '{:<6} {:>6} {:>8} {:>8} {:>8} {:>8}'
+		fmt  = '{:<6} {:6.3f} {:8.3f} {:8.3f} {:8.3f} {:8.3f}'
+		fmte = '{:<6} {:6.3f} {:8.3f} {:8.3f}'
+		# print table
+		print( fmt0.format('Source', 'DF', 'SS', 'MS', 'F', 'P') )
+		for f in self:
+			print( fmt.format(f.name_s, f.df[0], f.ss, f.ms, f.z, f.p) )
+		print( fmte.format('Error', self.dfe, self.fit.sse, self.fit.mse) )
 
