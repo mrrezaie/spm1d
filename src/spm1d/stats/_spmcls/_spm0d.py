@@ -36,17 +36,19 @@ class SPM0D(_SPMParent):
 		dp      = DisplayParams( self )
 		dp.add_header( self._class_str )
 		dp.add( 'testname' )
-		dp.add( 'name' )
-		dp.add( 'name_short' )
 		dp.add( 'STAT' )
-		# if self.isanova:
-		# 	dp.add( 'effect_label' )
-		# 	dp.add( 'ss' , tuple2str )
-		# 	dp.add( 'ms' , tuple2str )
 		dp.add( 'z', fmt='%.5f' )
 		if self.isregress:
 			dp.add('r', fmt='%.5f')
 		dp.add( 'df', fmt=dflist2str )
+		if self.isanova:
+			# dp.add( 'ss' , tuple2str )
+			# dp.add( 'ms' , tuple2str )
+			dp.add( 'ss', fmt='%.5f' )
+			dp.add( 'ms', fmt='%.5f' )
+			dp.add( 'name' )
+			dp.add( 'name_short' )
+		
 		return dp.asstr()
 		
 	@property
@@ -56,8 +58,8 @@ class SPM0D(_SPMParent):
 	def df(self):
 		return self.results.df
 	@property
-	def z(self):
-		return self.results.z
+	def ms(self):
+		return self.results.ms if self.isanova else None
 	@property
 	def name(self):
 		return self.contrast.name
@@ -67,6 +69,12 @@ class SPM0D(_SPMParent):
 	@property
 	def name_short(self):
 		return self.contrast.name_s
+	@property
+	def ss(self):
+		return self.results.ss if self.isanova else None
+	@property
+	def z(self):
+		return self.results.z
 
 	
 	def _build_spmi(self, results, df_adjusted=None):
