@@ -154,10 +154,15 @@ class ANOVA1RM(_Design):
 
 
 class ANOVA2(_Design):
-	def __init__(self, A, B, factor_names=['A', 'B']):
-		s0,s1        = factor_names
-		self.factors = [ Factor(A, name=s0), Factor(B, name=s1) ]
+	def __init__(self, A, B, factor_names=('A','B'), factor_names_s=('A','B')):
+		self._init_factors( A, B, factor_names, factor_names_s )
 		self._assemble()
+
+
+	def _init_factors(self, A, B, factor_names, factor_names_s):
+		s0,s1        = factor_names
+		ss0,ss1      = factor_names_s
+		self.factors = [ Factor(A, name=s0, name_s=ss0), Factor(B, name=s1, name_s=ss1) ]
 
 	def _build_contrasts(self):
 		from . contrasts import Contrast
@@ -173,7 +178,7 @@ class ANOVA2(_Design):
 			c   = np.zeros(n)
 			c[i] = 1
 			CA.append(c)
-		CA = Contrast( np.asarray(CA).T, name=f'Main {fA.name}' )
+		CA = Contrast( np.asarray(CA).T, name=f'Main {fA.name}', name_s=fA.name_s )
 
 
 		CB = []
@@ -181,14 +186,14 @@ class ANOVA2(_Design):
 			c   = np.zeros(n)
 			c[nA+i] = 1
 			CB.append(c)
-		CB = Contrast( np.asarray(CB).T, name=f'Main {fB.name}' )
+		CB = Contrast( np.asarray(CB).T, name=f'Main {fB.name}', name_s=fB.name_s )
 
 		CAB  = []
 		for i in range(nAB):
 			c   = np.zeros(n)
 			c[nA+nB+i] = 1
 			CAB.append(c)
-		CAB = Contrast( np.asarray(CAB).T, name=f'Interaction {fA.name} x {fB.name}' )
+		CAB = Contrast( np.asarray(CAB).T, name=f'Interaction {fA.name} x {fB.name}', name_s=f'{fA.name_s}x{fB.name_s}' )
 	
 		C    = [CA, CB, CAB]
 		

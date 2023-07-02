@@ -26,11 +26,12 @@ from ... util import dflist2str, tuple2str, DisplayParams
 
 class SPM0D(_SPMParent):
 
-	def __init__(self, STAT, z, df, design, fit):
+	def __init__(self, STAT, z, df, design, fit, contrast):
 		self.STAT           = STAT             # test statistic type ("T" or "F")
 		self.testname       = None             # hypothesis test name (set using set_testname method)
 		self.design         = design
 		self.fit            = fit
+		self.contrast       = contrast
 		# self.X              = X                # design matrix
 		# self.beta           = beta             # fitted parameters
 		# self.residuals      = residuals        # model residuals
@@ -38,8 +39,8 @@ class SPM0D(_SPMParent):
 		self.z              = np.float64(z)    # test statistic value
 		self.df             = df               # degrees of freedom
 		if self.STAT=='F':
-			self.effect_label       = 'Main A'
-			self.effect_label_s     = 'A'
+			self.effect_label       = contrast.name_s
+			# self.effect_label_s     = 'A'
 
 
 	# def __repr__(self):
@@ -61,6 +62,7 @@ class SPM0D(_SPMParent):
 		dp      = DisplayParams( self )
 		dp.add_header( self._class_str )
 		dp.add( 'testname' )
+		dp.add( 'name' )
 		dp.add( 'STAT' )
 		# if self.isanova:
 		# 	dp.add( 'effect_label' )
@@ -88,7 +90,11 @@ class SPM0D(_SPMParent):
 	# 		spmi.nperm    = results.nperm
 	# 		spmi.permuter = results.permuter
 	# 	return spmi
-		
+	
+	@property
+	def name(self):
+		return self.contrast.name
+
 	
 	def _build_spmi(self, results, df_adjusted=None):
 		from . _spm0di import SPM0Di
@@ -146,8 +152,10 @@ class SPM0D(_SPMParent):
 		return self._build_spmi(results)
 	
 	
-	def _repr_summ(self):
-		return '{:<5} F = {:<8} df = {}\n'.format(self.effect_label_s,  '%.3f'%self.z, dflist2str(self.df))
+	def _repr_summ(self, n=5):  # used only for ANOVA
+		fmts = '{:<%s}    F = {:<8} df = {}\n' %n
+		return fmts.format( self.effect_label,  '%.3f'%self.z, dflist2str(self.df) )
+		# return '{:<5}:   F = {:<8} df = {}\n'.format(self.effect_label,  '%.3f'%self.z, dflist2str(self.df))
 	
 	
 	def inference(self, alpha, method='param', **kwargs):

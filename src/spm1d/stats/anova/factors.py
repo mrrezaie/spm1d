@@ -4,12 +4,13 @@ import numpy as np
 
 
 class Factor(object):
-	def __init__(self, A, name='A', level_names=None):
+	def __init__(self, A, name='A', name_s='A', level_names=None):
 		self.A            = np.asarray(A, dtype=int)        #integer vector of factor levels
 		self.J            = None     # number of observations
 		self.u            = None     # unique levels
 		self.n            = None     # number of levels
-		self.name         = name
+		self.name         = name     # factor label
+		self.name_s       = name     # factor label short (for summary table display)
 		self.unames       = None
 		# self.isnested     = False    # nested flag
 		# self.nested       = None

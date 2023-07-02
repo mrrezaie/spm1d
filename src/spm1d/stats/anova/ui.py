@@ -79,7 +79,7 @@ def aov(y, X, C, Q, gg=False, _Xeff=None):
 			fit.adjust_df_greenhouse_geisser()
 		f.append( fit._f )
 		df.append( fit._df )
-	return fit, f, df
+	return f, df, fit
 	
 
 
@@ -121,7 +121,7 @@ def _assemble_spm_objects(f, df, design, fit):
 	else:
 		from .. _spmcls import SPM1D as _SPM
 	# spm = [_SPM('F', ff, ddf, beta=None, residuals=None, sigma2=None, X=None)  for ff,ddf in zip(f,df)]
-	spm = [_SPM('F', ff, ddf, design, fit)  for ff,ddf in zip(f,df)]
+	spm = [_SPM('F', ff, ddf, design, fit, c)  for ff,ddf,c in zip(f,df,design.C)]
 	if len(spm)==1:
 		spm = spm[0]
 	else:
@@ -130,16 +130,16 @@ def _assemble_spm_objects(f, df, design, fit):
 	return spm
 
 
-def anova2(y, A, B, equal_var=False, factor_names=('A', 'B')):
+def anova2(y, A, B, equal_var=False, factor_names=('A', 'B'), factor_names_s=('A', 'B')):
 	if not equal_var:
 		raise NotImplementedError('not yet')
 	from . designs import ANOVA2
-	design   = ANOVA2( A, B, factor_names=factor_names )
+	design   = ANOVA2( A, B, factor_names=factor_names, factor_names_s=factor_names_s )
 	# Q        = design.get_variance_model( equal_var=equal_var )
 	import numpy as np
-	J  = A.size
-	Q  = [np.eye(J)]
-	fit, f, df = aov(y, design.X, design.C, Q)
+	J        = A.size
+	Q        = [np.eye(J)]
+	f,df,fit = aov(y, design.X, design.C, Q)
 	return _assemble_spm_objects(f, df, design, fit)
 
 

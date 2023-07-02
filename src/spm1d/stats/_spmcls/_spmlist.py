@@ -57,10 +57,11 @@ class SPMFList(list):
 		s       += '   neffects  :  %d\n'      %self.neffects
 		return s
 	def _repr_summ(self):
+		n         = max( [len(spm.contrast.name_s) for spm in self] )
 		s         = self._repr_get_header()
 		s        += 'Effects:\n'
 		for f in self:
-			s    += '   %s' %f._repr_summ()
+			s    += '   %s' %f._repr_summ(n)
 		return s
 	def _repr_verbose(self):
 		s        = self._repr_get_header()
