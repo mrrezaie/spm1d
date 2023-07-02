@@ -23,24 +23,35 @@ class SPM0Di(_SPMiParent):
 	
 	isinference   = True
 	
-	def __init__(self, spm, results, df_adjusted):
-		self.STAT            = spm.STAT
-		self.testname        = spm.testname
-		self._args           = spm._args            # arguments for spm1d.stats function
-		self._kwargs         = spm._kwargs          # keyword arguments for spm1d.stats function
+	def __init__(self, spm, iresults, df_adjusted):
+		self._spm            = spm
+		# self.STAT            = spm.STAT
+		# self.testname        = spm.testname
+		# self._args           = spm._args            # arguments for spm1d.stats function
+		# self._kwargs         = spm._kwargs          # keyword arguments for spm1d.stats function
 		self._iargs          = None                 # arguments for inference
 		self._ikwargs        = None                 # keyword arguments for inference
-		self.design          = spm.design
-		self.fit             = spm.fit
-		self.contrast        = spm.contrast
+		# self.design          = spm.design
+		# self.fit             = spm.fit
+		# self.contrast        = spm.contrast
+		self.iresults        = iresults
+		
+		
+		# self._args           = spm._args            # arguments for spm1d.stats function
+		# self._kwargs         = spm._kwargs          # keyword arguments for spm1d.stats function
+		# self.design          = spm.design
+		# self.fit             = spm.fit
+		# self.contrast        = spm.contrast
+		# self.z               = spm.z                # test statistic value
+		# self.df              = spm.df               # degrees of freedom
 		
 		
 		# self.X               = spm.X                # design matrix
 		# self.beta            = spm.beta             # fitted parameters
 		# self.residuals       = spm.residuals        # model residuals
 		# self.sigma2          = spm.sigma2           # variance
-		self.z               = spm.z                # test statistic value
-		self.df              = spm.df               # degrees of freedom
+		# self.z               = spm.z                # test statistic value
+		# self.df              = spm.df               # degrees of freedom
 		if self.isregress:
 			self.r              = spm.r
 		# if self.isanova:
@@ -49,12 +60,12 @@ class SPM0Di(_SPMiParent):
 		# 	self.ss             = spm.ss
 		# 	self.ms             = spm.ms
 		# inference results:
-		self.method          = results.method
-		self.alpha           = results.alpha
-		self.zc              = results.zc
-		self.p               = results.p
-		self.dirn            = results.dirn
-		self._add_extras( results.extras )
+		self.method          = iresults.method
+		self.alpha           = iresults.alpha
+		self.zc              = iresults.zc
+		self.p               = iresults.p
+		self.dirn            = iresults.dirn
+		self._add_extras( iresults.extras )
 		self.df_adjusted     = df_adjusted
 		
 		# if self.STAT=='T':
@@ -94,6 +105,46 @@ class SPM0Di(_SPMiParent):
 						dp.add(k)
 		return dp.asstr()
 
+
+	@property
+	def _args(self):
+		return self._spm._args
+	@property
+	def _kwargs(self):
+		return self._spm._kwargs
+	@property
+	def STAT(self):
+		return self._spm.STAT
+	@property
+	def contrast(self):
+		return self._spm.contrast
+	@property
+	def design(self):
+		return self._spm.design
+	@property
+	def df(self):
+		return self._spm.df
+	@property
+	def fit(self):
+		return self._spm.fit
+	@property
+	def testname(self):
+		return self._spm.testname
+	@property
+	def z(self):
+		return self._spm.z
+
+
+
+		
+	# self._args           = spm._args            # arguments for spm1d.stats function
+	# self._kwargs         = spm._kwargs          # keyword arguments for spm1d.stats function
+	# self.design          = spm.design
+	# self.fit             = spm.fit
+	# self.contrast        = spm.contrast
+	# self.z               = spm.z                # test statistic value
+	# self.df              = spm.df               # degrees of freedom
+	
 
 	@property
 	def h0reject(self):

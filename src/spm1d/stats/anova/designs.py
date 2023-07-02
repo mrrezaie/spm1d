@@ -14,18 +14,28 @@ class _Design(object):
 		# ss0,ss1      = factor_names_s
 		# self.factors = [ Factor(A, name=s0, name_s=ss0), Factor(B, name=s1, name_s=ss1) ]
 
+
+	@property
+	def C(self):
+		return self.get_contrast_matrices()
 	@property
 	def J(self):
 		return self.X.shape[0]
 	@property
 	def nfactors(self):
 		return len( self.factors )
+	# @property
+	# def testname(self):
+	# 	return self.__class__.__name__.lower()
 		
 	def _assemble(self):
 		self.X         = self._build_design_matrix()
 		self.contrasts = self._build_contrasts()
 
 
+	def get_contrast_matrices(self):
+		return [c.C  for c in self.contrasts]
+	
 	def set_factor_names(self, names, names_short=None):
 		# self.set_factor_names(names, names_short)
 		if names_short is None:

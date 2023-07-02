@@ -63,24 +63,50 @@ from .. _dec import appendSPMargs
 
 
 
+# def aov(y, X, C, Q, gg=False, _Xeff=None):
+# 	from . models import GeneralLinearModel
+# 	model    = GeneralLinearModel()
+# 	model.set_design_matrix( X )
+# 	model.set_variance_model( Q )
+# 	fit      = model.fit( y )
+# 	fit.estimate_variance()
+# 	f,df,ms,ss = [], [], [], []
+# 	for c in C:
+# 		model.set_contrast_matrix( c.C )
+# 		fit.calculate_effective_df( _Xeff )
+# 		fit.calculate_f_stat()
+# 		if gg:
+# 			fit.adjust_df_greenhouse_geisser()
+# 		f.append( fit._f )
+# 		df.append( fit._df )
+# 		ms.append( fit._ms )
+# 		ss.append( fit._ss )
+# 	return f, df, fit
+#
+
 def aov(y, X, C, Q, gg=False, _Xeff=None):
 	from . models import GeneralLinearModel
 	model    = GeneralLinearModel()
 	model.set_design_matrix( X )
 	model.set_variance_model( Q )
 	fit      = model.fit( y )
-	fit.estimate_variance()
-	f,df     = [], []
-	for c in C:
-		model.set_contrast_matrix( c.C )
-		fit.calculate_effective_df( _Xeff )
-		fit.calculate_f_stat()
-		if gg:
-			fit.adjust_df_greenhouse_geisser()
-		f.append( fit._f )
-		df.append( fit._df )
-	return f, df, fit
+	results  = [fit.calculate_f_stat( c, gg=gg, _Xeff=_Xeff )   for c in C]
+	return results, fit
+	# for c in C:
+	# 	res  =
+	#
+	# 	model.set_contrast_matrix( c.C )
+	# 	fit.calculate_effective_df( _Xeff )
+	# 	fit.calculate_f_stat()
+	# 	if gg:
+	# 		fit.adjust_df_greenhouse_geisser()
+	# 	f.append( fit._f )
+	# 	df.append( fit._df )
+	# 	ms.append( fit._ms )
+	# 	ss.append( fit._ss )
+	# return f, df, fit
 	
+
 
 
 
@@ -129,13 +155,29 @@ def anova1rm(y, A, SUBJ, equal_var=False, gg=True):
 # 		spm = SPMFList( spm )
 # 	return spm
 
-def _assemble_spm_objects(f, df, design, fit):
+# def _assemble_spm_objects(f, df, design, fit):
+# 	if fit.dvdim==1:
+# 		from .. _spmcls import SPM0D as _SPM
+# 	else:
+# 		from .. _spmcls import SPM1D as _SPM
+# 	# spm = [_SPM('F', ff, ddf, beta=None, residuals=None, sigma2=None, X=None)  for ff,ddf in zip(f,df)]
+# 	spm = [_SPM('F', ff, ddf, design, fit, c)  for ff,ddf,c in zip(f,df,design.contrasts)]
+# 	if len(spm)==1:
+# 		spm = spm[0]
+# 	else:
+# 		from .. _spmcls import SPMFList
+# 		spm = SPMFList( spm )
+# 	return spm
+
+def _assemble_spm_objects(results, design, fit):
 	if fit.dvdim==1:
 		from .. _spmcls import SPM0D as _SPM
 	else:
 		from .. _spmcls import SPM1D as _SPM
 	# spm = [_SPM('F', ff, ddf, beta=None, residuals=None, sigma2=None, X=None)  for ff,ddf in zip(f,df)]
-	spm = [_SPM('F', ff, ddf, design, fit, c)  for ff,ddf,c in zip(f,df,design.contrasts)]
+	# spm = [_SPM('F', ff, ddf, design, fit, c)  for ff,ddf,c in zip(f,df,design.contrasts)]
+	# spm = [_SPM('F', r.f, r.df, design, fit, c)  for r,c in zip(results, design.contrasts)]
+	spm = [_SPM(r, design, fit, c)  for r,c in zip(results, design.contrasts)]
 	if len(spm)==1:
 		spm = spm[0]
 	else:
@@ -144,23 +186,27 @@ def _assemble_spm_objects(f, df, design, fit):
 	return spm
 
 
-
 @appendSPMargs
 def anova2(y, A, B, equal_var=False):
 	if not equal_var:
-		raise NotImplementedError('not yet')
+		raise NotImplementedError('variance components not yet implemented for anova2')
 	from . designs import ANOVA2
 	design   = ANOVA2( A, B )
 	# Q        = design.get_variance_model( equal_var=equal_var )
 	
 	# temporary variance components:
 	import numpy as np
-	J        = A.size
-	Q        = [np.eye(J)]
+	J       = A.size
+	Q       = [np.eye(J)]
+	# C       = [c.C  for c in design.contrasts]
 
-
-	f,df,fit = aov(y, design.X, design.contrasts, Q)
-	return _assemble_spm_objects(f, df, design, fit)
+	res,fit = aov(y, design.X, design.C, Q)
+	
+	# print(res)
+	# print(fit)
+	
+	# f,df,fit = aov(y, design.X, design.contrasts, Q)
+	return _assemble_spm_objects(res, design, fit)
 
 
 
